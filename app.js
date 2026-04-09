@@ -1,9 +1,12 @@
-const OPENROUTER_API_KEY = "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";
-const OPENROUTER_MODEL = "openai/gpt-4o-mini";
-const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
-const OPENROUTER_SITE_URL = globalThis.location?.origin || "http://localhost:5500";
+// Backend giữ OPENROUTER_API_KEY (local: npm start; production: Render + env).
+const RENDER_CHAT_URL = "https://ten-app.onrender.com/chat";
+const CHAT_API_URL =
+  globalThis.location?.hostname === "localhost" || globalThis.location?.hostname === "127.0.0.1"
+    ? "http://localhost:3000/chat"
+    : RENDER_CHAT_URL;
 
-let aiReady = false;
+const OPENROUTER_MODEL = "openai/gpt-4o-mini";
+
 const conversationHistory = [];
 
 const chatBody = document.getElementById("chat-body");
@@ -289,15 +292,9 @@ Quy tắc theo loại câu hỏi:
     content: systemInstruction
   });
 
-  const key = String(OPENROUTER_API_KEY || "").trim();
-  aiReady = key.length > 0 && key !== "YOUR_OPENROUTER_API_KEY";
-
   // Welcome message
   addMessage("Chào bạn! Mình là trợ lý học tập AI. Bạn có thể hỏi bài tập, nhờ giải thích khái niệm, hoặc gửi ảnh để phân tích. Hãy thử chọn một chủ đề phía trên nhé!", "bot");
 
-  if (!aiReady) {
-    addMessage("Lưu ý: Bạn chưa cấu hình OpenRouter API key trong app.js.", "bot");
-  }
 }
 
 // File upload handling
@@ -363,12 +360,9 @@ async function sendMessage() {
   fileName.textContent = "";
   setSendingState(true);
 
-  const thinkingEl = addTypingIndicator();
+  addTypingIndicator();
 
   try {
-    if (!aiReady) {
-      throw new Error("AI_NOT_READY");
-    }
     let userContent;
     if (file) {
       const base64 = await getBase64(file);
@@ -394,13 +388,10 @@ async function sendMessage() {
     };
 
     const messages = [...conversationHistory, userMessage];
-    const response = await fetch(OPENROUTER_URL, {
+    const response = await fetch(CHAT_API_URL, {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
-        "Content-Type": "application/json",
-        "HTTP-Referer": OPENROUTER_SITE_URL,
-        "X-Title": "Chatbot Ho Tro Hoc Tap"
+        "Content-Type": "application/json"
       },
       body: JSON.stringify({
         model: OPENROUTER_MODEL,
@@ -433,14 +424,19 @@ async function sendMessage() {
     removeTypingIndicator();
 
     const msg = String(err?.message || "").toLowerCase();
-    if (msg.includes("ai_not_ready")) {
-      addMessage("AI chưa sẵn sàng. Hãy thêm OpenRouter API key vào app.js.", "bot");
+    if (msg.includes("failed to fetch") || msg.includes("networkerror")) {
+      addMessage(
+        "Không kết nối được server. Nếu đang test local: chạy npm start (cổng 3000). Nếu dùng web: kiểm tra URL Render trong app.js (RENDER_CHAT_URL) và service đang chạy.",
+        "bot"
+      );
+    } else if (msg.includes("missing") && msg.includes("openrouter")) {
+      addMessage("Chưa cấu hình OPENROUTER_API_KEY trên server (Render → Environment hoặc biến môi trường khi chạy npm start).", "bot");
     } else if (msg.includes("401") || msg.includes("api key") || msg.includes("permission")) {
       addMessage("API key OpenRouter không hợp lệ hoặc chưa có quyền truy cập model.", "bot");
     } else if (msg.includes("quota") || msg.includes("429")) {
       addMessage("Đã hết quota hoặc bị giới hạn tần suất từ OpenRouter. Bạn thử lại sau.", "bot");
     } else {
-      addMessage("Không gửi được câu hỏi tới OpenRouter. Bạn mở F12 để xem lỗi chi tiết.", "bot");
+      addMessage("Không gửi được câu hỏi. Mở F12 (Console) để xem lỗi chi tiết.", "bot");
     }
   } finally {
     setSendingState(false);
