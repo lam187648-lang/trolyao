@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chatbot Hỗ Trợ Học Tập</title>
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body>
+
+<button class="theme-toggle" id="theme-toggle" type="button" aria-label="Chuyển giao diện sáng/tối">🌙</button>
+
+<div class="chatbot">
+
+    <div class="chat-header">
+        <div class="header-content">
+            <div class="header-icon">🤖</div>
+            <div class="header-text">
+                <h2>Chatbot Hỗ Trợ Học Tập</h2>
+                <p>Hỏi đáp bài tập, giải thích ý tưởng, phân tích hình ảnh</p>
+                <div class="header-status">
+                    <span class="status-dot"></span>
+                    <span>Sẵn sàng hỗ trợ</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="quick-tags" id="quick-tags">
+        <button type="button" class="tag-btn" data-text="Giải bài toán này từng bước để em dễ hiểu.">Toán từng bước</button>
+        <button type="button" class="tag-btn" data-text="Tóm tắt bài này trong 5 ý chính ngắn gọn.">Tóm tắt nhanh</button>
+        <button type="button" class="tag-btn" data-text="Đặt 3 câu hỏi để em tự ôn tập lại kiến thức.">Ôn tập logic</button>
+        <button type="button" class="tag-btn" data-text="Phân tích hình em gửi và giải thích dễ hiểu.">Phân tích hình</button>
+    </div>
+
+    <div class="chat-body" id="chat-body">
+    </div>
+
+    <div class="chat-input">
+        <div class="input-row">
+            <input
+                type="text"
+                id="user-input"
+                placeholder="Nhập câu hỏi... (Enter để gửi)"
+                autocomplete="off"
+            >
+            <div class="input-actions">
+                <input type="file" id="image-input" accept="image/*" hidden>
+                <button type="button" class="upload-btn" id="upload-btn">📎 Ảnh</button>
+                <button type="button" id="send-btn">Gửi ➤</button>
+            </div>
+        </div>
+        <div class="file-info hidden" id="file-info">
+            <span class="file-name" id="file-name"></span>
+            <button type="button" class="file-remove" id="file-remove" aria-label="Xóa ảnh">✕</button>
+        </div>
+    </div>
+
+</div>
+
+<script src="app.js"></script>
+
+</body>
+</html>
