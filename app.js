@@ -1,4 +1,4 @@
-const OPENROUTER_API_KEY = "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";
+const OPENROUTER_API_KEY = "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";
 const OPENROUTER_MODEL = "openai/gpt-4o-mini";
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 const OPENROUTER_SITE_URL = globalThis.location?.origin || "http://localhost:5500";
