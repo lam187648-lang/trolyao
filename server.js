@@ -6,7 +6,7 @@ const app = express();
 
 // 👇 PHẢI ĐẶT TRƯỚC TẤT CẢ ROUTE
 const corsOptions = {
-  origin: ["https://lam187648-lang.github.io", "http://localhost:5500"],
+  origin: true, // Cho phép semua origin
   methods: ["GET", "POST", "OPTIONS"],
   allowedHeaders: ["Content-Type"]
 };
