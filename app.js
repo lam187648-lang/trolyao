@@ -1,5 +1,5 @@
 // Backend giữ OPENROUTER_API_KEY (local: npm start; production: Render + env).
-const RENDER_CHAT_URL = "https://ten-app.onrender.com/chat";
+const RENDER_CHAT_URL = "https://trolyao-51sj.onrender.com";
 const CHAT_API_URL =
   globalThis.location?.hostname === "localhost" || globalThis.location?.hostname === "127.0.0.1"
     ? "http://localhost:3000/chat"

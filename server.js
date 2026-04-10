@@ -4,25 +4,18 @@ import fetch from "node-fetch";
 
 const app = express();
 
-const allowedOrigins = [
-  "https://lam187648-lang.github.io",
-  "http://localhost:5500"
-];
-
+// 👇 PHẢI ĐẶT TRƯỚC TẤT CẢ ROUTE
 const corsOptions = {
-  origin(origin, callback) {
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
-    return callback(null, false);
-  },
+  origin: ["https://lam187648-lang.github.io", "http://localhost:5500"],
   methods: ["GET", "POST", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"]
+  allowedHeaders: ["Content-Type"]
 };
 
 app.use(cors(corsOptions));
+
+// 👇 BẮT BUỘC cho preflight
 app.options("*", cors(corsOptions));
+
 app.use(express.json({ limit: "15mb" }));
 
 const API_KEY = process.env.OPENROUTER_API_KEY;
