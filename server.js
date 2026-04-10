@@ -3,7 +3,32 @@ import cors from "cors";
 import fetch from "node-fetch";
 
 const app = express();
-app.use(cors());
+
+const CORS_ORIGINS = new Set([
+  "https://lam187648-lang.github.io",
+  "http://localhost:5500",
+  "http://127.0.0.1:5500",
+  "http://localhost:8080",
+  "http://127.0.0.1:8080",
+  ...(process.env.CORS_ORIGINS || "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean)
+]);
+
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (!origin || CORS_ORIGINS.has(origin)) {
+        callback(null, true);
+        return;
+      }
+      callback(null, false);
+    },
+    methods: ["GET", "POST"],
+    allowedHeaders: ["Content-Type"]
+  })
+);
 app.use(express.json({ limit: "15mb" }));
 
 const API_KEY = process.env.OPENROUTER_API_KEY;
@@ -28,7 +53,7 @@ app.post("/chat", async (req, res) => {
       });
     }
 
-    const body = req.body && typeof req.body === "object" ? req.body : {};
+    const body = req.body && typeof req.body === "objectcls" ? req.body : {};
     const messages = body.messages;
     if (!Array.isArray(messages) || messages.length === 0) {
       return res.status(400).json({ error: "Invalid payload: messages must be a non-empty array" });
