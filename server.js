@@ -11,6 +11,10 @@ const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 const OPENROUTER_MODEL = "openai/gpt-4o-mini";
 const OPENROUTER_SITE_URL = process.env.OPENROUTER_SITE_URL || "http://localhost:5500";
 
+app.get("/", (_req, res) => {
+  res.type("text/plain; charset=utf-8").send("Server chatbot đang chạy OK 🚀");
+});
+
 app.get("/health", (_req, res) => {
   res.status(200).json({ ok: true });
 });
