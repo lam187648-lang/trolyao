@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>?? Login - Chatbot</title>
+<link rel="stylesheet" href="style.css">
+<style>
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: linear-gradient(145deg, #f0f9ff 0%, #e0f2fe 100%);
+    font-family: Inter, sans-serif;
+    padding: 20px;
+}
+.login-card {
+    background: white;
+    padding: 40px;
+    border-radius: 16px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+}
+.login-header {
+    margin-bottom: 30px;
+}
+.login-header h1 {
+    color: #1e40af;
+    margin-bottom: 10px;
+    font-size: 32px;
+    font-weight: 700;
+}
+.login-header p {
+    color: #64748b;
+    font-size: 16px;
+    margin-bottom: 20px;
+}
+.login-avatar {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    border-radius: 50%;
+    margin: 0 auto 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    color: white;
+    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3);
+}
+.login-form {
+    text-align: left;
+}
+.form-group {
+    margin-bottom: 20px;
+}
+.form-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #374151;
+    font-size: 14px;
+}
+.form-input {
+    width: 100%;
+    padding: 14px;
+    border: 2px solid #e5e7eb;
+    border-radius: 10px;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+}
+.form-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+.login-btn {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 10px;
+}
+.login-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3);
+}
+.login-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+.register-link {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #e5e7eb;
+    text-align: center;
+}
+.register-link p {
+    color: #64748b;
+    font-size: 14px;
+}
+.register-link a {
+    color: #3b82f6;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.2s ease;
+}
+.register-link a:hover {
+    color: #2563eb;
+    text-decoration: underline;
+}
+.error-message {
+    background: #fef2f2;
+    color: #dc2626;
+    padding: 14px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    border: 1px solid #fecaca;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.success-message {
+    background: #f0fdf4;
+    color: #16a34a;
+    padding: 14px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    border: 1px solid #bbf7d0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.loading {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+.back-link {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background: white;
+    padding: 10px 16px;
+    border-radius: 8px;
+    text-decoration: none;
+    color: #64748b;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+.back-link:hover {
+    color: #3b82f6;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+.mobile-info {
+    background: #f0f9ff;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 13px;
+    color: #1e40af;
+    border: 1px solid #bfdbfe;
+    text-align: center;
+}
+@media (max-width: 480px) {
+    .login-card {
+        padding: 30px 20px;
+    }
+    .login-header h1 {
+        font-size: 28px;
+    }
+    .login-avatar {
+        width: 60px;
+        height: 60px;
+        font-size: 28px;
+    }
+}
+</style>
+</head>
+<body>
+<a href="index.html" class="back-link">?? Quay l?i</a>
+
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-header">
+            <div class="login-avatar">??</div>
+            <h1>??ng Nh?p</h1>
+            <p>Chào m?ng quay tr? l?i!</p>
+        </div>
+
+        <div class="mobile-info">
+            <strong>Mobile Users:</strong> Trang này t?i uu cho di ??ng và local files
+        </div>
+
+        <div id="message-container"></div>
+
+        <form id="login-form" class="login-form">
+            <div class="form-group">
+                <label class="form-label" for="username">Tên ??ng nh?p</label>
+                <input type="text" id="username" class="form-input" placeholder="Nh?p tên ??ng nh?p..." required>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="password">M?t kh?u</label>
+                <input type="password" id="password" class="form-input" placeholder="Nh?p m?t kh?u..." required>
+            </div>
+            
+            <button type="submit" class="login-btn" id="login-btn">
+                <span id="login-text">??ng Nh?p</span>
+            </button>
+        </form>
+
+        <div class="register-link">
+            <p>Chua có tài kho?n? <a href="register.html">??ng Ký Ngay</a></p>
+        </div>
+    </div>
+</div>
+
+<script src="login.js"></script>
+</body>
+</html>

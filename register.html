@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>?? Register - Chatbot</title>
+<link rel="stylesheet" href="style.css">
+<style>
+.register-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: linear-gradient(145deg, #f0fdf4 0%, #dcfce7 100%);
+    font-family: Inter, sans-serif;
+    padding: 20px;
+}
+.register-card {
+    background: white;
+    padding: 40px;
+    border-radius: 16px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+}
+.register-header {
+    margin-bottom: 30px;
+}
+.register-header h1 {
+    color: #16a34a;
+    margin-bottom: 10px;
+    font-size: 32px;
+    font-weight: 700;
+}
+.register-header p {
+    color: #64748b;
+    font-size: 16px;
+    margin-bottom: 20px;
+}
+.register-avatar {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #10b981, #059669);
+    border-radius: 50%;
+    margin: 0 auto 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    color: white;
+    box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);
+}
+.register-form {
+    text-align: left;
+}
+.form-group {
+    margin-bottom: 20px;
+}
+.form-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #374151;
+    font-size: 14px;
+}
+.form-input {
+    width: 100%;
+    padding: 14px;
+    border: 2px solid #e5e7eb;
+    border-radius: 10px;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+}
+.form-input:focus {
+    outline: none;
+    border-color: #10b981;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+.form-input.error {
+    border-color: #dc2626;
+}
+.password-strength {
+    margin-top: 8px;
+    font-size: 12px;
+    color: #64748b;
+}
+.strength-weak { color: #dc2626; }
+.strength-medium { color: #f59e0b; }
+.strength-strong { color: #16a34a; }
+.register-btn {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 10px;
+}
+.register-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);
+}
+.register-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+.login-link {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #e5e7eb;
+    text-align: center;
+}
+.login-link p {
+    color: #64748b;
+    font-size: 14px;
+}
+.login-link a {
+    color: #10b981;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.2s ease;
+}
+.login-link a:hover {
+    color: #059669;
+    text-decoration: underline;
+}
+.error-message {
+    background: #fef2f2;
+    color: #dc2626;
+    padding: 14px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    border: 1px solid #fecaca;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.success-message {
+    background: #f0fdf4;
+    color: #16a34a;
+    padding: 14px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    border: 1px solid #bbf7d0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.loading {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+.back-link {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background: white;
+    padding: 10px 16px;
+    border-radius: 8px;
+    text-decoration: none;
+    color: #64748b;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+.back-link:hover {
+    color: #10b981;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+.benefits-list {
+    background: #f0fdf4;
+    padding: 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 13px;
+    color: #16a34a;
+    border: 1px solid #bbf7d0;
+    text-align: left;
+}
+.benefits-list h4 {
+    margin-bottom: 8px;
+    color: #059669;
+}
+.benefits-list ul {
+    margin: 0;
+    padding-left: 20px;
+}
+.benefits-list li {
+    margin-bottom: 4px;
+}
+@media (max-width: 480px) {
+    .register-card {
+        padding: 30px 20px;
+    }
+    .register-header h1 {
+        font-size: 28px;
+    }
+    .register-avatar {
+        width: 60px;
+        height: 60px;
+        font-size: 28px;
+    }
+}
+</style>
+</head>
+<body>
+<a href="index.html" class="back-link">?? Quay l?i</a>
+
+<div class="register-container">
+    <div class="register-card">
+        <div class="register-header">
+            <div class="register-avatar">??</div>
+            <h1>??ng Ký</h1>
+            <p>T?o tài kho?n m?i!</p>
+        </div>
+
+        <div class="benefits-list">
+            <h4>??i khi ??ng ký b?n s? nh?n:</h4>
+            <ul>
+                <li>100 tokens mi?n phí</li>
+                <li>Truy c?p phòng h?c ?o</li>
+                <li>Luu tr? thông tin h?c t?p</li>
+                <li>Theme m?u s?c ??c bi?t</li>
+            </ul>
+        </div>
+
+        <div id="message-container"></div>
+
+        <form id="register-form" class="register-form">
+            <div class="form-group">
+                <label class="form-label" for="username">Tên ??ng nh?p</label>
+                <input type="text" id="username" class="form-input" placeholder="Ch?n tên ??ng nh?p..." required>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="password">M?t kh?u</label>
+                <input type="password" id="password" class="form-input" placeholder="T?o m?t kh?u..." required>
+                <div class="password-strength" id="password-strength"></div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="confirm-password">Xác nh?n m?t kh?u</label>
+                <input type="password" id="confirm-password" class="form-input" placeholder="Nh?p l?i m?t kh?u..." required>
+            </div>
+            
+            <button type="submit" class="register-btn" id="register-btn">
+                <span id="register-text">??ng Ký</span>
+            </button>
+        </form>
+
+        <div class="login-link">
+            <p>?? có tài kho?n r?i? <a href="login.html">??ng Nh?p</a></p>
+        </div>
+    </div>
+</div>
+
+<script src="register.js"></script>
+</body>
+</html>
