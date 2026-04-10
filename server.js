@@ -4,31 +4,25 @@ import fetch from "node-fetch";
 
 const app = express();
 
-const CORS_ORIGINS = new Set([
+const allowedOrigins = [
   "https://lam187648-lang.github.io",
-  "http://localhost:5500",
-  "http://127.0.0.1:5500",
-  "http://localhost:8080",
-  "http://127.0.0.1:8080",
-  ...(process.env.CORS_ORIGINS || "")
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean)
-]);
+  "http://localhost:5500"
+];
 
-app.use(
-  cors({
-    origin(origin, callback) {
-      if (!origin || CORS_ORIGINS.has(origin)) {
-        callback(null, true);
-        return;
-      }
-      callback(null, false);
-    },
-    methods: ["GET", "POST"],
-    allowedHeaders: ["Content-Type"]
-  })
-);
+const corsOptions = {
+  origin(origin, callback) {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(null, false);
+  },
+  methods: ["GET", "POST", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+};
+
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 app.use(express.json({ limit: "15mb" }));
 
 const API_KEY = process.env.OPENROUTER_API_KEY;
@@ -53,7 +47,7 @@ app.post("/chat", async (req, res) => {
       });
     }
 
-    const body = req.body && typeof req.body === "objectcls" ? req.body : {};
+    const body = req.body && typeof req.body === "object" ? req.body : {};
     const messages = body.messages;
     if (!Array.isArray(messages) || messages.length === 0) {
       return res.status(400).json({ error: "Invalid payload: messages must be a non-empty array" });
