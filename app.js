@@ -218,6 +218,14 @@ function checkAuthStatus() {
   if (savedUser) {
     const users = JSON.parse(localStorage.getItem('users') || '{}');
     if (users[savedUser]) {
+      // Check if user is banned
+      const banStatus = checkUserBan();
+      if (banStatus.isBanned) {
+        showAuthModal();
+        addMessage(`🚫 Tài khoản của bạn đã bị khóa! Vui lòng quay lại sau ${banStatus.remainingTime} phút.`, "bot");
+        return false;
+      }
+      
       currentUser = savedUser;
       loadUserData(savedUser);
       trackUserActivity(savedUser);
@@ -358,6 +366,10 @@ function initLocalStorage() {
     localStorage.setItem('users', JSON.stringify({}));
   }
   
+  if (!localStorage.getItem('userBans')) {
+    localStorage.setItem('userBans', JSON.stringify({}));
+  }
+  
   if (!localStorage.getItem('userAvatar')) {
     localStorage.setItem('userAvatar', '');
   }
@@ -376,6 +388,26 @@ function initLocalStorage() {
   
   // Clean up old schedule data
   localStorage.removeItem('userSchedule');
+}
+
+// Check if current user is banned
+function checkUserBan() {
+  const currentUser = localStorage.getItem('currentUser');
+  if (!currentUser) return false;
+  
+  const bans = JSON.parse(localStorage.getItem('userBans') || '{}');
+  const banInfo = bans[currentUser];
+  
+  if (banInfo && banInfo.until > Date.now()) {
+    const remainingTime = Math.ceil((banInfo.until - Date.now()) / 60000);
+    return {
+      isBanned: true,
+      remainingTime: remainingTime,
+      until: new Date(banInfo.until)
+    };
+  }
+  
+  return { isBanned: false };
 }
 
 // Authentication event listeners
@@ -619,65 +651,19 @@ function trackStudyTime() {
 function processCommand(text) {
   const command = text.toLowerCase().trim();
   
-  if (command.startsWith('/light on')) {
-    sendDeviceRequest('http://192.168.1.100/on');
-    return "Đã gửi lệnh bật đèn!";
-  } else if (command.startsWith('/light off')) {
-    sendDeviceRequest('http://192.168.1.100/off');
-    return "Đã gửi lệnh tắt đèn!";
-  } else if (command.startsWith('/fan on')) {
-    sendDeviceRequest('http://192.168.1.100/fan-on');
-    return "Đã gửi lệnh bật quạt!";
-  } else if (command.startsWith('/fan off')) {
-    sendDeviceRequest('http://192.168.1.100/fan-off');
-    return "Đã gửi lệnh tắt quạt!";
-  } else if (command.startsWith('/door open')) {
-    sendDeviceRequest('http://192.168.1.100/door-open');
-    return "Đã gửi lệnh mở cửa!";
-  } else if (command.startsWith('/door close')) {
-    sendDeviceRequest('http://192.168.1.100/door-close');
-    return "Đã gửi lệnh đóng cửa!";
-  } else if (command === '/143') {
+  if (command === '/143') {
     isDeepAnalysisMode = !isDeepAnalysisMode;
     return isDeepAnalysisMode ? "đã kích hoạt chế độ phân tích sâu 143!" : "đã tắt chế độ phân tích sâu 143!";
   } else if (command === '/tambietlop9') {
     return "🔗 Link đặc biệt: https://example.com/special-link";
-  } else if (command.startsWith('/admin2011143')) {
-    // Extract password if provided
-    const parts = command.split(' ');
-    if (parts.length === 1) {
-      return "Vui lòng nhập mật khẩu: /admin2011143 093981";
-    } else {
-      const password = parts[1];
-      if (password === '093981') {
-        showAdminPanel();
-        return "🔐 Đã mở bảng điều khiển Admin!";
-      } else {
-        return "❌ Mật khẩu sai!";
-      }
-    }
+  } else if (command.startsWith('/admin')) {
+    // Redirect to simple admin page
+    window.open('admin-simple.html', '_blank');
+    return "🔐 Đang chuyển đến trang quản lý người dùng...";
   } else if (command.startsWith('/token')) {
-    // Extract password and amount if provided
-    const parts = command.split(' ');
-    if (parts.length === 1) {
-      return "Vui lòng nhập mật khẩu và số token: /token 093981 1000";
-    } else if (parts.length === 2) {
-      return "Vui lòng nhập số token: /token 093981 1000";
-    } else {
-      const password = parts[1];
-      const amount = parseInt(parts[2]);
-      
-      if (password !== '093981') {
-        return "❌ Mật khẩu sai!";
-      }
-      
-      if (isNaN(amount) || amount < 0) {
-        return "❌ Vui lòng nhập số token hợp lệ!";
-      }
-      
-      addTokens(amount);
-      return `✅ Đã thêm ${amount} tokens vào tài khoản! Tổng tokens: ${currentTokens}`;
-    }
+    // Redirect to token adjustment page
+    window.open('token-page.html', '_blank');
+    return "💰 Đang chuyển đến trang điều chỉnh token...";
   }
   
   return null;

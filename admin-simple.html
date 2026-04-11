@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin - Quản Lý Người Dùng</title>
+<link rel="stylesheet" href="style.css">
+<style>
+.admin-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    background: var(--surface);
+    min-height: 100vh;
+}
+.admin-header {
+    text-align: center;
+    margin-bottom: 30px;
+    padding: 20px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+    color: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+}
+.user-list {
+    background: var(--surface-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 20px;
+}
+.user-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    margin-bottom: 10px;
+    background: var(--surface);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    transition: all 0.2s ease;
+}
+.user-item:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: bold;
+}
+.user-details {
+    display: flex;
+    flex-direction: column;
+}
+.user-name {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 16px;
+}
+.user-status {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+.banned-status {
+    color: #ef4444;
+    font-weight: 600;
+}
+.kick-btn {
+    background: #ef4444;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+.kick-btn:hover {
+    background: #dc2626;
+    transform: translateY(-1px);
+}
+.back-btn {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-weight: 500;
+    text-decoration: none;
+    display: inline-block;
+    transition: all 0.2s ease;
+}
+.back-btn:hover {
+    background: var(--primary-hover);
+    transform: translateY(-1px);
+}
+.ban-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+.ban-content {
+    background: white;
+    padding: 30px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+}
+.ban-input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    margin: 15px 0;
+    font-size: 16px;
+}
+.ban-btn {
+    background: #ef4444;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    margin: 5px;
+    font-weight: 500;
+}
+.cancel-btn {
+    background: var(--text-secondary);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    margin: 5px;
+    font-weight: 500;
+}
+</style>
+</head>
+<body>
+<div class="admin-container">
+    <div class="admin-header">
+        <h1>🔐 Admin Panel</h1>
+        <p>Quản lý người dùng hệ thống</p>
+    </div>
+
+    <div class="user-list" id="user-list">
+        <!-- Users will be loaded dynamically -->
+    </div>
+
+    <div style="text-align: center; margin-top: 30px;">
+        <a href="index.html" class="back-btn">← Quay lại Chatbot</a>
+    </div>
+</div>
+
+<!-- Ban Modal -->
+<div class="ban-modal" id="ban-modal">
+    <div class="ban-content">
+        <h3>🚫 Kick Người Dùng</h3>
+        <p id="ban-username"></p>
+        <input type="number" id="ban-duration" class="ban-input" placeholder="Nhập thời gian chờ (phút)" min="1">
+        <p style="font-size: 12px; color: var(--text-secondary);">
+            Người dùng sẽ không thể truy cập trong khoảng thời gian này
+        </p>
+        <div>
+            <button class="ban-btn" onclick="confirmBan()">Xác nhận Kick</button>
+            <button class="cancel-btn" onclick="closeBanModal()">Hủy</button>
+        </div>
+    </div>
+</div>
+
+<script src="admin-simple.js"></script>
+</body>
+</html>

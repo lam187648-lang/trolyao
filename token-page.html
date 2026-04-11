@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Token Adjustment</title>
+<link rel="stylesheet" href="style.css">
+<style>
+.token-container {
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 20px;
+    background: var(--surface);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+.token-card {
+    background: var(--surface-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 40px;
+    box-shadow: var(--shadow-lg);
+    text-align: center;
+}
+.token-header {
+    margin-bottom: 30px;
+}
+.token-header h1 {
+    color: var(--primary);
+    margin-bottom: 10px;
+    font-size: 28px;
+}
+.token-header p {
+    color: var(--text-secondary);
+    font-size: 16px;
+}
+.token-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+.token-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    text-align: left;
+}
+.token-label {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 14px;
+}
+.token-input {
+    padding: 15px;
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 18px;
+    background: var(--surface);
+    color: var(--text-primary);
+    transition: border-color 0.2s ease;
+}
+.token-input:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+.token-btn {
+    background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    border-radius: var(--radius);
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: var(--shadow-md);
+}
+.token-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+.token-btn:active {
+    transform: translateY(0);
+}
+.current-tokens {
+    background: var(--primary-light);
+    padding: 15px;
+    border-radius: var(--radius);
+    margin-bottom: 20px;
+    border: 1px solid var(--primary);
+}
+.current-tokens .amount {
+    font-size: 24px;
+    font-weight: bold;
+    color: var(--primary);
+}
+.current-tokens .label {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-top: 5px;
+}
+.back-btn {
+    background: var(--text-secondary);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-weight: 500;
+    text-decoration: none;
+    display: inline-block;
+    margin-top: 20px;
+    transition: all 0.2s ease;
+}
+.back-btn:hover {
+    background: var(--text-primary);
+    transform: translateY(-1px);
+}
+.success-message {
+    background: #10b981;
+    color: white;
+    padding: 15px;
+    border-radius: var(--radius);
+    margin-top: 20px;
+    font-weight: 500;
+    animation: slideIn 0.3s ease-out;
+}
+@keyframes slideIn {
+    from { transform: translateY(-20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+</style>
+</head>
+<body>
+<div class="token-container">
+    <div class="token-card">
+        <div class="token-header">
+            <h1>💰 Token Adjustment</h1>
+            <p>Nhập số token bạn muốn thêm</p>
+        </div>
+
+        <div class="current-tokens">
+            <div class="amount" id="current-amount">0</div>
+            <div class="label">Tokens hiện tại</div>
+        </div>
+
+        <div class="token-form">
+            <div class="token-input-group">
+                <label class="token-label">Số token muốn thêm:</label>
+                <input type="number" id="token-amount" class="token-input" placeholder="Nhập số token..." min="0">
+            </div>
+            <button class="token-btn" onclick="addTokens()">Thêm Tokens</button>
+        </div>
+
+        <div id="message-container"></div>
+
+        <div style="text-align: center;">
+            <a href="index.html" class="back-btn">← Quay lại Chatbot</a>
+        </div>
+    </div>
+</div>
+
+<script src="token-page.js"></script>
+</body>
+</html>
