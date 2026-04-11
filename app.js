@@ -148,8 +148,20 @@ function loginUser(username, password) {
   
   currentUser = username;
   localStorage.setItem('currentUser', username);
-  loadUserData(username);
-  return { success: true, message: 'Login successful!' };
+  
+  // Check if first time login
+  if (!user.hasReceivedFirstBonus) {
+    user.tokens = (user.tokens || 0) + 100;
+    user.hasReceivedFirstBonus = true;
+    users[username] = user;
+    localStorage.setItem('users', JSON.stringify(users));
+    
+    loadUserData(username);
+    return { success: true, message: 'Login successful! 🎉 Bạn nhận được 100 tokens thưởng cho lần đăng nhập đầu tiên!' };
+  } else {
+    loadUserData(username);
+    return { success: true, message: 'Login successful!' };
+  }
 }
 
 function logoutUser() {
@@ -661,9 +673,9 @@ function processCommand(text) {
     window.open('admin-simple.html', '_blank');
     return "🔐 Đang chuyển đến trang quản lý người dùng...";
   } else if (command.startsWith('/token')) {
-    // Redirect to token adjustment page
-    window.open('token-page.html', '_blank');
-    return "💰 Đang chuyển đến trang điều chỉnh token...";
+    // Redirect to token shop page
+    window.open('token-shop.html', '_blank');
+    return "�️ Đang chuyển đến cửa hàng token...";
   }
   
   return null;

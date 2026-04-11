@@ -197,6 +197,9 @@ class StudyRoom {
     this.sessionStartTime = Date.now();
     this.startStudyTimer();
     
+    // Save user info to main app storage
+    this.saveUserInfoToMainApp(userData);
+    
     // Hide join section
     const joinSection = document.getElementById('join-section');
     joinSection.style.display = 'none';
@@ -204,6 +207,22 @@ class StudyRoom {
     this.renderGrid();
     this.saveToLocalStorage();
     this.showMessage(`Chào mừng ${userData.name} đã tham gia phòng học!`, 'success');
+  }
+
+  saveUserInfoToMainApp(userData) {
+    // Save to main app's user system
+    const currentUser = localStorage.getItem('currentUser');
+    const users = JSON.parse(localStorage.getItem('users') || '{}');
+    
+    if (currentUser && users[currentUser]) {
+      // Update last activity and study room info
+      users[currentUser].lastStudyRoomVisit = Date.now();
+      users[currentUser].studyRoomSessions = (users[currentUser].studyRoomSessions || 0) + 1;
+      users[currentUser].totalStudyTime = (users[currentUser].totalStudyTime || 0) + 0;
+      
+      localStorage.setItem('users', JSON.stringify(users));
+      console.log('Saved user info to main app:', currentUser);
+    }
   }
 
   leaveStudyRoom() {
