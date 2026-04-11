@@ -636,8 +636,20 @@ function applyColorTheme(theme) {
 
 // Token system
 function updateTokenDisplay() {
-  currentTokens = parseInt(localStorage.getItem('userTokens') || '0');
-  tokenCount.textContent = currentTokens;
+  const currentUser = localStorage.getItem('currentUser');
+  const users = JSON.parse(localStorage.getItem('users') || '{}');
+  
+  if (currentUser && users[currentUser]) {
+    currentTokens = users[currentUser].tokens || 0;
+    localStorage.setItem('userTokens', currentTokens.toString());
+  } else {
+    currentTokens = parseInt(localStorage.getItem('userTokens') || '0');
+  }
+  
+  const tokenElement = document.getElementById('token-count');
+  if (tokenElement) {
+    tokenElement.textContent = currentTokens;
+  }
 }
 
 function addTokens(amount) {
@@ -673,9 +685,9 @@ function processCommand(text) {
     window.open('admin-simple.html', '_blank');
     return "🔐 Đang chuyển đến trang quản lý người dùng...";
   } else if (command.startsWith('/token')) {
-    // Redirect to token shop page
-    window.open('token-shop.html', '_blank');
-    return "�️ Đang chuyển đến cửa hàng token...";
+    // Redirect to new token shop page
+    window.open('token-shop-new.html', '_blank');
+    return "?? ??ang chuy?n ??n c?a h?ng token m?i...";
   }
   
   return null;
