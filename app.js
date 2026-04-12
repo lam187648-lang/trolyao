@@ -714,7 +714,8 @@ function selectColorTheme(theme) {
     
     // Purchase color theme
     if (currentTokens >= theme.price) {
-      currentTokens -= theme.price;
+      // ✅ FIX: Không âm - Math.max(0, ...) đảm bảo token không bao giờ âm
+      currentTokens = Math.max(0, currentTokens - theme.price);
       localStorage.setItem('userTokens', currentTokens.toString());
       purchasedColors.push(theme.id);
       localStorage.setItem('purchasedColors', JSON.stringify(purchasedColors));
@@ -724,7 +725,8 @@ function selectColorTheme(theme) {
         // Update tokens in users object
         const users = JSON.parse(localStorage.getItem('users') || '{}');
         if (users[currentUser]) {
-          users[currentUser].tokens = currentTokens;
+          // ✅ FIX: Đảm bảo token không âm trong users object
+          users[currentUser].tokens = Math.max(0, currentTokens);
           users[currentUser].purchasedColors = purchasedColors;
           localStorage.setItem('users', JSON.stringify(users));
         }
@@ -825,10 +827,11 @@ function updateTokenDisplay() {
   const users = JSON.parse(localStorage.getItem('users') || '{}');
   
   if (currentUser && users[currentUser]) {
-    currentTokens = users[currentUser].tokens || 0;
+    // ✅ FIX: Đảm bảo token không âm khi đọc từ storage
+    currentTokens = Math.max(0, users[currentUser].tokens || 0);
     localStorage.setItem('userTokens', currentTokens.toString());
   } else {
-    currentTokens = parseInt(localStorage.getItem('userTokens') || '0');
+    currentTokens = Math.max(0, parseInt(localStorage.getItem('userTokens') || '0'));
   }
   
   const tokenElement = document.getElementById('token-count');
@@ -838,7 +841,9 @@ function updateTokenDisplay() {
 }
 
 function addTokens(amount) {
-  currentTokens += amount;
+  // ✅ FIX: Không âm + giới hạn MAX_TOKEN = 1 triệu
+  const MAX_TOKEN = 1000000;
+  currentTokens = Math.min(MAX_TOKEN, Math.max(0, currentTokens) + amount);
   localStorage.setItem('userTokens', currentTokens.toString());
   
   const currentUser = getCurrentUser();
