@@ -1,7 +1,6 @@
 // Study Room Management System
 class StudyRoom {
   constructor() {
-    this.currentUser = null;
     this.users = new Map(); // userId -> user data
     this.studyTimer = null;
     this.totalStudyTime = 0;
@@ -26,13 +25,18 @@ class StudyRoom {
     this.updateStats();
     
     // Check if user was already joined
-    if (this.currentUser) {
-      this.joinStudyRoom(this.currentUser);
+    const currentUser = this.getCurrentUser();
+    if (currentUser) {
+      this.joinStudyRoom(currentUser);
     }
   }
 
+  getCurrentUser() {
+    return localStorage.getItem('currentUser');
+  }
+
   checkAuthentication() {
-    const currentUser = localStorage.getItem('currentUser');
+    const currentUser = this.getCurrentUser();
     const users = JSON.parse(localStorage.getItem('users') || '{}');
     
     // Debug logging
@@ -62,30 +66,43 @@ class StudyRoom {
 
   loadFromLocalStorage() {
     // Get current authenticated user
-    const currentUser = localStorage.getItem('currentUser');
+    const currentUser = this.getCurrentUser();
     if (currentUser) {
       const users = JSON.parse(localStorage.getItem('users') || '{}');
       const userData = users[currentUser];
       if (userData) {
-        // Create study room user data from authenticated user
-        this.currentUser = {
-          id: 'user_' + currentUser,
-          name: currentUser,
-          avatar: userData.avatar || this.generateAvatar(currentUser),
-          joinTime: Date.now(),
-          lastSeen: Date.now(),
-          studyTime: 0,
-          status: 'studying'
-        };
-      }
-    }
-    
-    // Also check for existing study room session
-    const savedStudyUser = localStorage.getItem('studyRoomUser');
-    if (savedStudyUser && this.currentUser) {
-      const savedData = JSON.parse(savedStudyUser);
-      if (savedData.name === this.currentUser.name) {
-        this.currentUser = { ...this.currentUser, ...savedData };
+        // Check for existing study room session first
+        const savedStudyUser = localStorage.getItem('studyRoomUser');
+        if (savedStudyUser) {
+          const savedData = JSON.parse(savedStudyUser);
+          if (savedData.name === currentUser) {
+            // Restore existing session
+            this.currentUser = { ...savedData };
+            this.currentUser.lastSeen = Date.now();
+          } else {
+            // Create new study room user data
+            this.currentUser = {
+              id: 'user_' + currentUser,
+              name: currentUser,
+              avatar: userData.avatar || this.generateAvatar(currentUser),
+              joinTime: Date.now(),
+              lastSeen: Date.now(),
+              studyTime: 0,
+              status: 'studying'
+            };
+          }
+        } else {
+          // Create new study room user data
+          this.currentUser = {
+            id: 'user_' + currentUser,
+            name: currentUser,
+            avatar: userData.avatar || this.generateAvatar(currentUser),
+            joinTime: Date.now(),
+            lastSeen: Date.now(),
+            studyTime: 0,
+            status: 'studying'
+          };
+        }
       }
     }
     

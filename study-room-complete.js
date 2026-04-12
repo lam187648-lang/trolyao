@@ -2,7 +2,6 @@
 class StudyRoomSystem {
   constructor() {
     this.users = new Map();
-    this.currentUser = null;
     this.sessionStartTime = null;
     this.totalStudyTime = 0;
     this.studyTimer = null;
@@ -10,20 +9,28 @@ class StudyRoomSystem {
   }
 
   init() {
-    this.checkAuthentication();
+    if (!this.checkAuthentication()) {
+      return;
+    }
+    
     this.loadFromLocalStorage();
     this.setupEventListeners();
     this.renderGrid();
     this.startHeartbeat();
     this.updateStats();
     
-    if (this.currentUser) {
-      this.joinStudyRoom(this.currentUser);
+    const currentUser = this.getCurrentUser();
+    if (currentUser) {
+      this.joinStudyRoom(currentUser);
     }
   }
 
+  getCurrentUser() {
+    return localStorage.getItem('currentUser');
+  }
+
   checkAuthentication() {
-    const currentUser = localStorage.getItem('currentUser');
+    const currentUser = this.getCurrentUser();
     const users = JSON.parse(localStorage.getItem('users') || '{}');
     
     if (!currentUser || !users[currentUser]) {

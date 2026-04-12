@@ -237,7 +237,7 @@ class MainAppWithAuth {
     const adminBtn = document.getElementById('admin-btn');
     if (adminBtn) {
       adminBtn.addEventListener('click', () => {
-        this.openNewWindow('admin-simple.html');
+        window.location.href = 'admin-simple.html';
       });
     }
 
@@ -541,13 +541,13 @@ class MainAppWithAuth {
     } else if (command === '/tambietlop9') {
       return "🔗 Special link: https://example.com/special-link";
     } else if (command.startsWith('/admin')) {
-      this.openNewWindow('admin-simple.html');
+      window.location.href = 'admin-simple.html';
       return "🔐 Đang chuyển đến trang quản lý người dùng...";
     } else if (command.startsWith('/token')) {
-      this.openNewWindow('token-shop-new.html');
+      window.location.href = 'token-shop-new.html';
       return "🛍️ Đang chuyển đến cửa hàng token...";
     } else if (command.startsWith('/study')) {
-      this.openNewWindow('study-room.html');
+      window.location.href = 'study-room.html';
       return "📚 Đang chuyển đến phòng học...";
     }
     
@@ -556,15 +556,10 @@ class MainAppWithAuth {
 
   openNewWindow(url) {
     try {
-      const currentUrl = window.location.href;
-      if (currentUrl.startsWith('file://')) {
-        window.location.href = url;
-      } else {
-        window.open(url, '_blank');
-      }
-    } catch (error) {
-      console.log('Open window error:', error);
+      // Always navigate in same tab for better UX
       window.location.href = url;
+    } catch (error) {
+      console.log('Navigation error:', error);
     }
   }
 

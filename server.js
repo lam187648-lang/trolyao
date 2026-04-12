@@ -1,8 +1,14 @@
-import express from "express";
-import cors from "cors";
-import fetch from "node-fetch";
+const express = require("express");
+const cors = require("cors");
+const fetch = require("node-fetch");
+const http = require("http");
+const { Server } = require("socket.io");
 
 const app = express();
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: { origin: "*" }
+});
 
 // 👇 PHẢI ĐẶT TRƯỚC TẤT CẢ ROUTE
 const corsOptions = {
@@ -81,5 +87,42 @@ app.post("/chat", async (req, res) => {
   }
 });
 
-const port = Number(process.env.PORT) || 3000;
-app.listen(port, () => console.log(`Server chạy (port ${port})`));
+// Socket.IO event handlers
+let users = [];
+
+io.on("connection", (socket) => {
+
+  socket.on("join", (user) => {
+    const newUser = {
+      id: socket.id,
+      username: user.username,
+      isAdmin: user.isAdmin || false
+    };
+
+    users.push(newUser);
+
+    io.emit("users", users);
+  });
+
+  socket.on("kick", (username) => {
+    const user = users.find(u => u.username === username);
+
+    if (user) {
+      io.to(user.id).emit("kicked"); // kick đúng người
+      users = users.filter(u => u.username !== username);
+      io.emit("users", users);
+    }
+  });
+
+  socket.on("disconnect", () => {
+    users = users.filter(u => u.id !== socket.id);
+    io.emit("users", users);
+  });
+
+});
+
+const PORT = process.env.PORT || 4000;
+
+server.listen(PORT, () => {
+  console.log("Server chạy ở port", PORT);
+});

@@ -1,7 +1,6 @@
 // Mobile Compatible Main Application System
 class MobileMainApp {
   constructor() {
-    this.currentUser = null;
     this.currentTokens = 0;
     this.conversationHistory = [];
     this.isTyping = false;
@@ -21,29 +20,23 @@ class MobileMainApp {
     this.startHeartbeat();
   }
 
+  getCurrentUser() {
+    return this.getStorageItem('currentUser') || localStorage.getItem('currentUser');
+  }
+
   checkAuth() {
-    // Load MobileSessionManager
-    const script = document.createElement('script');
-    script.src = 'mobile-compatible-auth.js';
-    script.onload = () => {
-      if (typeof MobileSessionManager !== 'undefined') {
-        const isValid = MobileSessionManager.checkSession();
-        if (!isValid) {
-          this.redirectToAuth();
-          return false;
-        }
-        this.currentUser = MobileSessionManager.getStorageItem('currentUser');
-        return true;
-      }
-    };
-    document.head.appendChild(script);
-    
-    // Fallback check
-    this.currentUser = this.getStorageItem('currentUser');
-    if (!this.currentUser) {
+    const currentUser = this.getCurrentUser();
+    if (!currentUser) {
       this.redirectToAuth();
       return false;
     }
+    
+    const users = JSON.parse(localStorage.getItem('users') || '{}');
+    if (!users[currentUser]) {
+      this.redirectToAuth();
+      return false;
+    }
+    
     return true;
   }
 
@@ -85,7 +78,8 @@ class MobileMainApp {
   loadUserData() {
     try {
       const users = JSON.parse(this.getStorageItem('users') || '{}');
-      const user = users[this.currentUser];
+      const currentUser = this.getCurrentUser();
+      const user = users[currentUser];
       
       if (user) {
         this.currentTokens = user.tokens || 0;
@@ -291,13 +285,13 @@ class MobileMainApp {
     } else if (command === '/tambietlop9') {
       return "?? Special link: https://example.com/special-link";
     } else if (command.startsWith('/admin')) {
-      this.openNewWindow('admin-simple.html');
+      window.location.href = 'admin-simple.html';
       return "?? Redirecting to admin panel...";
     } else if (command.startsWith('/token')) {
-      this.openNewWindow('token-shop-new.html');
+      window.location.href = 'token-shop-new.html';
       return "?? Redirecting to token shop...";
     } else if (command.startsWith('/study')) {
-      this.openNewWindow('study-room.html');
+      window.location.href = 'study-room.html';
       return "?? Redirecting to study room...";
     }
     
@@ -306,19 +300,10 @@ class MobileMainApp {
 
   openNewWindow(url) {
     try {
-      // Handle mobile file:// URL issues
-      const currentUrl = window.location.href;
-      if (currentUrl.startsWith('file://')) {
-        // For local files, try to open in same window
-        window.location.href = url;
-      } else {
-        // For web server, open in new tab
-        window.open(url, '_blank');
-      }
-    } catch (error) {
-      console.log('Open window error:', error);
-      // Fallback to same window
+      // Always navigate in same tab for better UX
       window.location.href = url;
+    } catch (error) {
+      console.log('Navigation error:', error);
     }
   }
 

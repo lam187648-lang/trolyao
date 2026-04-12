@@ -1,3 +1,15 @@
+const socket = io("http://localhost:4000");
+
+// Socket.IO event handlers
+socket.on("users", (users) => {
+  console.log("User online:", users);
+});
+
+socket.on("kicked", () => {
+  alert("Bạn đã bị admin kick!");
+  logoutUser();
+});
+
 // Backend dùng OPENROUTER_API_KEY (local: npm start; production: Render + env).
 const RENDER_CHAT_URL = "https://trolyao-51sj.onrender.com/chat";
 const CHAT_API_URL =
@@ -12,7 +24,6 @@ const conversationHistory = [];
 let isDeepAnalysisMode = false;
 let studyStartTime = Date.now();
 let currentTokens = 0;
-let currentUser = null;
 
 // Authentication variables
 const authModal = document.getElementById('auth-modal');
@@ -34,7 +45,7 @@ const onlineUsersSpan = document.getElementById('online-users');
 const serverTimeSpan = document.getElementById('server-time');
 
 // Admin state
-let activeUsers = new Map(); // Track active users
+let activeUsers = new Map(); // Track active users (now managed by Socket.IO)
 let timeLimit = null; // Time limit in minutes
 let serverStartTime = Date.now();
 
@@ -149,6 +160,12 @@ function loginUser(username, password) {
   currentUser = username;
   localStorage.setItem('currentUser', username);
   
+  // Emit join event to server
+  socket.emit("join", {
+    username: username,
+    isAdmin: username === "admin" // tài khoản admin
+  });
+  
   // Check if first time login
   if (!user.hasReceivedFirstBonus) {
     user.tokens = (user.tokens || 0) + 100;
@@ -225,8 +242,12 @@ function saveUserData(username) {
   }
 }
 
+function getCurrentUser() {
+  return localStorage.getItem('currentUser');
+}
+
 function checkAuthStatus() {
-  const savedUser = localStorage.getItem('currentUser');
+  const savedUser = getCurrentUser();
   if (savedUser) {
     const users = JSON.parse(localStorage.getItem('users') || '{}');
     if (users[savedUser]) {
@@ -234,11 +255,11 @@ function checkAuthStatus() {
       const banStatus = checkUserBan();
       if (banStatus.isBanned) {
         showAuthModal();
-        addMessage(`🚫 Tài khoản của bạn đã bị khóa! Vui lòng quay lại sau ${banStatus.remainingTime} phút.`, "bot");
+        addMessage(`?? Tài khóa?n ?ã b?i khóa! Vui lòng quay la?i sau ${banStatus.remainingTime} phút.`, "bot");
         return false;
       }
       
-      currentUser = savedUser;
+      // Load user data from localStorage (not from temporary variable)
       loadUserData(savedUser);
       trackUserActivity(savedUser);
       return true;
@@ -311,16 +332,7 @@ function updateActiveUsersList() {
 
 function kickUser(username) {
   if (confirm(`Bạn có chắc muốn kick người dùng "${username}"?`)) {
-    // Remove from active users
-    activeUsers.delete(username);
-    
-    // Force logout for that user (in real app, this would be server-side)
-    if (currentUser === username) {
-      logoutUser();
-    }
-    
-    updateActiveUsersList();
-    addMessage(`🚪 Đã kick người dùng "${username}" khỏi hệ thống!`, "bot");
+    socket.emit("kick", username);
   }
 }
 
@@ -682,11 +694,11 @@ function processCommand(text) {
     return "🔗 Link đặc biệt: https://example.com/special-link";
   } else if (command.startsWith('/admin')) {
     // Redirect to simple admin page
-    window.open('admin-simple.html', '_blank');
+    window.location.href = 'admin-simple.html';
     return "🔐 Đang chuyển đến trang quản lý người dùng...";
   } else if (command.startsWith('/token')) {
     // Redirect to new token shop page
-    window.open('token-shop-new.html', '_blank');
+    window.location.href = 'token-shop-new.html';
     return "?? ??ang chuy?n ??n c?a h?ng token m?i...";
   }
   
@@ -701,7 +713,7 @@ function sendDeviceRequest(url) {
 const studyRoomBtn = document.getElementById("study-room-btn");
 if (studyRoomBtn) {
   studyRoomBtn.addEventListener('click', () => {
-    window.open('study-room.html', '_blank');
+    window.location.href = 'study-room.html';
   });
 }
 
@@ -1055,7 +1067,8 @@ function init() {
     initColorThemes();
     
     // Update user name display
-    document.getElementById('user-name').textContent = localStorage.getItem('userName');
+    const currentUser = getCurrentUser();
+    document.getElementById('user-name').textContent = currentUser;
     
     // Apply saved color theme if any
     const selectedTheme = localStorage.getItem('selectedColorTheme');

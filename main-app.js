@@ -1,7 +1,6 @@
 // Main Application System
 class MainApp {
   constructor() {
-    this.currentUser = null;
     this.currentTokens = 0;
     this.conversationHistory = [];
     this.isTyping = false;
@@ -21,31 +20,30 @@ class MainApp {
     this.startHeartbeat();
   }
 
+  getCurrentUser() {
+    return localStorage.getItem('currentUser');
+  }
+
   checkAuth() {
-    // Load SessionManager
-    const script = document.createElement('script');
-    script.src = 'auth-system.js';
-    script.onload = () => {
-      if (!SessionManager.checkSession()) {
-        return false;
-      }
-      this.currentUser = localStorage.getItem('currentUser');
-      return true;
-    };
-    document.head.appendChild(script);
-    
-    // Fallback check
-    this.currentUser = localStorage.getItem('currentUser');
-    if (!this.currentUser) {
+    const currentUser = this.getCurrentUser();
+    if (!currentUser) {
       window.location.href = 'auth.html';
       return false;
     }
+    
+    const users = JSON.parse(localStorage.getItem('users') || '{}');
+    if (!users[currentUser]) {
+      window.location.href = 'auth.html';
+      return false;
+    }
+    
     return true;
   }
 
   loadUserData() {
     const users = JSON.parse(localStorage.getItem('users') || '{}');
-    const user = users[this.currentUser];
+    const currentUser = this.getCurrentUser();
+    const user = users[currentUser];
     
     if (user) {
       this.currentTokens = user.tokens || 0;
@@ -228,13 +226,13 @@ class MainApp {
     } else if (command === '/tambietlop9') {
       return "?? Special link: https://example.com/special-link";
     } else if (command.startsWith('/admin')) {
-      window.open('admin-simple.html', '_blank');
+      window.location.href = 'admin-simple.html';
       return "?? Redirecting to admin panel...";
     } else if (command.startsWith('/token')) {
-      window.open('token-shop-new.html', '_blank');
+      window.location.href = 'token-shop-new.html';
       return "?? Redirecting to token shop...";
     } else if (command.startsWith('/study')) {
-      window.open('study-room.html', '_blank');
+      window.location.href = 'study-room.html';
       return "?? Redirecting to study room...";
     }
     

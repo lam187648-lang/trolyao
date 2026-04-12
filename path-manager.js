@@ -102,7 +102,7 @@ class PathManager {
 
   openRoute(routeName, target = '_blank') {
     const route = this.getRoute(routeName);
-    window.open(route, target);
+    window.location.href = route;
   }
 
   getAPIEndpoint(endpoint) {

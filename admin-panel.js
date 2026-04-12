@@ -1,3 +1,5 @@
+const socket = io("http://localhost:4000");
+
 // Admin Panel Management System
 class AdminPanel {
   constructor() {
@@ -9,7 +11,21 @@ class AdminPanel {
   init() {
     this.checkAuthentication();
     this.loadUserData();
-    this.startRealTimeUpdates();
+    
+    socket.on("users", (users) => {
+      this.renderUsers(users);
+    });
+    
+    socket.on("kicked", (username) => {
+      const currentUser = localStorage.getItem('currentUser');
+
+      if (currentUser === username) {
+        alert("Bạn đã bị admin kick!");
+        localStorage.removeItem('currentUser');
+        window.location.href = 'index.html';
+      }
+    });
+    
     this.updateSystemStats();
   }
 
@@ -29,32 +45,43 @@ class AdminPanel {
     this.updateUsersList();
   }
 
-  updateUsersList() {
-    const users = JSON.parse(localStorage.getItem('users') || '{}');
+  updateUsersList(usersFromServer) {
     const usersList = document.getElementById('active-users-list');
-    
     usersList.innerHTML = '';
-    
-    Object.keys(users).forEach(username => {
-      const user = users[username];
+
+    usersFromServer.forEach(user => {
       const userItem = document.createElement('div');
       userItem.className = 'user-item';
-      
+
       userItem.innerHTML = `
         <div class="user-info">
-          <div class="user-avatar-small">${username.charAt(0).toUpperCase()}</div>
+          <div class="user-avatar-small">${user.username.charAt(0).toUpperCase()}</div>
           <div class="user-details">
-            <div class="user-name-small">${username}</div>
-            <div class="user-status">Tokens: ${user.tokens || 0}</div>
+            <div class="user-name-small">${user.username}</div>
+            <div class="user-status">Online</div>
           </div>
         </div>
-        <button class="kick-btn" onclick="kickUser('${username}')">Kick</button>
+        <button class="kick-btn" onclick="kickUser('${user.username}')">Kick</button>
       `;
-      
+
       usersList.appendChild(userItem);
     });
-    
-    document.getElementById('total-users').textContent = Object.keys(users).length;
+
+    document.getElementById('online-users').textContent = usersFromServer.length;
+  }
+
+  renderUsers(users) {
+    const list = document.getElementById("active-users-list");
+    list.innerHTML = "";
+
+    users.forEach(u => {
+      list.innerHTML += `
+        <div>
+          ${u.username}
+            <button onclick="kickUser('${u.username}')">Kick</button>
+          </div>
+        `;
+    });
   }
 
   updateSystemStats() {
@@ -72,38 +99,12 @@ class AdminPanel {
       document.getElementById('online-users').textContent = Object.keys(users).length;
     }, 1000);
   }
-
-  startRealTimeUpdates() {
-    setInterval(() => {
-      this.updateUsersList();
-    }, 5000); // Update every 5 seconds
-  }
 }
 
 // Global functions for button clicks
 function kickUser(username) {
-  if (confirm(`Bạn có chắc muốn kick người dùng "${username}"?`)) {
-    const users = JSON.parse(localStorage.getItem('users') || '{}');
-    
-    if (users[username]) {
-      // Reset user data
-      users[username].tokens = 0;
-      users[username].purchasedColors = [];
-      users[username].selectedColorTheme = '0';
-      
-      localStorage.setItem('users', JSON.stringify(users));
-      
-      // If kicking current user, logout them
-      const currentUser = localStorage.getItem('currentUser');
-      if (currentUser === username) {
-        localStorage.removeItem('currentUser');
-        window.location.href = 'index.html';
-        return;
-      }
-      
-      alert(`Đã kick người dùng "${username}"! Token và dữ liệu đã được reset.`);
-      location.reload();
-    }
+  if (confirm(`Kick ${username}?`)) {
+    socket.emit("kick", username);
   }
 }
 
