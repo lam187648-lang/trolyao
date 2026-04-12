@@ -717,37 +717,46 @@ if (studyRoomBtn) {
   });
 }
 
-// Theme toggle
-themeToggleMenu.addEventListener('click', toggleTheme);
-
-// Logout button
-logoutBtn.addEventListener('click', logoutUser);
-
-// Admin panel event listeners
-closeAdminModal.addEventListener('click', hideAdminPanel);
-setTimeLimitBtn.addEventListener('click', setTimeLimit);
-
 function toggleTheme() {
   document.body.classList.toggle("dark");
   const isDark = document.body.classList.contains("dark");
   localStorage.setItem("theme", isDark ? "dark" : "light");
-  themeToggle.textContent = isDark ? "🌙" : "☀️";
-  themeToggleMenu.querySelector('.menu-icon').textContent = isDark ? "🌙" : "☀️";
+  
+  // Safe DOM access with null checks
+  const themeToggle = document.getElementById("theme-toggle");
+  const themeToggleMenu = document.getElementById("theme-toggle-menu");
+  
+  if (themeToggle) {
+    themeToggle.textContent = isDark ? "??": "??";
+  }
+  if (themeToggleMenu) {
+    const menuIcon = themeToggleMenu.querySelector('.menu-icon');
+    if (menuIcon) {
+      menuIcon.textContent = isDark ? "??": "??";
+    }
+  }
 }
 
 function applyThemeFromStorage() {
-  const saved = localStorage.getItem("theme");
-  let isDark;
-  if (saved === "dark") {
-    isDark = true;
-  } else if (saved === "light") {
-    isDark = false;
-  } else {
+  let isDark = localStorage.getItem("theme") === "dark";
+  if (!isDark) {
     isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
   }
   document.body.classList.toggle("dark", isDark);
-  themeToggle.textContent = isDark ? "🌙" : "☀️";
-  themeToggleMenu.querySelector('.menu-icon').textContent = isDark ? "🌙" : "☀️";
+  
+  // Safe DOM access with null checks
+  const themeToggle = document.getElementById("theme-toggle");
+  const themeToggleMenu = document.getElementById("theme-toggle-menu");
+  
+  if (themeToggle) {
+    themeToggle.textContent = isDark ? "??": "??";
+  }
+  if (themeToggleMenu) {
+    const menuIcon = themeToggleMenu.querySelector('.menu-icon');
+    if (menuIcon) {
+      menuIcon.textContent = isDark ? "??": "??";
+    }
+  }
 }
 
 // Message functions
@@ -1094,5 +1103,30 @@ function init() {
   setInterval(checkTimeLimit, 30000); // Check every 30 seconds
 }
 
-// Start the application
-init();
+// Start the application when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+  // Setup event listeners that need DOM elements
+  const themeToggleMenu = document.getElementById('theme-toggle-menu');
+  const logoutBtn = document.getElementById('logout-btn');
+  const closeAdminModal = document.getElementById('close-admin-modal');
+  const setTimeLimitBtn = document.getElementById('set-time-limit');
+  
+  if (themeToggleMenu) {
+    themeToggleMenu.addEventListener('click', toggleTheme);
+  }
+  
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', logoutUser);
+  }
+  
+  if (closeAdminModal) {
+    closeAdminModal.addEventListener('click', hideAdminPanel);
+  }
+  
+  if (setTimeLimitBtn) {
+    setTimeLimitBtn.addEventListener('click', setTimeLimit);
+  }
+  
+  // Initialize the application
+  init();
+});
