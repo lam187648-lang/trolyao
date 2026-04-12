@@ -209,6 +209,31 @@
     </div>
 </div>
 
+<!-- Delete Data Modal -->
+<div class="ban-modal" id="delete-modal">
+    <div class="ban-content">
+        <h3 style="color: #dc2626;">⚠️ XÓA DỮ LIỆU TÀI KHOẢN</h3>
+        <p>Người dùng: <b id="delete-username" style="color: #dc2626; font-size: 18px;"></b></p>
+        <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 12px; margin: 15px 0; text-align: left;">
+            <p style="color: #dc2626; font-weight: 600; margin-bottom: 8px;">⚠️ Dữ liệu sẽ bị xóa:</p>
+            <ul style="color: #991b1b; font-size: 13px; margin: 0; padding-left: 20px;">
+                <li>Tài khoản & mật khẩu</li>
+                <li>Tất cả tokens</li>
+                <li>Màu sắc đã mua</li>
+                <li>Lịch sử trồng cây</li>
+            </ul>
+        </div>
+        <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 10px;">
+            Nhập mật khẩu admin để xác nhận:
+        </p>
+        <input type="password" id="delete-password" class="ban-input" placeholder="Nhập mật khẩu admin...">
+        <div>
+            <button class="ban-btn" style="background: #dc2626;" onclick="confirmDelete()">🗑️ XÓA TOÀN BỘ</button>
+            <button class="cancel-btn" onclick="closeDeleteModal()">Hủy</button>
+        </div>
+    </div>
+</div>
+
 <script src="admin-simple.js"></script>
 </body>
 </html>

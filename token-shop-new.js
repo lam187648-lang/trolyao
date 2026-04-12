@@ -19,51 +19,67 @@ class TokenShop {
       { id: 14, name: "Xanh dam", price: 240, primary: "#1E40AF", secondary: "#1E3A8A", bg: "#DBEAFE", textColor: "#1E3A8A", tier: "premium" },
       { id: 15, name: "Xám dam", price: 170, primary: "#374151", secondary: "#111827", bg: "#F3F4F6", textColor: "#111827", tier: "basic" },
       { id: 16, name: "Xám nhát", price: 140, primary: "#D1D5DB", secondary: "#9CA3AF", bg: "#F9FAFB", textColor: "#6B7280", tier: "basic" },
-      // Premium colors (more expensive and beautiful)
-      { id: 17, name: "Vàng kim", price: 500, primary: "#FFD700", secondary: "#FFA500", bg: "#FFFBEB", textColor: "#78350F", tier: "luxury" },
-      { id: 18, name: "Bac", price: 600, primary: "#C0C0C0", secondary: "#808080", bg: "#F8F9FA", textColor: "#374151", tier: "luxury" },
-      { id: 19, name: "Dáng", price: 700, primary: "#B87333", secondary: "#8B4513", bg: "#FEF5E7", textColor: "#451A03", tier: "luxury" },
-      { id: 20, name: "Tím hoang gia", price: 800, primary: "#7851A9", secondary: "#6A1B9A", bg: "#F3E5F5", textColor: "#581C87", tier: "luxury" },
       // Dark themes with white text
-      { id: 21, name: "Nen den", price: 450, primary: "#1F2937", secondary: "#111827", bg: "#111827", textColor: "#FFFFFF", tier: "premium" },
-      { id: 22, name: "Nen xanh dam", price: 550, primary: "#1E3A8A", secondary: "#1E40AF", bg: "#1E3A8A", textColor: "#FFFFFF", tier: "luxury" },
-      { id: 23, name: "Nen tím dam", price: 650, primary: "#581C87", secondary: "#6B21A8", bg: "#581C87", textColor: "#FFFFFF", tier: "luxury" },
-      { id: 24, name: "Nen do dam", price: 750, primary: "#7F1D1D", secondary: "#991B1B", bg: "#7F1D1D", textColor: "#FFFFFF", tier: "luxury" },
-      // EXCLUSIVE colors - only available in Token Shop (not in main app)
-      { id: 25, name: "Holographic", price: 1000, primary: "#FF00FF", secondary: "#00FFFF", bg: "linear-gradient(45deg, #FF00FF, #00FFFF, #FF00FF)", textColor: "#FFFFFF", tier: "exclusive", exclusive: true },
-      { id: 26, name: "Rainbow", price: 1200, primary: "#FF0000", secondary: "#9400D3", bg: "linear-gradient(90deg, #FF0000, #FF7F00, #FFFF00, #00FF00, #0000FF, #4B0082, #9400D3)", textColor: "#FFFFFF", tier: "exclusive", exclusive: true },
-      { id: 27, name: "Galaxy", price: 1500, primary: "#4B0082", secondary: "#000000", bg: "radial-gradient(ellipse at center, #4B0082, #000000, #191970)", textColor: "#FFFFFF", tier: "exclusive", exclusive: true },
-      { id: 28, name: "Aurora", price: 1300, primary: "#39FF14", secondary: "#FF1493", bg: "linear-gradient(135deg, #39FF14, #00CED1, #FF1493)", textColor: "#FFFFFF", tier: "exclusive", exclusive: true },
-      { id: 29, name: "Phoenix", price: 1400, primary: "#FF4500", secondary: "#FFD700", bg: "linear-gradient(180deg, #FF4500, #FF6347, #FFD700)", textColor: "#FFFFFF", tier: "exclusive", exclusive: true },
-      { id: 30, name: "Cyberpunk", price: 1100, primary: "#FFFF00", secondary: "#FF00FF", bg: "linear-gradient(135deg, #000000, #FFFF00, #FF00FF)", textColor: "#FFFFFF", tier: "exclusive", exclusive: true }
+      { id: 21, name: "Nền đen", price: 450, primary: "#1F2937", secondary: "#111827", bg: "#111827", textColor: "#FFFFFF", tier: "premium" },
+      { id: 22, name: "Nền xanh đậm", price: 550, primary: "#1E3A8A", secondary: "#1E40AF", bg: "#1E3A8A", textColor: "#FFFFFF", tier: "luxury" },
+      { id: 23, name: "Nền tím đậm", price: 650, primary: "#581C87", secondary: "#6B21A8", bg: "#581C87", textColor: "#FFFFFF", tier: "luxury" },
+      { id: 24, name: "Nền đỏ đậm", price: 750, primary: "#7F1D1D", secondary: "#991B1B", bg: "#7F1D1D", textColor: "#FFFFFF", tier: "luxury" },
+      // EXCLUSIVE colors from app.js - FREE but must be unlocked here first (syncs with app.js)
+      { id: 17, name: "Vàng Kim", price: 0, primary: "#FFD700", secondary: "#B8860B", bg: "#FFFAF0", textColor: "#78350F", tier: "exclusive", unlockRequired: true, icon: "👑", cssClass: "theme-gold", description: "Miễn phí nhưng cần mở khóa" },
+      { id: 18, name: "Bạc", price: 0, primary: "#C0C0C0", secondary: "#808080", bg: "#F5F5F5", textColor: "#374151", tier: "exclusive", unlockRequired: true, icon: "🥈", cssClass: "theme-silver", description: "Miễn phí nhưng cần mở khóa" },
+      { id: 19, name: "Đồng", price: 0, primary: "#CD7F32", secondary: "#8B4513", bg: "#FFF8DC", textColor: "#451A03", tier: "exclusive", unlockRequired: true, icon: "🥉", cssClass: "theme-bronze", description: "Miễn phí nhưng cần mở khóa" },
+      { id: 20, name: "Cầu Vồng", price: 0, primary: "#FF6B6B", secondary: "#4ECDC4", bg: "linear-gradient(135deg, #FF6B6B, #FFE66D, #4ECDC4)", textColor: "#581C87", tier: "exclusive", unlockRequired: true, icon: "🌈", cssClass: "theme-rainbow", description: "Miễn phí nhưng cần mở khóa" },
+      // Premium EXCLUSIVE colors - only available in Token Shop (expensive) - must unlock first
+      { id: 25, name: "Holographic", price: 1000, primary: "#FF00FF", secondary: "#00FFFF", bg: "linear-gradient(45deg, #FF00FF, #00FFFF, #FF00FF)", textColor: "#FFFFFF", tier: "premium-exclusive", unlockRequired: true, icon: "✨", cssClass: "theme-holographic" },
+      { id: 26, name: "Rainbow", price: 1200, primary: "#FF0000", secondary: "#9400D3", bg: "linear-gradient(90deg, #FF0000, #FF7F00, #FFFF00, #00FF00, #0000FF, #4B0082, #9400D3)", textColor: "#FFFFFF", tier: "premium-exclusive", unlockRequired: true, icon: "🌈", cssClass: "theme-rainbow-premium" },
+      { id: 27, name: "Galaxy", price: 1500, primary: "#4B0082", secondary: "#000000", bg: "radial-gradient(ellipse at center, #4B0082, #000000, #191970)", textColor: "#FFFFFF", tier: "premium-exclusive", unlockRequired: true, icon: "🌌", cssClass: "theme-galaxy" },
+      { id: 28, name: "Aurora", price: 1300, primary: "#39FF14", secondary: "#FF1493", bg: "linear-gradient(135deg, #39FF14, #00CED1, #FF1493)", textColor: "#FFFFFF", tier: "premium-exclusive", unlockRequired: true, icon: "🌠", cssClass: "theme-aurora" },
+      { id: 29, name: "Phoenix", price: 1400, primary: "#FF4500", secondary: "#FFD700", bg: "linear-gradient(180deg, #FF4500, #FF6347, #FFD700)", textColor: "#FFFFFF", tier: "premium-exclusive", unlockRequired: true, icon: "🔥", cssClass: "theme-phoenix" },
+      { id: 30, name: "Cyberpunk", price: 1100, primary: "#FFFF00", secondary: "#FF00FF", bg: "linear-gradient(135deg, #000000, #FFFF00, #FF00FF)", textColor: "#FFFFFF", tier: "premium-exclusive", unlockRequired: true, icon: "⚡", cssClass: "theme-cyberpunk" },
+      // New beautiful expensive premium colors
+      { id: 31, name: "💎 Diamond", price: 2500, primary: "#00CED1", secondary: "#B0E0E6", bg: "linear-gradient(135deg, #E0F7FA, #00CED1, #FFFFFF)", textColor: "#006064", tier: "premium-exclusive", unlockRequired: true, icon: "💎", cssClass: "theme-diamond" },
+      { id: 32, name: "🔮 Royal Amethyst", price: 2200, primary: "#9966CC", secondary: "#663399", bg: "linear-gradient(145deg, #E6E6FA, #9966CC, #4B0082)", textColor: "#FFFFFF", tier: "premium-exclusive", unlockRequired: true, icon: "🔮", cssClass: "theme-amethyst" },
+      { id: 33, name: "🌅 Sunset Gold", price: 2800, primary: "#FF8C00", secondary: "#FF6347", bg: "linear-gradient(180deg, #FFD700, #FF8C00, #FF6347)", textColor: "#FFFFFF", tier: "premium-exclusive", unlockRequired: true, icon: "🌅", cssClass: "theme-sunset" },
+      { id: 34, name: "🧊 Frozen Ice", price: 2000, primary: "#00FFFF", secondary: "#E0FFFF", bg: "linear-gradient(135deg, #E0FFFF, #00FFFF, #87CEEB)", textColor: "#006064", tier: "premium-exclusive", unlockRequired: true, icon: "🧊", cssClass: "theme-ice" },
+      { id: 35, name: "🌊 Ocean Deep", price: 2400, primary: "#006994", secondary: "#003366", bg: "linear-gradient(180deg, #00CED1, #006994, #003366)", textColor: "#FFFFFF", tier: "premium-exclusive", unlockRequired: true, icon: "🌊", cssClass: "theme-ocean" },
+      { id: 36, name: "🔥 Magma", price: 3000, primary: "#FF4500", secondary: "#8B0000", bg: "linear-gradient(180deg, #FFD700, #FF4500, #8B0000)", textColor: "#FFFFFF", tier: "premium-exclusive", unlockRequired: true, icon: "🌋", cssClass: "theme-magma" },
+      { id: 37, name: "🌸 Sakura", price: 1900, primary: "#FFB7C5", secondary: "#FF69B4", bg: "linear-gradient(135deg, #FFF0F5, #FFB7C5, #FF69B4)", textColor: "#880E4F", tier: "premium-exclusive", unlockRequired: true, icon: "🌸", cssClass: "theme-sakura" },
+      { id: 38, name: "🌲 Emerald Forest", price: 2300, primary: "#50C878", secondary: "#228B22", bg: "linear-gradient(145deg, #98FB98, #50C878, #228B22)", textColor: "#FFFFFF", tier: "premium-exclusive", unlockRequired: true, icon: "🌲", cssClass: "theme-emerald" },
+      { id: 39, name: "⭐ Starlight", price: 3500, primary: "#FFD700", secondary: "#C0C0C0", bg: "radial-gradient(ellipse at center, #1a1a2e, #16213e, #0f3460)", textColor: "#FFFFFF", tier: "premium-exclusive", unlockRequired: true, icon: "⭐", cssClass: "theme-starlight" },
+      { id: 40, name: "🌙 Midnight", price: 2700, primary: "#191970", secondary: "#000080", bg: "linear-gradient(180deg, #2C3E50, #191970, #000000)", textColor: "#FFFFFF", tier: "premium-exclusive", unlockRequired: true, icon: "🌙", cssClass: "theme-midnight" },
+      { id: 41, name: "⚜️ Golden Royal", price: 5000, primary: "#D4AF37", secondary: "#B8860B", bg: "linear-gradient(145deg, #FFF8DC, #D4AF37, #B8860B)", textColor: "#5D4037", tier: "premium-exclusive", unlockRequired: true, icon: "👑", cssClass: "theme-royal" },
+      { id: 42, name: "🌈 Prism", price: 4500, primary: "#FF1493", secondary: "#00BFFF", bg: "conic-gradient(from 0deg, #FF1493, #FFD700, #00FF00, #00BFFF, #FF1493)", textColor: "#FFFFFF", tier: "premium-exclusive", unlockRequired: true, icon: "💫", cssClass: "theme-prism" }
     ];
     this.init();
   }
 
   init() {
-    this.checkPassword();
+    if (!this.checkAuth()) return;
     this.loadUserData();
     this.renderColors();
     this.updateTokenDisplay();
   }
 
-  checkPassword() {
-    const password = prompt('🔐 Nhập mật khẩu:');
-    if (password !== '093981') {
+  checkAuth() {
+    const currentUser = localStorage.getItem('currentUser');
+    const users = JSON.parse(localStorage.getItem('users') || '{}');
+    
+    if (!currentUser || !users[currentUser]) {
       document.body.innerHTML = `
         <div style="display: flex; justify-content: center; align-items: center; height: 100vh; background: linear-gradient(145deg, #f0f9ff 0%, #e0f2fe 100%); font-family: Inter, sans-serif;">
           <div style="background: white; padding: 40px; border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); text-align: center; max-width: 400px;">
-            <div style="font-size: 48px; margin-bottom: 20px;">❌</div>
-            <h2 style="color: #ef4444; margin-bottom: 16px;">Mật Khẩu Sai!</h2>
-            <p style="color: #64748b; margin-bottom: 24px;">Bạn không có quyền truy cập trang này!</p>
+            <div style="font-size: 48px; margin-bottom: 20px;">🔒</div>
+            <h2 style="color: #1e40af; margin-bottom: 16px;">Yêu Cầu Đăng Nhập</h2>
+            <p style="color: #64748b; margin-bottom: 24px;">Bạn phải đăng nhập để truy cập Cửa Hàng Token!</p>
             <button onclick="window.location.href='index.html'" style="background: #3b82f6; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 500;">
-              Quay lại
+              Đăng Nhập Ngay
             </button>
           </div>
         </div>
       `;
-      return;
+      return false;
     }
+    return true;
   }
 
   loadUserData() {
@@ -100,16 +116,30 @@ class TokenShop {
         colorItem.classList.add('locked');
       }
       
+      // Determine display based on color type
+      let actionDisplay;
+      if (isPurchased) {
+        actionDisplay = `<div class="color-owned">✅ Đã sở hữu</div>
+             <button class="gift-btn" data-color-id="${color.id}" onclick="event.stopPropagation(); tokenShop.giftColor(${color.id})">🎁 Tặng</button>`;
+      } else if (color.unlockRequired) {
+        actionDisplay = `<div class="color-price unlock-free">🔓 Nhấn để mở khóa miễn phí</div>`;
+      } else if (color.price === 0) {
+        actionDisplay = `<div class="color-price free">🆓 Miễn phí</div>`;
+      } else {
+        actionDisplay = `<div class="color-price">${color.price} tokens</div>`;
+      }
+      
+      // Add icon for exclusive colors only
+      const iconDisplay = color.icon ? `<div class="color-icon">${color.icon}</div>` : '';
+      
       colorItem.innerHTML = `
-        <div class="color-preview" style="background: linear-gradient(135deg, ${color.primary}, ${color.secondary});"></div>
+        <div class="color-preview ${color.cssClass || ''}" style="background: linear-gradient(135deg, ${color.primary}, ${color.secondary});">
+          ${iconDisplay}
+        </div>
         <div class="color-name">${color.name}</div>
-        ${isPurchased 
-          ? `<div class="color-owned">✅ Đã sở hữu</div>
-             <button class="gift-btn" data-color-id="${color.id}" onclick="event.stopPropagation(); tokenShop.giftColor(${color.id})">🎁 Tặng</button>` 
-          : `<div class="color-price">${color.price} tokens</div>`
-        }
-        ${!isPurchased && !canAfford ? '<div class="lock-icon">🔒</div>' : ''}
-        ${color.exclusive ? '<div class="exclusive-badge">⭐ Exclusive</div>' : ''}
+        ${actionDisplay}
+        ${!isPurchased && !canAfford && !color.unlockRequired ? '<div class="lock-icon">🔒</div>' : ''}
+        ${color.exclusive || color.unlockRequired ? '<div class="exclusive-badge">⭐ Đặc biệt</div>' : ''}
       `;
       
       colorItem.addEventListener('click', () => this.selectColor(color));
@@ -121,6 +151,17 @@ class TokenShop {
     const isPurchased = this.purchasedColors.includes(color.id);
     
     if (!isPurchased) {
+      // Handle unlockRequired colors (free but need to unlock first)
+      if (color.unlockRequired) {
+        if (confirm(`🔓 Mở khóa màu "${color.name}" miễn phí?
+
+Màu này sẽ được thêm vào bộ sưu tập của bạn và có thể sử dụng trong phần Thay Màu Nền ở trang chính.`)) {
+          this.purchaseColor(color);
+        }
+        return;
+      }
+      
+      // Regular purchase check
       if (this.currentTokens < color.price) {
         this.showMessage(`❌ Bạn cần ${color.price} tokens để mua màu này! Hiện tại bạn có ${this.currentTokens} tokens.`, 'error');
         return;
@@ -234,6 +275,10 @@ class TokenShop {
       
       localStorage.setItem('users', JSON.stringify(users));
       localStorage.setItem('userTokens', this.currentTokens.toString());
+      
+      // Sync with global keys for cross-page compatibility
+      localStorage.setItem('purchasedColors', JSON.stringify(this.purchasedColors));
+      localStorage.setItem('selectedColorTheme', this.selectedTheme);
     }
   }
 
@@ -280,6 +325,71 @@ class TokenShop {
     setTimeout(() => {
       if (container) container.innerHTML = '';
     }, 5000);
+  }
+
+  showAdminPanel() {
+    const password = prompt('🔐 Nhập mật khẩu Admin:');
+    if (password !== '093981') {
+      alert('❌ Mật khẩu không đúng!');
+      return;
+    }
+    
+    // Show admin stats
+    const users = JSON.parse(localStorage.getItem('users') || '{}');
+    const userCount = Object.keys(users).length;
+    const currentUser = localStorage.getItem('currentUser');
+    
+    let adminHTML = `
+      <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 10000; display: flex; justify-content: center; align-items: center; font-family: Inter, sans-serif;">
+        <div style="background: white; padding: 30px; border-radius: 16px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto;">
+          <h2 style="color: #6366f1; margin-bottom: 20px;">🔐 Admin Panel</h2>
+          <p><strong>Tổng users:</strong> ${userCount}</p>
+          <p><strong>User hiện tại:</strong> ${currentUser}</p>
+          <hr style="margin: 20px 0;">
+          <h3>Quản lý người dùng:</h3>
+          <div style="margin-top: 15px;">
+    `;
+    
+    Object.entries(users).forEach(([username, data]) => {
+      adminHTML += `
+        <div style="padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+          <span>${username} (${data.tokens || 0} tokens)</span>
+          <button onclick="tokenShop.giveTokens('${username}')" style="background: #10b981; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px;">+💰</button>
+        </div>
+      `;
+    });
+    
+    adminHTML += `
+          </div>
+          <button onclick="this.closest('.admin-modal').remove()" style="margin-top: 20px; width: 100%; background: #ef4444; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer;">Đóng</button>
+        </div>
+      </div>
+    `;
+    
+    const modal = document.createElement('div');
+    modal.className = 'admin-modal';
+    modal.innerHTML = adminHTML;
+    document.body.appendChild(modal);
+  }
+
+  giveTokens(username) {
+    const amount = parseInt(prompt(`Nhập số tokens muốn cộng cho ${username}:`));
+    if (!amount || amount <= 0) return;
+    
+    const users = JSON.parse(localStorage.getItem('users') || '{}');
+    if (users[username]) {
+      users[username].tokens = (users[username].tokens || 0) + amount;
+      localStorage.setItem('users', JSON.stringify(users));
+      
+      // Update current user display if it's them
+      if (username === localStorage.getItem('currentUser')) {
+        this.currentTokens = users[username].tokens;
+        this.updateTokenDisplay();
+      }
+      
+      alert(`✅ Đã cộng ${amount} tokens cho ${username}!`);
+      this.showAdminPanel(); // Refresh
+    }
   }
 }
 

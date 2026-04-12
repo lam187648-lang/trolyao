@@ -93,22 +93,48 @@ const logoutBtn = document.getElementById("logout-btn");
 
 // Background color themes data
 const colorThemes = [
-  { id: 1, name: "Xanh dương", price: 100, primary: "#3B82F6", secondary: "#1E40AF", bg: "#EFF6FF" },
-  { id: 2, name: "Xanh lá", price: 100, primary: "#10B981", secondary: "#047857", bg: "#F0FDF4" },
-  { id: 3, name: "Tím", price: 100, primary: "#8B5CF6", secondary: "#6D28D9", bg: "#F5F3FF" },
-  { id: 4, name: "Hồng", price: 100, primary: "#EC4899", secondary: "#BE185D", bg: "#FDF2F8" },
-  { id: 5, name: "Vàng", price: 100, primary: "#F59E0B", secondary: "#D97706", bg: "#FFFBEB" },
-  { id: 6, name: "Cam", price: 100, primary: "#F97316", secondary: "#EA580C", bg: "#FFF7ED" },
-  { id: 7, name: "Đỏ", price: 100, primary: "#EF4444", secondary: "#DC2626", bg: "#FEF2F2" },
-  { id: 8, name: "Xám", price: 100, primary: "#6B7280", secondary: "#4B5563", bg: "#F9FAFB" },
-  { id: 9, name: "Xanh ngọc", price: 100, primary: "#14B8A6", secondary: "#0F766E", bg: "#F0FDFA" },
-  { id: 10, name: "Xám xanh", price: 100, primary: "#6366F1", secondary: "#4F46E5", bg: "#EEF2FF" },
-  { id: 11, name: "Xám đỏ", price: 100, primary: "#A855F7", secondary: "#9333EA", bg: "#FAF5FF" },
-  { id: 12, name: "Xám hồng", price: 100, primary: "#F472B6", secondary: "#EC4899", bg: "#FDF4FF" },
-  { id: 13, name: "Nâu", price: 100, primary: "#92400E", secondary: "#78350F", bg: "#FEF3C7" },
-  { id: 14, name: "Xanh đậm", price: 100, primary: "#1E40AF", secondary: "#1E3A8A", bg: "#DBEAFE" },
-  { id: 15, name: "Xám đậm", price: 100, primary: "#374151", secondary: "#111827", bg: "#F3F4F6" },
-  { id: 16, name: "Xám nhạt", price: 100, primary: "#D1D5DB", secondary: "#9CA3AF", bg: "#F9FAFB" }
+  // Regular colors - FREE (price: 0)
+  { id: 1, name: "Xanh dương", price: 0, primary: "#3B82F6", secondary: "#1E40AF", bg: "#EFF6FF", tier: "basic" },
+  { id: 2, name: "Xanh lá", price: 0, primary: "#10B981", secondary: "#047857", bg: "#F0FDF4", tier: "basic" },
+  { id: 3, name: "Tím", price: 0, primary: "#8B5CF6", secondary: "#6D28D9", bg: "#F5F3FF", tier: "basic" },
+  { id: 4, name: "Hồng", price: 0, primary: "#EC4899", secondary: "#BE185D", bg: "#FDF2F8", tier: "basic" },
+  { id: 5, name: "Vàng", price: 0, primary: "#F59E0B", secondary: "#D97706", bg: "#FFFBEB", tier: "basic" },
+  { id: 6, name: "Cam", price: 0, primary: "#F97316", secondary: "#EA580C", bg: "#FFF7ED", tier: "basic" },
+  { id: 7, name: "Đỏ", price: 0, primary: "#EF4444", secondary: "#DC2626", bg: "#FEF2F2", tier: "basic" },
+  { id: 8, name: "Xám", price: 0, primary: "#6B7280", secondary: "#4B5563", bg: "#F9FAFB", tier: "basic" },
+  { id: 9, name: "Xanh ngọc", price: 0, primary: "#14B8A6", secondary: "#0F766E", bg: "#F0FDFA", tier: "basic" },
+  { id: 10, name: "Xám xanh", price: 0, primary: "#6366F1", secondary: "#4F46E5", bg: "#EEF2FF", tier: "basic" },
+  { id: 11, name: "Xám đỏ", price: 0, primary: "#A855F7", secondary: "#9333EA", bg: "#FAF5FF", tier: "basic" },
+  { id: 12, name: "Xám hồng", price: 0, primary: "#F472B6", secondary: "#EC4899", bg: "#FDF4FF", tier: "basic" },
+  { id: 13, name: "Nâu", price: 0, primary: "#92400E", secondary: "#78350F", bg: "#FEF3C7", tier: "basic" },
+  { id: 14, name: "Xanh đậm", price: 50, primary: "#1E40AF", secondary: "#1E3A8A", bg: "#DBEAFE", tier: "premium" },
+  { id: 15, name: "Xám đậm", price: 50, primary: "#374151", secondary: "#111827", bg: "#F3F4F6", tier: "premium" },
+  { id: 16, name: "Xám nhạt", price: 0, primary: "#D1D5DB", secondary: "#9CA3AF", bg: "#F9FAFB", tier: "basic" },
+  // Special exclusive colors - HIGH PRICE with unlock
+  { id: 17, name: "Vàng Kim", price: 200, primary: "#FFD700", secondary: "#B8860B", bg: "#FFFAF0", tier: "exclusive", unlockRequired: true, icon: "👑", cssClass: "theme-gold" },
+  { id: 18, name: "Bạc", price: 150, primary: "#C0C0C0", secondary: "#808080", bg: "#F5F5F5", tier: "exclusive", unlockRequired: true, icon: "🥈", cssClass: "theme-silver" },
+  { id: 19, name: "Đồng", price: 100, primary: "#CD7F32", secondary: "#8B4513", bg: "#FFF8DC", tier: "exclusive", unlockRequired: true, icon: "🥉", cssClass: "theme-bronze" },
+  { id: 20, name: "Cầu Vồng", price: 300, primary: "#FF6B6B", secondary: "#4ECDC4", bg: "linear-gradient(135deg, #FF6B6B, #FFE66D, #4ECDC4)", tier: "exclusive", unlockRequired: true, icon: "🌈", cssClass: "theme-rainbow" },
+  // Premium exclusive colors - VERY HIGH PRICE with unlock + special effects
+  { id: 25, name: "Holographic", price: 1000, primary: "#FF00FF", secondary: "#00FFFF", bg: "linear-gradient(45deg, #FF00FF, #00FFFF, #FF00FF)", tier: "premium-exclusive", unlockRequired: true, icon: "✨", cssClass: "theme-holographic" },
+  { id: 26, name: "Rainbow", price: 1200, primary: "#FF0000", secondary: "#9400D3", bg: "linear-gradient(90deg, #FF0000, #FF7F00, #FFFF00, #00FF00, #0000FF, #4B0082, #9400D3)", tier: "premium-exclusive", unlockRequired: true, icon: "🌈", cssClass: "theme-rainbow-premium" },
+  { id: 27, name: "Galaxy", price: 1500, primary: "#4B0082", secondary: "#000000", bg: "radial-gradient(ellipse at center, #4B0082, #000000, #191970)", tier: "premium-exclusive", unlockRequired: true, icon: "🌌", cssClass: "theme-galaxy" },
+  { id: 28, name: "Aurora", price: 1400, primary: "#39FF14", secondary: "#FF1493", bg: "linear-gradient(135deg, #39FF14, #00CED1, #FF1493)", tier: "premium-exclusive", unlockRequired: true, icon: "🌠", cssClass: "theme-aurora" },
+  { id: 29, name: "Phoenix", price: 1300, primary: "#FF4500", secondary: "#FFD700", bg: "linear-gradient(180deg, #FF4500, #FF6347, #FFD700)", tier: "premium-exclusive", unlockRequired: true, icon: "🔥", cssClass: "theme-phoenix" },
+  { id: 30, name: "Cyberpunk", price: 1100, primary: "#FFFF00", secondary: "#FF00FF", bg: "linear-gradient(135deg, #000000, #FFFF00, #FF00FF)", tier: "premium-exclusive", unlockRequired: true, icon: "⚡", cssClass: "theme-cyberpunk" },
+  // New premium colors - ULTRA HIGH PRICE
+  { id: 31, name: "💎 Diamond", price: 2000, primary: "#00CED1", secondary: "#B0E0E6", bg: "linear-gradient(135deg, #E0F7FA, #00CED1, #FFFFFF)", tier: "premium-exclusive", unlockRequired: true, icon: "💎", cssClass: "theme-diamond" },
+  { id: 32, name: "🔮 Royal Amethyst", price: 1800, primary: "#9966CC", secondary: "#663399", bg: "linear-gradient(145deg, #E6E6FA, #9966CC, #4B0082)", tier: "premium-exclusive", unlockRequired: true, icon: "🔮", cssClass: "theme-amethyst" },
+  { id: 33, name: "🌅 Sunset Gold", price: 1600, primary: "#FF8C00", secondary: "#FF6347", bg: "linear-gradient(180deg, #FFD700, #FF8C00, #FF6347)", tier: "premium-exclusive", unlockRequired: true, icon: "🌅", cssClass: "theme-sunset" },
+  { id: 34, name: "🧊 Frozen Ice", price: 1700, primary: "#00FFFF", secondary: "#E0FFFF", bg: "linear-gradient(135deg, #E0FFFF, #00FFFF, #87CEEB)", tier: "premium-exclusive", unlockRequired: true, icon: "🧊", cssClass: "theme-ice" },
+  { id: 35, name: "🌊 Ocean Deep", price: 1900, primary: "#006994", secondary: "#003366", bg: "linear-gradient(180deg, #00CED1, #006994, #003366)", tier: "premium-exclusive", unlockRequired: true, icon: "🌊", cssClass: "theme-ocean" },
+  { id: 36, name: "🔥 Magma", price: 1750, primary: "#FF4500", secondary: "#8B0000", bg: "linear-gradient(180deg, #FFD700, #FF4500, #8B0000)", tier: "premium-exclusive", unlockRequired: true, icon: "🌋", cssClass: "theme-magma" },
+  { id: 37, name: "🌸 Sakura", price: 1650, primary: "#FFB7C5", secondary: "#FF69B4", bg: "linear-gradient(135deg, #FFF0F5, #FFB7C5, #FF69B4)", tier: "premium-exclusive", unlockRequired: true, icon: "🌸", cssClass: "theme-sakura" },
+  { id: 38, name: "🌲 Emerald Forest", price: 1550, primary: "#50C878", secondary: "#228B22", bg: "linear-gradient(145deg, #98FB98, #50C878, #228B22)", tier: "premium-exclusive", unlockRequired: true, icon: "🌲", cssClass: "theme-emerald" },
+  { id: 39, name: "⭐ Starlight", price: 1850, primary: "#FFD700", secondary: "#C0C0C0", bg: "radial-gradient(ellipse at center, #1a1a2e, #16213e, #0f3460)", tier: "premium-exclusive", unlockRequired: true, icon: "⭐", cssClass: "theme-starlight" },
+  { id: 40, name: "🌙 Midnight", price: 1950, primary: "#191970", secondary: "#000080", bg: "linear-gradient(180deg, #2C3E50, #191970, #000000)", tier: "premium-exclusive", unlockRequired: true, icon: "🌙", cssClass: "theme-midnight" },
+  { id: 41, name: "⚜️ Golden Royal", price: 2500, primary: "#D4AF37", secondary: "#B8860B", bg: "linear-gradient(145deg, #FFF8DC, #D4AF37, #B8860B)", tier: "premium-exclusive", unlockRequired: true, icon: "👑", cssClass: "theme-royal" },
+  { id: 42, name: "🌈 Prism", price: 3000, primary: "#FF1493", secondary: "#00BFFF", bg: "conic-gradient(from 0deg, #FF1493, #FFD700, #00FF00, #00BFFF, #FF1493)", tier: "premium-exclusive", unlockRequired: true, icon: "💫", cssClass: "theme-prism" }
 ];
 
 // Authentication system functions
@@ -633,20 +659,42 @@ function initColorThemes() {
     
     const isPurchased = purchasedColors.includes(theme.id);
     const canAfford = currentTokens >= theme.price;
+    const isLocked = theme.unlockRequired && !isPurchased;
     
     // Add locked class if not purchased
     if (!isPurchased) {
       themeItem.classList.add('locked');
+    }
+    // Add tier-based class for exclusive/premium-exclusive colors
+    if (theme.tier === 'exclusive' || theme.tier === 'premium-exclusive') {
+      themeItem.classList.add(theme.tier);
     }
     
     // Set CSS variables for preview
     themeItem.style.setProperty('--color-primary', theme.primary);
     themeItem.style.setProperty('--color-secondary', theme.secondary);
     
+    // Determine price display
+    let priceDisplay;
+    if (isPurchased) {
+      priceDisplay = '<div class="color-owned">✅ Đã sở hữu</div>';
+    } else if (isLocked) {
+      priceDisplay = '<div class="color-price exclusive-price">🔒 Cần mở khóa</div>';
+    } else if (theme.price === 0) {
+      priceDisplay = '<div class="color-price free">🆓 Miễn phí</div>';
+    } else {
+      priceDisplay = `<div class="color-price">${theme.price} tokens</div>`;
+    }
+    
+    // Add icon for exclusive colors only
+    const iconDisplay = theme.icon ? `<div class="color-icon">${theme.icon}</div>` : '';
+    
     themeItem.innerHTML = `
-      <div class="color-preview" style="background: linear-gradient(135deg, ${theme.primary}, ${theme.secondary});${!isPurchased ? ' opacity: 0.7;' : ''}" title="${theme.name}"></div>
+      <div class="color-preview ${theme.cssClass || ''}" style="background: linear-gradient(135deg, ${theme.primary}, ${theme.secondary});${!isPurchased ? ' opacity: 0.7;' : ''}" title="${theme.name}">
+        ${iconDisplay}
+      </div>
       <div class="color-name">${theme.name}</div>
-      ${!isPurchased ? `<div class="color-price">${theme.price} tokens</div>` : '<div class="color-owned">✅ Đã sở hữu</div>'}
+      ${priceDisplay}
     `;
     
     themeItem.addEventListener('click', () => selectColorTheme(theme));
@@ -658,6 +706,12 @@ function selectColorTheme(theme) {
   const purchasedColors = JSON.parse(localStorage.getItem('purchasedColors') || '[]');
   
   if (!purchasedColors.includes(theme.id)) {
+    // Check if it's an exclusive color that needs unlocking in token shop
+    if (theme.unlockRequired) {
+      addMessage(`🔒 Màu ${theme.name} cần được mở khóa trong Cửa Hàng Token trước!`, "bot");
+      return;
+    }
+    
     // Purchase color theme
     if (currentTokens >= theme.price) {
       currentTokens -= theme.price;
@@ -708,7 +762,61 @@ function applyColorTheme(theme) {
   document.documentElement.style.setProperty('--primary-light', theme.bg);
   // AI chat box background follows user's purchased theme
   document.documentElement.style.setProperty('--bot-bg', theme.bg);
-  document.body.style.background = `linear-gradient(145deg, ${theme.bg} 0%, ${theme.primary}15 50%, ${theme.bg} 100%)`;
+  
+  // Apply full theme background (for premium themes use full color)
+  if (theme.tier === 'premium-exclusive' && theme.bg.includes('gradient')) {
+    document.body.style.background = theme.bg + ' !important';
+    document.body.style.backgroundAttachment = 'fixed';
+  } else {
+    document.body.style.background = `linear-gradient(145deg, ${theme.bg} 0%, ${theme.primary}15 50%, ${theme.bg} 100%)`;
+    document.body.style.backgroundAttachment = '';
+  }
+  
+  // Remove all exclusive theme effect classes
+  document.body.classList.remove(
+    'theme-gold-active', 'theme-silver-active', 'theme-bronze-active', 'theme-rainbow-active',
+    'theme-holographic-active', 'theme-rainbow-premium-active', 'theme-galaxy-active',
+    'theme-aurora-active', 'theme-phoenix-active', 'theme-cyberpunk-active',
+    // New premium colors
+    'theme-diamond-active', 'theme-amethyst-active', 'theme-sunset-active', 'theme-ice-active',
+    'theme-ocean-active', 'theme-magma-active', 'theme-sakura-active', 'theme-emerald-active',
+    'theme-starlight-active', 'theme-midnight-active', 'theme-royal-active', 'theme-prism-active'
+  );
+  
+  // Remove wave animation
+  removeWaveAnimation();
+  
+  // Only add special effect class for EXCLUSIVE colors (tier: exclusive or premium-exclusive)
+  if (theme.cssClass && (theme.tier === 'exclusive' || theme.tier === 'premium-exclusive')) {
+    const activeClass = theme.cssClass + '-active';
+    document.body.classList.add(activeClass);
+    // Add wave animation for premium themes
+    addWaveAnimation();
+  }
+}
+
+// ========== WAVE ANIMATION FUNCTIONS ==========
+function addWaveAnimation() {
+  if (document.getElementById('wave-animation')) return;
+  
+  const waveContainer = document.createElement('div');
+  waveContainer.id = 'wave-animation';
+  waveContainer.className = 'wave-container';
+  
+  for (let i = 0; i < 3; i++) {
+    const wave = document.createElement('div');
+    wave.className = 'wave';
+    waveContainer.appendChild(wave);
+  }
+  
+  document.body.appendChild(waveContainer);
+}
+
+function removeWaveAnimation() {
+  const waveContainer = document.getElementById('wave-animation');
+  if (waveContainer) {
+    waveContainer.remove();
+  }
 }
 
 // Token system
@@ -844,9 +952,14 @@ function processCommand(text) {
     window.location.href = 'admin-simple.html';
     return "🔐 Đang chuyển đến trang quản lý người dùng...";
   } else if (command.startsWith('/token')) {
+    // Check password before redirecting
+    const password = prompt('🔐 Nhập mật khẩu để vào Cửa Hàng Token:');
+    if (password !== '093981') {
+      return '❌ Mật khẩu không đúng! Bạn không có quyền truy cập Cửa Hàng Token.';
+    }
     // Redirect to new token shop page
     window.location.href = 'token-shop-new.html';
-    return "?? ??ang chuy?n ??n c?a h?ng token m?i...";
+    return '🎨 Đang chuyển đến Cửa Hàng Token...';
   }
   
   return null;
@@ -856,13 +969,7 @@ function sendDeviceRequest(url) {
   fetch(url).catch(err => console.log('Device request failed:', err));
 }
 
-// Study room button
-const studyRoomBtn = document.getElementById("study-room-btn");
-if (studyRoomBtn) {
-  studyRoomBtn.addEventListener('click', () => {
-    window.location.href = 'study-room.html';
-  });
-}
+// Note: Study room removed - now using Garden Game (trongcay.html) only
 
 function toggleTheme() {
   document.body.classList.toggle("dark");
@@ -874,12 +981,12 @@ function toggleTheme() {
   const themeToggleMenu = document.getElementById("theme-toggle-menu");
   
   if (themeToggle) {
-    themeToggle.textContent = isDark ? "??": "??";
+    themeToggle.textContent = isDark ? "☀️": "🌙";
   }
   if (themeToggleMenu) {
     const menuIcon = themeToggleMenu.querySelector('.menu-icon');
     if (menuIcon) {
-      menuIcon.textContent = isDark ? "??": "??";
+      menuIcon.textContent = isDark ? "☀️": "🌙";
     }
   }
 }
@@ -896,12 +1003,12 @@ function applyThemeFromStorage() {
   const themeToggleMenu = document.getElementById("theme-toggle-menu");
   
   if (themeToggle) {
-    themeToggle.textContent = isDark ? "??": "??";
+    themeToggle.textContent = isDark ? "☀️": "🌙";
   }
   if (themeToggleMenu) {
     const menuIcon = themeToggleMenu.querySelector('.menu-icon');
     if (menuIcon) {
-      menuIcon.textContent = isDark ? "??": "??";
+      menuIcon.textContent = isDark ? "☀️": "🌙";
     }
   }
 }

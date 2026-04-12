@@ -1,0 +1,1335 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trang Chính - Khu Vườn Kiên Nhẫn</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: #333;
+            line-height: 1.6;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        nav {
+            margin-top: 10px;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin: 0 15px;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+
+        nav a:hover {
+            color: #ffeb3b;
+        }
+
+        main {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+
+        .intro {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .intro h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            color: #5b4edd;
+        }
+
+        .intro p {
+            font-size: 1.2em;
+            color: #666;
+        }
+
+        .game-section {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .setup, .garden {
+            flex: 1;
+            min-width: 300px;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .setup h2, .garden h2 {
+            color: #5b4edd;
+            margin-bottom: 15px;
+        }
+
+        .seed-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .seed {
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            flex: 1;
+            min-width: 100px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .seed.selected {
+            border-color: #5b4edd;
+            background: #f0f4ff;
+        }
+
+        .time-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .time {
+            padding: 12px 8px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            flex: 1;
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .time.selected {
+            border-color: #5b4edd;
+            background: #f0f4ff;
+        }
+
+        button {
+            background: #5b4edd;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background: #4c3fc7;
+            transform: translateY(-2px);
+        }
+        
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        @media (max-width: 480px) {
+            button {
+                padding: 10px 16px;
+                font-size: 14px;
+            }
+        }
+
+        .garden-display {
+            text-align: center;
+        }
+
+        .tree-image {
+            width: 150px;
+            height: 150px;
+            margin: 15px auto;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            object-fit: contain;
+        }
+        
+        @media (max-width: 480px) {
+            .tree-image {
+                width: 120px;
+                height: 120px;
+            }
+        }
+
+        .timer {
+            font-size: 2em;
+            font-weight: bold;
+            color: #5b4edd;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 2px;
+        }
+        
+        @media (max-width: 480px) {
+            .timer {
+                font-size: 1.5em;
+            }
+        }
+
+        .progress {
+            width: 100%;
+            height: 20px;
+            background: #ddd;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #5b4edd 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .reward {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+            padding: 20px;
+            background: #e8f5e8;
+            border-radius: 12px;
+            border: 2px solid #4caf50;
+        }
+
+        .reward h3 {
+            color: #4caf50;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            background: #333;
+            color: white;
+            margin-top: 40px;
+        }
+
+        @media (max-width: 768px) {
+            .game-section {
+                flex-direction: column;
+            }
+
+            .intro h1 {
+                font-size: 2em;
+            }
+        }
+        
+        /* Token notification animations */
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideOutRight {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+
+        /* ========== EXCLUSIVE ICON POP-OUT EFFECTS ========== */
+        .color-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 32px;
+            z-index: 100;
+            filter: drop-shadow(0 1px 0 rgba(255,255,255,0.8))
+                    drop-shadow(0 2px 0 rgba(255,255,255,0.6))
+                    drop-shadow(0 3px 0 rgba(255,255,255,0.4))
+                    drop-shadow(0 4px 8px rgba(0,0,0,0.4))
+                    drop-shadow(0 8px 16px rgba(0,0,0,0.3))
+                    drop-shadow(0 0 20px rgba(255,255,255,0.5));
+            animation: iconFloatPop 2.5s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes iconFloatPop {
+            0%, 100% { 
+                transform: translate(-50%, -50%) translateY(0) rotate(0deg) scale(1);
+                filter: drop-shadow(0 1px 0 rgba(255,255,255,0.8))
+                        drop-shadow(0 2px 0 rgba(255,255,255,0.6))
+                        drop-shadow(0 3px 0 rgba(255,255,255,0.4))
+                        drop-shadow(0 4px 8px rgba(0,0,0,0.4))
+                        drop-shadow(0 8px 16px rgba(0,0,0,0.3))
+                        drop-shadow(0 0 20px rgba(255,255,255,0.5));
+            }
+            25% {
+                transform: translate(-50%, -50%) translateY(-8px) rotate(-3deg) scale(1.05);
+                filter: drop-shadow(0 1px 0 rgba(255,255,255,0.8))
+                        drop-shadow(0 2px 0 rgba(255,255,255,0.6))
+                        drop-shadow(0 3px 0 rgba(255,255,255,0.4))
+                        drop-shadow(0 6px 12px rgba(0,0,0,0.35))
+                        drop-shadow(0 12px 24px rgba(0,0,0,0.25))
+                        drop-shadow(0 0 30px rgba(255,255,255,0.7));
+            }
+            50% { 
+                transform: translate(-50%, -50%) translateY(-12px) rotate(0deg) scale(1.1);
+                filter: drop-shadow(0 1px 0 rgba(255,255,255,0.8))
+                        drop-shadow(0 2px 0 rgba(255,255,255,0.6))
+                        drop-shadow(0 3px 0 rgba(255,255,255,0.4))
+                        drop-shadow(0 8px 16px rgba(0,0,0,0.3))
+                        drop-shadow(0 16px 32px rgba(0,0,0,0.2))
+                        drop-shadow(0 0 40px rgba(255,255,255,0.9));
+            }
+            75% {
+                transform: translate(-50%, -50%) translateY(-8px) rotate(3deg) scale(1.05);
+                filter: drop-shadow(0 1px 0 rgba(255,255,255,0.8))
+                        drop-shadow(0 2px 0 rgba(255,255,255,0.6))
+                        drop-shadow(0 3px 0 rgba(255,255,255,0.4))
+                        drop-shadow(0 6px 12px rgba(0,0,0,0.35))
+                        drop-shadow(0 12px 24px rgba(0,0,0,0.25))
+                        drop-shadow(0 0 30px rgba(255,255,255,0.7));
+            }
+        }
+
+        /* Hover pop-out effect */
+        .color-item:hover .color-icon {
+            animation: iconHoverPop 0.5s ease-out forwards;
+        }
+
+        @keyframes iconHoverPop {
+            0% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.3) translateY(-20px); }
+            100% { 
+                transform: translate(-50%, -50%) scale(1.2) translateY(-15px);
+                filter: drop-shadow(0 1px 0 rgba(255,255,255,0.9))
+                        drop-shadow(0 3px 0 rgba(255,255,255,0.7))
+                        drop-shadow(0 5px 0 rgba(255,255,255,0.5))
+                        drop-shadow(0 8px 20px rgba(0,0,0,0.4))
+                        drop-shadow(0 16px 40px rgba(0,0,0,0.3))
+                        drop-shadow(0 0 50px rgba(255,255,255,1));
+            }
+        }
+
+        /* Sparkle effect */
+        .color-icon::after {
+            content: "✦";
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            font-size: 12px;
+            animation: sparkle 1.5s ease-in-out infinite;
+            opacity: 0;
+        }
+
+        @keyframes sparkle {
+            0%, 100% { opacity: 0; transform: scale(0) rotate(0deg); }
+            50% { opacity: 1; transform: scale(1) rotate(180deg); }
+        }
+
+        @keyframes iconDropIn {
+            0% {
+                transform: translate(-50%, -200%) scale(0) rotate(-180deg);
+                opacity: 0;
+                filter: drop-shadow(0 0 0 transparent);
+            }
+            60% {
+                transform: translate(-50%, -60%) scale(1.2) rotate(10deg);
+                opacity: 1;
+                filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+            }
+            80% {
+                transform: translate(-50%, -45%) scale(0.9) rotate(-5deg);
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1) rotate(0deg);
+                opacity: 1;
+                filter: drop-shadow(0 1px 0 rgba(255,255,255,0.8))
+                        drop-shadow(0 2px 0 rgba(255,255,255,0.6))
+                        drop-shadow(0 3px 0 rgba(255,255,255,0.4))
+                        drop-shadow(0 4px 8px rgba(0,0,0,0.4))
+                        drop-shadow(0 8px 16px rgba(0,0,0,0.3))
+                        drop-shadow(0 0 20px rgba(255,255,255,0.5));
+            }
+        }
+
+        /* Bounce effect when dropping */
+        .color-preview .color-icon::before {
+            content: "";
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 4px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 50%;
+            animation: dropShadow 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+            opacity: 0;
+        }
+
+        @keyframes dropShadow {
+            0% {
+                transform: translateX(-50%) scale(0);
+                opacity: 0;
+            }
+            60% {
+                transform: translateX(-50%) scale(1.5);
+                opacity: 0.3;
+            }
+            100% {
+                transform: translateX(-50%) scale(1);
+                opacity: 0.2;
+            }
+        }
+
+        /* ========== COLOR THEME PANEL ========== */
+        .theme-toggle {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            transition: all 0.2s ease;
+            z-index: 1000;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+        }
+
+        .color-theme-panel {
+            position: fixed;
+            bottom: 90px;
+            right: 24px;
+            width: 320px;
+            max-height: 500px;
+            background: var(--surface);
+            border-radius: var(--radius);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            z-index: 999;
+            transform: translateY(20px) scale(0.95);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .color-theme-panel.active {
+            transform: translateY(0) scale(1);
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .panel-header h3 {
+            font-size: 16px;
+            color: var(--text-primary);
+            margin: 0;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: color 0.2s;
+        }
+
+        .close-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            padding: 16px;
+            overflow-y: auto;
+            max-height: 400px;
+        }
+
+        .color-item {
+            cursor: pointer;
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            transition: all 0.2s ease;
+            border: 2px solid transparent;
+            position: relative;
+        }
+
+        .color-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .color-item.selected {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-light);
+        }
+
+        .color-item.locked {
+            opacity: 0.6;
+        }
+
+        .color-item.locked::after {
+            content: "🔒";
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            font-size: 12px;
+        }
+
+        .color-preview {
+            width: 100%;
+            height: 50px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .color-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 28px;
+            z-index: 10;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+        }
+
+        .color-name {
+            font-size: 11px;
+            text-align: center;
+            padding: 6px 4px;
+            background: var(--surface);
+            color: var(--text-primary);
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .color-price {
+            font-size: 10px;
+            text-align: center;
+            padding: 2px 4px;
+            background: var(--primary-light);
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .color-owned {
+            font-size: 10px;
+            text-align: center;
+            padding: 2px 4px;
+            background: #dcfce7;
+            color: #16a34a;
+        }
+
+        /* ========== WAVE ANIMATION FOR PREMIUM THEMES ========== */
+        .wave-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 150px;
+            pointer-events: none;
+            z-index: 1;
+            overflow: hidden;
+        }
+
+        .wave {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 200%;
+            height: 100%;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%23ffffff' fill-opacity='0.1' d='M0,192L48,197.3C96,203,192,213,288,229.3C384,245,480,267,576,250.7C672,235,768,181,864,181.3C960,181,1056,235,1152,234.7C1248,235,1344,181,1392,154.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3E%3C/path%3E%3C/svg%3E") repeat-x;
+            animation: waveMove 10s linear infinite;
+            opacity: 0.5;
+        }
+
+        .wave:nth-child(2) {
+            bottom: 10px;
+            animation: waveMove 15s linear infinite reverse;
+            opacity: 0.3;
+        }
+
+        .wave:nth-child(3) {
+            bottom: 20px;
+            animation: waveMove 20s linear infinite;
+            opacity: 0.2;
+        }
+
+        @keyframes waveMove {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        /* Theme-specific wave colors */
+        body.theme-ocean-active .wave {
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%2300CED1' fill-opacity='0.3' d='M0,192L48,197.3C96,203,192,213,288,229.3C384,245,480,267,576,250.7C672,235,768,181,864,181.3C960,181,1056,235,1152,234.7C1248,235,1344,181,1392,154.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3E%3C/path%3E%3C/svg%3E") repeat-x;
+        }
+
+        body.theme-aurora-active .wave {
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%2339FF14' fill-opacity='0.3' d='M0,192L48,197.3C96,203,192,213,288,229.3C384,245,480,267,576,250.7C672,235,768,181,864,181.3C960,181,1056,235,1152,234.7C1248,235,1344,181,1392,154.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3E%3C/path%3E%3C/svg%3E") repeat-x;
+        }
+
+        body.theme-galaxy-active .wave,
+        body.theme-starlight-active .wave {
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%23FFFFFF' fill-opacity='0.2' d='M0,192L48,197.3C96,203,192,213,288,229.3C384,245,480,267,576,250.7C672,235,768,181,864,181.3C960,181,1056,235,1152,234.7C1248,235,1344,181,1392,154.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3E%3C/path%3E%3C/svg%3E") repeat-x;
+        }
+
+        /* ========== SPECIAL BEAUTIFUL EFFECTS FOR PREMIUM THEMES ========== */
+        /* Floating particles for Galaxy theme */
+        body.theme-galaxy-active::before,
+        body.theme-starlight-active::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            background-image: 
+                radial-gradient(2px 2px at 20px 30px, #fff, transparent),
+                radial-gradient(2px 2px at 40px 70px, rgba(255,255,255,0.8), transparent),
+                radial-gradient(1px 1px at 90px 40px, #fff, transparent),
+                radial-gradient(2px 2px at 160px 120px, rgba(255,255,255,0.9), transparent),
+                radial-gradient(1px 1px at 230px 80px, #fff, transparent),
+                radial-gradient(2px 2px at 300px 150px, rgba(255,255,255,0.7), transparent);
+            background-repeat: repeat;
+            background-size: 350px 200px;
+            animation: twinkle 4s ease-in-out infinite;
+            z-index: 0;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        /* Fire particles for Phoenix theme */
+        body.theme-phoenix-active::before {
+            content: '';
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 40%;
+            pointer-events: none;
+            background: linear-gradient(to top, rgba(255,69,0,0.3), transparent);
+            animation: fireFlicker 2s ease-in-out infinite;
+            z-index: 0;
+        }
+
+        @keyframes fireFlicker {
+            0%, 100% { opacity: 0.6; transform: scaleY(1); }
+            50% { opacity: 0.9; transform: scaleY(1.1); }
+        }
+
+        /* Diamond sparkle effect */
+        body.theme-diamond-active::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(255,255,255,0.4) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(255,255,255,0.3) 0%, transparent 40%);
+            animation: diamondShine 3s ease-in-out infinite;
+            z-index: 0;
+        }
+
+        @keyframes diamondShine {
+            0%, 100% { opacity: 0.3; transform: translateX(0); }
+            50% { opacity: 0.8; transform: translateX(20px); }
+        }
+
+        /* Aurora borealis effect */
+        body.theme-aurora-active::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 200%;
+            height: 100%;
+            pointer-events: none;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(57,255,20,0.2) 25%, 
+                rgba(0,206,209,0.3) 50%, 
+                rgba(255,20,147,0.2) 75%, 
+                transparent 100%);
+            animation: auroraMove 8s linear infinite;
+            z-index: 0;
+        }
+
+        @keyframes auroraMove {
+            0% { transform: translateX(-50%); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Rainbow glow for holographic */
+        body.theme-holographic-active {
+            animation: holographicShift 3s linear infinite;
+        }
+
+        @keyframes holographicShift {
+            0% { filter: hue-rotate(0deg); }
+            100% { filter: hue-rotate(360deg); }
+        }
+
+        /* Magma heat wave effect */
+        body.theme-magma-active::before {
+            content: '';
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 50%;
+            pointer-events: none;
+            background: radial-gradient(ellipse at center bottom, rgba(255,69,0,0.4), transparent 70%);
+            animation: heatWave 4s ease-in-out infinite;
+            z-index: 0;
+        }
+
+        @keyframes heatWave {
+            0%, 100% { transform: scaleY(1); opacity: 0.6; }
+            50% { transform: scaleY(1.2); opacity: 0.9; }
+        }
+
+        /* Ice crystals effect */
+        body.theme-ice-active::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            background-image: 
+                linear-gradient(45deg, transparent 48%, rgba(255,255,255,0.1) 50%, transparent 52%),
+                linear-gradient(-45deg, transparent 48%, rgba(255,255,255,0.1) 50%, transparent 52%);
+            background-size: 60px 60px;
+            animation: iceShimmer 5s ease-in-out infinite;
+            z-index: 0;
+        }
+
+        @keyframes iceShimmer {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.7; }
+        }
+
+        /* Golden glow pulse */
+        body.theme-royal-active::before,
+        body.theme-gold-active::before {
+            content: '';
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            width: 200vmax;
+            height: 200vmax;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            background: radial-gradient(circle, rgba(255,215,0,0.15) 0%, transparent 50%);
+            animation: goldPulse 4s ease-in-out infinite;
+            z-index: 0;
+        }
+
+        @keyframes goldPulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
+            50% { transform: translate(-50%, -50%) scale(1.1); opacity: 0.9; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Khu Vườn Kiên Nhẫn</h1>
+        <nav>
+            <a href="index.html">🏠 Quay lại Chatbot</a>
+        </nav>
+        <div id="user-info" style="margin-top: 15px; font-size: 14px;">
+            <span id="current-user">Chưa đăng nhập</span> | 
+            <span id="user-tokens">💎 0 tokens</span>
+        </div>
+    </header>
+
+    <main>
+        <section class="intro">
+            <h1>🌳 Khu Vườn Kiên Nhẫn</h1>
+            <p>Trò chơi giúp bạn tập trung và kiên trì. Chọn hạt giống, đặt thời gian và xem cây phát triển!</p>
+        </section>
+
+        <section class="game-section">
+            <div class="setup">
+                <h2>Thiết Lập Mục Tiêu</h2>
+                <div class="seed-options">
+                    <div class="seed" data-seed="oak">🌳 Cây Sồi</div>
+                    <div class="seed" data-seed="sunflower">🌻 Hoa Hướng Dương</div>
+                    <div class="seed" data-seed="pine">🌲 Cây Thông</div>
+                </div>
+                <div class="time-options">
+                    <div class="time" data-time="10">10 phút</div>
+                    <div class="time" data-time="20">20 phút</div>
+                    <div class="time" data-time="30">30 phút</div>
+                    <div class="time" data-time="45">45 phút</div>
+                    <div class="time" data-time="60">60 phút</div>
+                    <div class="time" data-time="90">90 phút</div>
+                    <div class="time" data-time="120">120 phút</div>
+                    <div class="time" data-time="150">150 phút</div>
+                    <div class="time" data-time="180">180 phút</div>
+                </div>
+                <button id="startBtn">Bắt Đầu Trồng Cây</button>
+                <button id="stopBtn" style="display: none; background: #ff6b6b;">Dừng (Cây Sẽ Héo!)</button>
+            </div>
+
+            <div class="garden">
+                <h2>Khu Vườn Của Bạn</h2>
+                <div class="garden-display">
+                    <img id="treeImg" class="tree-image" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌰</text></svg>" alt="Chọn hạt giống">
+                    <div id="timer" class="timer">--:--</div>
+                    <div class="progress">
+                        <div id="progressBar" class="progress-bar"></div>
+                    </div>
+                    <div id="status">Chọn hạt giống và thời gian để bắt đầu!</div>
+                </div>
+                <div id="reward" class="reward">
+                    <h3>🎉 Chúc Mừng! Bạn Đã Kiên Trì!</h3>
+                    <p id="tokenReward">Bạn nhận được <strong>0 tokens</strong>!</p>
+                    <p>Thời gian: <span id="timeSpent">0</span> phút | Tối đa: 500 tokens</p>
+                    <p>Cây của bạn đã được lưu vào Khu Vườn Lịch Sử.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 Khu Vườn Kiên Nhẫn. Phát triển bởi nguyenvietlam.</p>
+    </footer>
+
+    <!-- Device Manager -->
+    <script src="device-manager.js"></script>
+    
+    <script>
+        // Check authentication
+        const currentUser = localStorage.getItem('currentUser');
+        const users = JSON.parse(localStorage.getItem('users') || '{}');
+        
+        if (!currentUser || !users[currentUser]) {
+            document.body.innerHTML = `
+                <div style="display: flex; justify-content: center; align-items: center; height: 100vh; background: linear-gradient(145deg, #f0f9ff 0%, #e0f2fe 100%); font-family: Inter, sans-serif;">
+                    <div style="background: white; padding: 40px; border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); text-align: center; max-width: 400px;">
+                        <div style="font-size: 48px; margin-bottom: 20px;">🔒</div>
+                        <h2 style="color: #1e40af; margin-bottom: 16px;">Yêu Cầu Đăng Nhập</h2>
+                        <p style="color: #64748b; margin-bottom: 24px;">Bạn phải đăng nhập để chơi game trồng cây!</p>
+                        <button onclick="window.location.href='index.html'" style="background: #3b82f6; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 500;">
+                            Đăng Nhập Ngay
+                        </button>
+                    </div>
+                </div>
+            `;
+            throw new Error('User not authenticated');
+        }
+        
+        // Update user info display
+        document.getElementById('current-user').textContent = currentUser;
+        const userTokens = users[currentUser]?.tokens || 0;
+        document.getElementById('user-tokens').textContent = `💎 ${userTokens} tokens`;
+
+        // ========== SYNC COLOR THEME FROM CHATBOT ==========
+        const colorThemes = [
+            // Regular colors - FREE (price: 0)
+            { id: 1, name: "Xanh dương", primary: "#3B82F6", secondary: "#1E40AF", bg: "#EFF6FF", tier: "basic", price: 0 },
+            { id: 2, name: "Xanh lá", primary: "#10B981", secondary: "#047857", bg: "#F0FDF4", tier: "basic", price: 0 },
+            { id: 3, name: "Tím", primary: "#8B5CF6", secondary: "#6D28D9", bg: "#F5F3FF", tier: "basic", price: 0 },
+            { id: 4, name: "Hồng", primary: "#EC4899", secondary: "#BE185D", bg: "#FDF2F8", tier: "basic", price: 0 },
+            { id: 5, name: "Vàng", primary: "#F59E0B", secondary: "#D97706", bg: "#FFFBEB", tier: "basic", price: 0 },
+            { id: 6, name: "Cam", primary: "#F97316", secondary: "#EA580C", bg: "#FFF7ED", tier: "basic", price: 0 },
+            { id: 7, name: "Đỏ", primary: "#EF4444", secondary: "#DC2626", bg: "#FEF2F2", tier: "basic", price: 0 },
+            { id: 8, name: "Xám", primary: "#6B7280", secondary: "#4B5563", bg: "#F9FAFB", tier: "basic", price: 0 },
+            { id: 9, name: "Xanh ngọc", primary: "#14B8A6", secondary: "#0F766E", bg: "#F0FDFA", tier: "basic", price: 0 },
+            { id: 10, name: "Xám xanh", primary: "#6366F1", secondary: "#4F46E5", bg: "#EEF2FF", tier: "basic", price: 0 },
+            { id: 11, name: "Xám đỏ", primary: "#A855F7", secondary: "#9333EA", bg: "#FAF5FF", tier: "basic", price: 0 },
+            { id: 12, name: "Xám hồng", primary: "#F472B6", secondary: "#EC4899", bg: "#FDF4FF", tier: "basic", price: 0 },
+            { id: 13, name: "Nâu", primary: "#92400E", secondary: "#78350F", bg: "#FEF3C7", tier: "basic", price: 0 },
+            { id: 14, name: "Xanh đậm", primary: "#1E40AF", secondary: "#1E3A8A", bg: "#DBEAFE", tier: "premium", price: 50 },
+            { id: 15, name: "Xám đậm", primary: "#374151", secondary: "#111827", bg: "#F3F4F6", tier: "premium", price: 50 },
+            { id: 16, name: "Xám nhạt", primary: "#D1D5DB", secondary: "#9CA3AF", bg: "#F9FAFB", tier: "basic", price: 0 },
+            // Special exclusive colors - HIGH PRICE with unlock
+            { id: 17, name: "Vàng Kim", primary: "#FFD700", secondary: "#B8860B", bg: "#FFFAF0", tier: "exclusive", icon: "👑", cssClass: "theme-gold", price: 200, unlockRequired: true },
+            { id: 18, name: "Bạc", primary: "#C0C0C0", secondary: "#808080", bg: "#F5F5F5", tier: "exclusive", icon: "🥈", cssClass: "theme-silver", price: 150, unlockRequired: true },
+            { id: 19, name: "Đồng", primary: "#CD7F32", secondary: "#8B4513", bg: "#FFF8DC", tier: "exclusive", icon: "🥉", cssClass: "theme-bronze", price: 100, unlockRequired: true },
+            { id: 20, name: "Cầu Vồng", primary: "#FF6B6B", secondary: "#4ECDC4", bg: "linear-gradient(135deg, #FF6B6B, #FFE66D, #4ECDC4)", tier: "exclusive", icon: "🌈", cssClass: "theme-rainbow", price: 300, unlockRequired: true },
+            // Premium exclusive colors - VERY HIGH PRICE with unlock + special effects
+            { id: 25, name: "Holographic", primary: "#FF00FF", secondary: "#00FFFF", bg: "linear-gradient(45deg, #FF00FF, #00FFFF, #FF00FF)", tier: "premium-exclusive", icon: "✨", cssClass: "theme-holographic", price: 1000, unlockRequired: true },
+            { id: 26, name: "Rainbow", primary: "#FF0000", secondary: "#9400D3", bg: "linear-gradient(90deg, #FF0000, #FF7F00, #FFFF00, #00FF00, #0000FF, #4B0082, #9400D3)", tier: "premium-exclusive", icon: "🌈", cssClass: "theme-rainbow-premium", price: 1200, unlockRequired: true },
+            { id: 27, name: "Galaxy", primary: "#4B0082", secondary: "#000000", bg: "radial-gradient(ellipse at center, #4B0082, #000000, #191970)", tier: "premium-exclusive", icon: "🌌", cssClass: "theme-galaxy", price: 1500, unlockRequired: true },
+            { id: 28, name: "Aurora", primary: "#39FF14", secondary: "#FF1493", bg: "linear-gradient(135deg, #39FF14, #00CED1, #FF1493)", tier: "premium-exclusive", icon: "🌠", cssClass: "theme-aurora", price: 1400, unlockRequired: true },
+            { id: 29, name: "Phoenix", primary: "#FF4500", secondary: "#FFD700", bg: "linear-gradient(180deg, #FF4500, #FF6347, #FFD700)", tier: "premium-exclusive", icon: "🔥", cssClass: "theme-phoenix", price: 1300, unlockRequired: true },
+            { id: 30, name: "Cyberpunk", primary: "#FFFF00", secondary: "#FF00FF", bg: "linear-gradient(135deg, #000000, #FFFF00, #FF00FF)", tier: "premium-exclusive", icon: "⚡", cssClass: "theme-cyberpunk", price: 1100, unlockRequired: true },
+            // New premium colors - ULTRA HIGH PRICE
+            { id: 31, name: "💎 Diamond", primary: "#00CED1", secondary: "#B0E0E6", bg: "linear-gradient(135deg, #E0F7FA, #00CED1, #FFFFFF)", tier: "premium-exclusive", icon: "💎", cssClass: "theme-diamond", price: 2000, unlockRequired: true },
+            { id: 32, name: "🔮 Royal Amethyst", primary: "#9966CC", secondary: "#663399", bg: "linear-gradient(145deg, #E6E6FA, #9966CC, #4B0082)", tier: "premium-exclusive", icon: "🔮", cssClass: "theme-amethyst", price: 1800, unlockRequired: true },
+            { id: 33, name: "🌅 Sunset Gold", primary: "#FF8C00", secondary: "#FF6347", bg: "linear-gradient(180deg, #FFD700, #FF8C00, #FF6347)", tier: "premium-exclusive", icon: "🌅", cssClass: "theme-sunset", price: 1600, unlockRequired: true },
+            { id: 34, name: "🧊 Frozen Ice", primary: "#00FFFF", secondary: "#E0FFFF", bg: "linear-gradient(135deg, #E0FFFF, #00FFFF, #87CEEB)", tier: "premium-exclusive", icon: "🧊", cssClass: "theme-ice", price: 1700, unlockRequired: true },
+            { id: 35, name: "🌊 Ocean Deep", primary: "#006994", secondary: "#003366", bg: "linear-gradient(180deg, #00CED1, #006994, #003366)", tier: "premium-exclusive", icon: "🌊", cssClass: "theme-ocean", price: 1900, unlockRequired: true },
+            { id: 36, name: "🔥 Magma", primary: "#FF4500", secondary: "#8B0000", bg: "linear-gradient(180deg, #FFD700, #FF4500, #8B0000)", tier: "premium-exclusive", icon: "🌋", cssClass: "theme-magma", price: 1750, unlockRequired: true },
+            { id: 37, name: "🌸 Sakura", primary: "#FFB7C5", secondary: "#FF69B4", bg: "linear-gradient(135deg, #FFF0F5, #FFB7C5, #FF69B4)", tier: "premium-exclusive", icon: "🌸", cssClass: "theme-sakura", price: 1650, unlockRequired: true },
+            { id: 38, name: "🌲 Emerald Forest", primary: "#50C878", secondary: "#228B22", bg: "linear-gradient(145deg, #98FB98, #50C878, #228B22)", tier: "premium-exclusive", icon: "🌲", cssClass: "theme-emerald", price: 1550, unlockRequired: true },
+            { id: 39, name: "⭐ Starlight", primary: "#FFD700", secondary: "#C0C0C0", bg: "radial-gradient(ellipse at center, #1a1a2e, #16213e, #0f3460)", tier: "premium-exclusive", icon: "⭐", cssClass: "theme-starlight", price: 1850, unlockRequired: true },
+            { id: 40, name: "🌙 Midnight", primary: "#191970", secondary: "#000080", bg: "linear-gradient(180deg, #2C3E50, #191970, #000000)", tier: "premium-exclusive", icon: "🌙", cssClass: "theme-midnight", price: 1950, unlockRequired: true },
+            { id: 41, name: "⚜️ Golden Royal", primary: "#D4AF37", secondary: "#B8860B", bg: "linear-gradient(145deg, #FFF8DC, #D4AF37, #B8860B)", tier: "premium-exclusive", icon: "👑", cssClass: "theme-royal", price: 2500, unlockRequired: true },
+            { id: 42, name: "🌈 Prism", primary: "#FF1493", secondary: "#00BFFF", bg: "conic-gradient(from 0deg, #FF1493, #FFD700, #00FF00, #00BFFF, #FF1493)", tier: "premium-exclusive", icon: "💫", cssClass: "theme-prism", price: 3000, unlockRequired: true }
+        ];
+
+        // Apply selected color theme from localStorage
+        function applySyncedTheme() {
+            const selectedTheme = localStorage.getItem('selectedColorTheme') || 
+                                 users[currentUser]?.selectedColorTheme || '0';
+            
+            // Remove all exclusive theme effect classes first
+            document.body.classList.remove(
+                'theme-gold-active', 'theme-silver-active', 'theme-bronze-active', 'theme-rainbow-active',
+                'theme-holographic-active', 'theme-rainbow-premium-active', 'theme-galaxy-active',
+                'theme-aurora-active', 'theme-phoenix-active', 'theme-cyberpunk-active',
+                // New premium colors
+                'theme-diamond-active', 'theme-amethyst-active', 'theme-sunset-active', 'theme-ice-active',
+                'theme-ocean-active', 'theme-magma-active', 'theme-sakura-active', 'theme-emerald-active',
+                'theme-starlight-active', 'theme-midnight-active', 'theme-royal-active', 'theme-prism-active'
+            );
+            
+            if (selectedTheme && selectedTheme !== '0') {
+                const theme = colorThemes.find(t => t.id === parseInt(selectedTheme));
+                if (theme) {
+                    // Apply full theme background (not gradient overlay)
+                    if (theme.bg.includes('gradient') || theme.bg.includes('Gradient')) {
+                        document.body.style.background = theme.bg + ' !important';
+                    } else {
+                        document.body.style.background = `linear-gradient(145deg, ${theme.bg} 0%, ${theme.primary} 50%, ${theme.secondary} 100%) !important`;
+                    }
+                    document.body.style.backgroundAttachment = 'fixed';
+                    document.documentElement.style.setProperty('--primary', theme.primary);
+                    document.documentElement.style.setProperty('--primary-hover', theme.secondary);
+                    
+                    // Only add special effect for EXCLUSIVE colors (tier: exclusive or premium-exclusive)
+                    if (theme.cssClass && (theme.tier === 'exclusive' || theme.tier === 'premium-exclusive')) {
+                        document.body.classList.add(theme.cssClass + '-active');
+                        // Add wave animation for premium themes
+                        if (!document.getElementById('wave-animation')) {
+                            addWaveAnimation();
+                        }
+                    }
+                }
+            } else {
+                // Reset to default
+                document.body.style.background = '';
+                document.body.style.backgroundAttachment = '';
+                removeWaveAnimation();
+            }
+        }
+
+        // Apply theme on page load
+        applySyncedTheme();
+        
+        let selectedSeed = null;
+        let selectedTime = null;
+        let timerInterval = null;
+        let startTime = null;
+        let totalTime = 0;
+        let rewardTokens = 0;
+        let alertShown = false; // Track if 5-min alert was shown
+
+        const seeds = {
+            oak: {
+                0: 'cây%20sồi/1.jpg',  // Mầm non
+                25: 'cây%20sồi/2.jpg',  // Đang lớn
+                65: 'cây%20sồi/3.jpg',  // Đã lớn
+                100: 'cây%20sồi/3.jpg' // Hoàn thành
+            },
+            sunflower: {
+                0: 'hoa%20hướng%20dương/1.jpg',  // Mầm non
+                25: 'hoa%20hướng%20dương/35890109173445172555.jpg',  // Đang lớn (file số 2)
+                65: 'hoa%20hướng%20dương/3.jpg',  // Đã lớn
+                100: 'hoa%20hướng%20dương/3.jpg'  // Hoàn thành
+            },
+            pine: {
+                0: 'cây%20thông/1.jpg',  // Mầm non
+                25: 'cây%20thông/2.jpg',  // Đang lớn
+                65: 'cây%20thông/22482613962931634623.jpg',  // Đã lớn (file số 3)
+                100: 'cây%20thông/22482613962931634623.jpg'  // Hoàn thành
+            }
+        };
+
+        // Chọn hạt giống
+        document.querySelectorAll('.seed').forEach(seed => {
+            seed.addEventListener('click', () => {
+                if (timerInterval) return; // Disable during game
+                document.querySelectorAll('.seed').forEach(s => s.classList.remove('selected'));
+                seed.classList.add('selected');
+                selectedSeed = seed.dataset.seed;
+                // Update preview image
+                document.getElementById('treeImg').src = seeds[selectedSeed][0];
+                document.getElementById('status').textContent = 'Đã chọn hạt giống!';
+            });
+        });
+
+        // Chọn thời gian
+        document.querySelectorAll('.time').forEach(time => {
+            time.addEventListener('click', () => {
+                if (timerInterval) return; // Disable during game
+                document.querySelectorAll('.time').forEach(t => t.classList.remove('selected'));
+                time.classList.add('selected');
+                selectedTime = parseInt(time.dataset.time);
+            });
+        });
+
+        // Bắt đầu
+        document.getElementById('startBtn').addEventListener('click', () => {
+            if (!selectedSeed || !selectedTime) {
+                alert('Vui lòng chọn hạt giống và thời gian!');
+                return;
+            }
+            startGame();
+        });
+
+        // Dừng
+        document.getElementById('stopBtn').addEventListener('click', () => {
+            if (confirm('Bạn có chắc muốn dừng? Cây sẽ héo!')) {
+                stopGame(true);
+            }
+        });
+
+        function startGame() {
+            totalTime = selectedTime * 60 * 1000; // Chuyển sang ms
+            startTime = Date.now();
+            alertShown = false; // Reset alert flag
+            document.getElementById('startBtn').style.display = 'none';
+            document.getElementById('stopBtn').style.display = 'inline-block';
+            document.getElementById('reward').style.display = 'none';
+            document.getElementById('status').textContent = '🌱 Bắt đầu trồng cây!';
+            updateDisplay(0);
+            timerInterval = setInterval(updateTimer, 1000);
+        }
+
+        function stopGame(isAbandon = false) {
+            clearInterval(timerInterval);
+            document.getElementById('startBtn').style.display = 'inline-block';
+            document.getElementById('stopBtn').style.display = 'none';
+            if (isAbandon) {
+                document.getElementById('treeImg').src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🥀</text></svg>';
+                document.getElementById('status').textContent = 'Cây đã héo! Hãy thử lại.';
+            }
+        }
+
+        function updateTimer() {
+            const elapsed = Date.now() - startTime;
+            const remaining = totalTime - elapsed;
+            if (remaining <= 0) {
+                completeGame();
+                return;
+            }
+            const percent = (elapsed / totalTime) * 100;
+            updateDisplay(percent);
+            const minutes = Math.floor(remaining / 60000);
+            const seconds = Math.floor((remaining % 60000) / 1000);
+            const displayMinutes = minutes.toString().padStart(2, '0');
+            const displaySeconds = seconds.toString().padStart(2, '0');
+            document.getElementById('timer').textContent = `${displayMinutes}:${displaySeconds}`;
+            
+            // Show alert only once when 5 minutes remaining
+            if (remaining <= 5 * 60 * 1000 && remaining > 4.9 * 60 * 1000 && !alertShown) {
+                alertShown = true;
+                alert('🌱 Sắp xong rồi, hoa sắp nở rồi, cố lên nhé!');
+            }
+        }
+
+        function updateDisplay(percent) {
+            document.getElementById('progressBar').style.width = `${percent}%`;
+            let stage = 0;
+            if (percent >= 100) stage = 100;
+            else if (percent >= 65) stage = 65;
+            else if (percent >= 25) stage = 25;
+            else stage = 0;
+            document.getElementById('treeImg').src = seeds[selectedSeed][stage];
+            const statusTexts = {
+                0: 'Hạt mầm đang nảy!',
+                25: 'Cây non đang lớn!',
+                65: 'Cây trưởng thành rồi!',
+                100: 'Hoa nở rộ!'
+            };
+            document.getElementById('status').textContent = statusTexts[stage] || 'Đang phát triển...';
+        }
+
+        function completeGame() {
+            clearInterval(timerInterval);
+            document.getElementById('timer').textContent = '00:00';
+            document.getElementById('progressBar').style.width = '100%';
+            
+            // Calculate tokens: 10 minutes = 10 tokens, max 500 tokens
+            rewardTokens = Math.min(Math.floor(selectedTime / 10) * 10, 500); // 10 tokens per 10 minutes, max 500
+            
+            // Update reward message with detailed info
+            document.getElementById('tokenReward').innerHTML = `Bạn nhận được <strong>${rewardTokens} tokens</strong>! 🎉`;
+            document.getElementById('timeSpent').textContent = selectedTime;
+            document.getElementById('reward').style.display = 'block';
+            document.getElementById('startBtn').style.display = 'inline-block';
+            document.getElementById('stopBtn').style.display = 'none';
+            
+            // Add tokens to user account
+            const currentUser = localStorage.getItem('currentUser');
+            const users = JSON.parse(localStorage.getItem('users') || '{}');
+            if (currentUser && users[currentUser]) {
+                users[currentUser].tokens = (users[currentUser].tokens || 0) + rewardTokens;
+                localStorage.setItem('users', JSON.stringify(users));
+                localStorage.setItem('userTokens', users[currentUser].tokens.toString());
+                document.getElementById('user-tokens').textContent = `💎 ${users[currentUser].tokens} tokens`;
+            }
+            
+            // Save to garden history
+            const history = JSON.parse(localStorage.getItem('gardenHistory') || '[]');
+            history.push({ 
+                seed: selectedSeed, 
+                time: selectedTime, 
+                tokens: rewardTokens,
+                date: new Date().toISOString() 
+            });
+            localStorage.setItem('gardenHistory', JSON.stringify(history));
+            
+            // Show token notification
+            showTokenNotification(rewardTokens);
+        }
+        
+        function showTokenNotification(amount) {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: linear-gradient(135deg, #10b981, #059669);
+                color: white;
+                padding: 20px 28px;
+                border-radius: 16px;
+                box-shadow: 0 10px 40px rgba(16, 185, 129, 0.4), 0 0 20px rgba(16, 185, 129, 0.2);
+                z-index: 10000;
+                font-weight: 700;
+                font-size: 16px;
+                animation: slideInRight 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+                border: 2px solid rgba(255,255,255,0.2);
+            `;
+            notification.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <span style="font-size: 28px;">💎</span>
+                    <div>
+                        <div style="font-size: 20px; margin-bottom: 4px;">+${amount} Tokens!</div>
+                        <div style="font-size: 13px; opacity: 0.9; font-weight: 500;">Hoàn thành trồng cây! 🌱</div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOutRight 0.3s ease forwards';
+                setTimeout(() => notification.remove(), 300);
+            }, 4000);
+        }
+
+        // ========== WAVE ANIMATION FUNCTIONS ==========
+        function addWaveAnimation() {
+            if (document.getElementById('wave-animation')) return;
+            
+            const waveContainer = document.createElement('div');
+            waveContainer.id = 'wave-animation';
+            waveContainer.className = 'wave-container';
+            
+            for (let i = 0; i < 3; i++) {
+                const wave = document.createElement('div');
+                wave.className = 'wave';
+                waveContainer.appendChild(wave);
+            }
+            
+            document.body.appendChild(waveContainer);
+        }
+
+        function removeWaveAnimation() {
+            const waveContainer = document.getElementById('wave-animation');
+            if (waveContainer) {
+                waveContainer.remove();
+            }
+        }
+
+        // ========== COLOR THEME PANEL FUNCTIONS ==========
+        function initColorThemePanel() {
+            const colorGrid = document.getElementById('color-grid');
+            if (!colorGrid) return;
+            
+            colorGrid.innerHTML = '';
+            const currentUser = localStorage.getItem('currentUser');
+            const users = JSON.parse(localStorage.getItem('users') || '{}');
+            const purchasedColors = JSON.parse(localStorage.getItem('purchasedColors') || '[]');
+            const selectedTheme = localStorage.getItem('selectedColorTheme') || '0';
+            
+            colorThemes.forEach(theme => {
+                const themeItem = document.createElement('div');
+                themeItem.className = 'color-item';
+                
+                const isPurchased = purchasedColors.includes(theme.id);
+                const isLocked = theme.unlockRequired && !isPurchased;
+                
+                // Add tier-based class
+                if (theme.tier === 'exclusive' || theme.tier === 'premium-exclusive') {
+                    themeItem.classList.add(theme.tier);
+                }
+                if (!isPurchased) {
+                    themeItem.classList.add('locked');
+                }
+                if (selectedTheme === theme.id.toString()) {
+                    themeItem.classList.add('selected');
+                }
+                
+                const iconDisplay = theme.icon ? `<div class="color-icon">${theme.icon}</div>` : '';
+                
+                let priceDisplay;
+                if (isPurchased) {
+                    priceDisplay = '<div class="color-owned">✅</div>';
+                } else if (isLocked) {
+                    priceDisplay = '<div class="color-price">🔒</div>';
+                } else if (theme.price === 0) {
+                    priceDisplay = '<div class="color-price">🆓</div>';
+                } else {
+                    priceDisplay = `<div class="color-price">${theme.price}</div>`;
+                }
+                
+                themeItem.innerHTML = `
+                    <div class="color-preview ${theme.cssClass || ''}" style="background: ${theme.bg.includes('gradient') ? theme.bg : `linear-gradient(135deg, ${theme.primary}, ${theme.secondary})`};">
+                        ${iconDisplay}
+                    </div>
+                    <div class="color-name" title="${theme.name}">${theme.name}</div>
+                    ${priceDisplay}
+                `;
+                
+                themeItem.addEventListener('click', () => selectColorTheme(theme));
+                colorGrid.appendChild(themeItem);
+            });
+        }
+
+        function selectColorTheme(theme) {
+            const purchasedColors = JSON.parse(localStorage.getItem('purchasedColors') || '[]');
+            const currentUser = localStorage.getItem('currentUser');
+            const users = JSON.parse(localStorage.getItem('users') || '{}');
+            
+            if (!purchasedColors.includes(theme.id)) {
+                if (theme.unlockRequired) {
+                    showNotification('🔒 Cần mở khóa trong Cửa Hàng Token!');
+                    return;
+                }
+                // Check tokens and auto-purchase if enough
+                const userTokens = users[currentUser]?.tokens || 0;
+                if (userTokens >= theme.price) {
+                    users[currentUser].tokens = userTokens - theme.price;
+                    purchasedColors.push(theme.id);
+                    localStorage.setItem('users', JSON.stringify(users));
+                    localStorage.setItem('purchasedColors', JSON.stringify(purchasedColors));
+                    localStorage.setItem('userTokens', users[currentUser].tokens.toString());
+                    document.getElementById('user-tokens').textContent = `💎 ${users[currentUser].tokens} tokens`;
+                    showNotification(`Đã mua ${theme.name}!`);
+                } else {
+                    showNotification(`Cần ${theme.price} tokens!`);
+                    return;
+                }
+            }
+            
+            // Apply theme
+            localStorage.setItem('selectedColorTheme', theme.id.toString());
+            if (currentUser && users[currentUser]) {
+                users[currentUser].selectedColorTheme = theme.id.toString();
+                localStorage.setItem('users', JSON.stringify(users));
+            }
+            
+            applySyncedTheme();
+            initColorThemePanel();
+            toggleColorPanel();
+            showNotification(`Đã áp dụng ${theme.name}!`);
+        }
+
+        function toggleColorPanel() {
+            const panel = document.getElementById('color-theme-panel');
+            panel.classList.toggle('active');
+            if (panel.classList.contains('active')) {
+                initColorThemePanel();
+            }
+        }
+
+        // Initialize color panel on load
+        document.addEventListener('DOMContentLoaded', () => {
+            initColorThemePanel();
+        });
+    </script>
+
+    <!-- Color Theme Toggle Button -->
+    <button class="theme-toggle" onclick="toggleColorPanel()" title="Chọn màu nền">🎨</button>
+    
+    <!-- Color Theme Panel -->
+    <div id="color-theme-panel" class="color-theme-panel">
+        <div class="panel-header">
+            <h3>🎨 Chọn màu nền</h3>
+            <button class="close-btn" onclick="toggleColorPanel()">✕</button>
+        </div>
+        <div id="color-grid" class="color-grid"></div>
+    </div>
+</body>
+</html>

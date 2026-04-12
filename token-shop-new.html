@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>C?a H?ng Token & Màu S?c</title>
+<title>Cửa Hàng Token & Màu Sắc</title>
 <link rel="stylesheet" href="style.css">
 <style>
 .shop-container {
@@ -95,6 +95,23 @@
 .token-btn:hover {
     transform: translateY(-2px);
     box-shadow: var(--shadow-lg);
+}
+.admin-btn {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: var(--radius);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-top: 10px;
+    opacity: 0.7;
+}
+.admin-btn:hover {
+    opacity: 1;
+    transform: scale(1.05);
 }
 .color-grid {
     display: grid;
@@ -231,15 +248,170 @@
     color: white;
     padding: 15px;
     border-radius: var(--radius);
-    margin-top: 20px;
-    font-weight: 500;
-    animation: slideIn 0.3s ease-out;
 }
 
 @keyframes slideIn {
     from { transform: translateY(-20px); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }
 }
+
+/* ========== EXCLUSIVE ICON POP-OUT EFFECTS ========== */
+.color-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 32px;
+  z-index: 100;
+  filter: drop-shadow(0 1px 0 rgba(255,255,255,0.8))
+          drop-shadow(0 2px 0 rgba(255,255,255,0.6))
+          drop-shadow(0 3px 0 rgba(255,255,255,0.4))
+          drop-shadow(0 4px 8px rgba(0,0,0,0.4))
+          drop-shadow(0 8px 16px rgba(0,0,0,0.3))
+          drop-shadow(0 0 20px rgba(255,255,255,0.5));
+  animation: iconFloatPop 2.5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes iconFloatPop {
+  0%, 100% { 
+    transform: translate(-50%, -50%) translateY(0) rotate(0deg) scale(1);
+    filter: drop-shadow(0 1px 0 rgba(255,255,255,0.8))
+            drop-shadow(0 2px 0 rgba(255,255,255,0.6))
+            drop-shadow(0 3px 0 rgba(255,255,255,0.4))
+            drop-shadow(0 4px 8px rgba(0,0,0,0.4))
+            drop-shadow(0 8px 16px rgba(0,0,0,0.3))
+            drop-shadow(0 0 20px rgba(255,255,255,0.5));
+  }
+  25% {
+    transform: translate(-50%, -50%) translateY(-8px) rotate(-3deg) scale(1.05);
+    filter: drop-shadow(0 1px 0 rgba(255,255,255,0.8))
+            drop-shadow(0 2px 0 rgba(255,255,255,0.6))
+            drop-shadow(0 3px 0 rgba(255,255,255,0.4))
+            drop-shadow(0 6px 12px rgba(0,0,0,0.35))
+            drop-shadow(0 12px 24px rgba(0,0,0,0.25))
+            drop-shadow(0 0 30px rgba(255,255,255,0.7));
+  }
+  50% { 
+    transform: translate(-50%, -50%) translateY(-12px) rotate(0deg) scale(1.1);
+    filter: drop-shadow(0 1px 0 rgba(255,255,255,0.8))
+            drop-shadow(0 2px 0 rgba(255,255,255,0.6))
+            drop-shadow(0 3px 0 rgba(255,255,255,0.4))
+            drop-shadow(0 8px 16px rgba(0,0,0,0.3))
+            drop-shadow(0 16px 32px rgba(0,0,0,0.2))
+            drop-shadow(0 0 40px rgba(255,255,255,0.9));
+  }
+  75% {
+    transform: translate(-50%, -50%) translateY(-8px) rotate(3deg) scale(1.05);
+    filter: drop-shadow(0 1px 0 rgba(255,255,255,0.8))
+            drop-shadow(0 2px 0 rgba(255,255,255,0.6))
+            drop-shadow(0 3px 0 rgba(255,255,255,0.4))
+            drop-shadow(0 6px 12px rgba(0,0,0,0.35))
+            drop-shadow(0 12px 24px rgba(0,0,0,0.25))
+            drop-shadow(0 0 30px rgba(255,255,255,0.7));
+  }
+}
+
+/* Hover pop-out effect */
+.color-item:hover .color-icon {
+  animation: iconHoverPop 0.5s ease-out forwards;
+}
+
+@keyframes iconHoverPop {
+  0% { transform: translate(-50%, -50%) scale(1); }
+  50% { transform: translate(-50%, -50%) scale(1.3) translateY(-20px); }
+  100% { 
+    transform: translate(-50%, -50%) scale(1.2) translateY(-15px);
+    filter: drop-shadow(0 1px 0 rgba(255,255,255,0.9))
+            drop-shadow(0 3px 0 rgba(255,255,255,0.7))
+            drop-shadow(0 5px 0 rgba(255,255,255,0.5))
+            drop-shadow(0 8px 20px rgba(0,0,0,0.4))
+            drop-shadow(0 16px 40px rgba(0,0,0,0.3))
+            drop-shadow(0 0 50px rgba(255,255,255,1));
+  }
+}
+
+/* Sparkle effect */
+.color-icon::after {
+  content: "✦";
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  font-size: 12px;
+  animation: sparkle 1.5s ease-in-out infinite;
+  opacity: 0;
+}
+
+@keyframes sparkle {
+  0%, 100% { opacity: 0; transform: scale(0) rotate(0deg); }
+  50% { opacity: 1; transform: scale(1) rotate(180deg); }
+}
+
+/* ========== EXCLUSIVE ICON DROP-IN ANIMATION ========== */
+/* Only for exclusive colors - icon drops from above on page load */
+.color-item[data-tier="exclusive"] .color-icon,
+.color-item[data-tier="premium-exclusive"] .color-icon {
+  animation: iconDropIn 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards,
+             iconFloatPop 2.5s ease-in-out 0.8s infinite;
+}
+
+@keyframes iconDropIn {
+  0% {
+    transform: translate(-50%, -200%) scale(0) rotate(-180deg);
+    opacity: 0;
+    filter: drop-shadow(0 0 0 transparent);
+  }
+  60% {
+    transform: translate(-50%, -60%) scale(1.2) rotate(10deg);
+    opacity: 1;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+  }
+  80% {
+    transform: translate(-50%, -45%) scale(0.9) rotate(-5deg);
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1) rotate(0deg);
+    opacity: 1;
+    filter: drop-shadow(0 1px 0 rgba(255,255,255,0.8))
+            drop-shadow(0 2px 0 rgba(255,255,255,0.6))
+            drop-shadow(0 3px 0 rgba(255,255,255,0.4))
+            drop-shadow(0 4px 8px rgba(0,0,0,0.4))
+            drop-shadow(0 8px 16px rgba(0,0,0,0.3))
+            drop-shadow(0 0 20px rgba(255,255,255,0.5));
+  }
+}
+
+/* Drop shadow effect under icon */
+.color-item[data-tier="exclusive"] .color-preview::after,
+.color-item[data-tier="premium-exclusive"] .color-preview::after {
+  content: "";
+  position: absolute;
+  bottom: 5px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 30px;
+  height: 6px;
+  background: rgba(0,0,0,0.15);
+  border-radius: 50%;
+  animation: dropShadowScale 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+  opacity: 0;
+}
+
+@keyframes dropShadowScale {
+  0% {
+    transform: translateX(-50%) scale(0);
+    opacity: 0;
+  }
+  60% {
+    transform: translateX(-50%) scale(1.5);
+    opacity: 0.3;
+  }
+  100% {
+    transform: translateX(-50%) scale(1);
+    opacity: 0.2;
+  }
+}
+
 @media (max-width: 768px) {
     .shop-content {
         grid-template-columns: 1fr;
@@ -253,27 +425,28 @@
 <body>
 <div class="shop-container">
     <div class="shop-header">
-        <h1>?? C?a H?ng Token & Màu S?c</h1>
-        <p>N?p token và mua màu s?c ??p cho chatbot c?a b?n!</p>
+        <h1>🎨 Cửa Hàng Token & Màu Sắc</h1>
+        <p>Nạp token và mua màu sắc đẹp cho chatbot của bạn!</p>
+        <button id="admin-btn" class="admin-btn" onclick="tokenShop.showAdminPanel()">🔐 Admin</button>
     </div>
 
     <div class="shop-content">
         <!-- Token Section -->
         <div class="token-section">
-            <h2 class="section-title">?? N?p Token</h2>
+            <h2 class="section-title">💰 Nạp Token</h2>
             
             <div class="token-info">
                 <div class="token-amount" id="current-tokens">0</div>
-                <div class="token-label">Tokens hi?n t?i</div>
+                <div class="token-label">Tokens hiện tại</div>
             </div>
 
             <div class="token-form">
                 <div class="token-input-group">
-                    <input type="number" id="token-amount" class="token-input" placeholder="Nh?p s? token..." min="0">
-                    <button class="token-btn" onclick="addTokens()">N?p Token</button>
+                    <input type="number" id="token-amount" class="token-input" placeholder="Nhập số token..." min="0">
+                    <button class="token-btn" onclick="addTokens()">Nạp Token</button>
                 </div>
                 <div style="font-size: 12px; color: var(--text-secondary);">
-                    Nh?p s? token mu?n n?p vào tài kho?n
+                    Nhập số token muốn nạp vào tài khoản
                 </div>
             </div>
 
@@ -282,7 +455,7 @@
 
         <!-- Color Section -->
         <div class="color-section">
-            <h2 class="section-title">?? C?a H?ng Màu S?c</h2>
+            <h2 class="section-title">🎨 Cửa Hàng Màu Sắc</h2>
             <div class="color-grid" id="color-grid">
                 <!-- Colors will be loaded dynamically -->
             </div>
@@ -290,7 +463,7 @@
     </div>
 
     <div style="text-align: center; margin-top: 30px;">
-        <a href="index.html" class="back-btn">?? Quay l?i Chatbot</a>
+        <a href="index.html" class="back-btn">🏠 Quay lại Chatbot</a>
     </div>
 </div>
 

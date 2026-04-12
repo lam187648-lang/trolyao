@@ -33,7 +33,21 @@ class SimpleAdmin {
     
     userList.innerHTML = '';
     
-    Object.keys(users).forEach(username => {
+    const usernames = Object.keys(users);
+    
+    // Show empty state if no users
+    if (usernames.length === 0) {
+      userList.innerHTML = `
+        <div style="text-align: center; padding: 40px; color: #64748b;">
+          <div style="font-size: 48px; margin-bottom: 16px;">👤</div>
+          <p>Chưa có tài khoản nào!</p>
+          <p style="font-size: 14px; margin-top: 8px;">Người dùng cần đăng ký tại trang chủ.</p>
+        </div>
+      `;
+      return;
+    }
+    
+    usernames.forEach(username => {
       const user = users[username];
       const userItem = document.createElement('div');
       userItem.className = 'user-item';
@@ -42,21 +56,32 @@ class SimpleAdmin {
       const banInfo = this.getBanInfo(username);
       const isBanned = banInfo && banInfo.until > Date.now();
       
+      // Format last login time
+      const lastLogin = user.lastLogin ? new Date(user.lastLogin).toLocaleString('vi-VN') : 'Chưa đăng nhập';
+      
       userItem.innerHTML = `
         <div class="user-info">
           <div class="user-avatar">${username.charAt(0).toUpperCase()}</div>
           <div class="user-details">
             <div class="user-name">${username}</div>
             <div class="user-status ${isBanned ? 'banned-status' : ''}">
-              ${isBanned ? `🚫 Banned đến ${new Date(banInfo.until).toLocaleTimeString('vi-VN')}` : '🟢 Online'}
+              ${isBanned ? `🚫 Banned đến ${new Date(banInfo.until).toLocaleTimeString('vi-VN')}` : '🟢 Hoạt động'}
+            </div>
+            <div style="font-size: 12px; color: #94a3b8; margin-top: 4px;">
+              💎 ${user.tokens || 0} tokens | Đăng nhập: ${lastLogin}
             </div>
           </div>
         </div>
-        <button class="kick-btn" onclick="showBanModal('${username}')">Kick</button>
+        <div style="display: flex; gap: 8px;">
+          <button class="kick-btn" onclick="showBanModal('${username}')">Kick</button>
+          <button class="kick-btn" style="background: #dc2626;" onclick="showDeleteModal('${username}')">🗑️ Xóa</button>
+        </div>
       `;
       
       userList.appendChild(userItem);
     });
+    
+    console.log(`📋 Loaded ${usernames.length} users:`, usernames);
   }
 
   getBanInfo(username) {
@@ -87,8 +112,9 @@ class SimpleAdmin {
   }
 }
 
-// Global variable for current user to ban
+// Global variable for current user to ban/delete
 let currentUserToBan = null;
+let currentUserToDelete = null;
 
 // Global functions
 function showBanModal(username) {
@@ -166,6 +192,61 @@ function confirmBan() {
     closeBanModal();
     alert(`✅ Đã kick ${currentUserToBan} trong ${formatDuration(durationMinutes)}!`);
   }
+}
+
+// Delete user data functions
+function showDeleteModal(username) {
+  currentUserToDelete = username;
+  document.getElementById('delete-username').textContent = username;
+  document.getElementById('delete-modal').style.display = 'flex';
+}
+
+function closeDeleteModal() {
+  document.getElementById('delete-modal').style.display = 'none';
+  currentUserToDelete = null;
+}
+
+function confirmDelete() {
+  if (!currentUserToDelete) return;
+  
+  const username = currentUserToDelete;
+  const password = document.getElementById('delete-password').value;
+  
+  // Verify admin password
+  if (password !== '093981') {
+    alert('❌ Mật khẩu admin không đúng!');
+    return;
+  }
+  
+  // Confirm again
+  if (!confirm(`⚠️ Bạn có chắc chắn muốn XÓA TOÀN BỘ dữ liệu của "${username}"?\n\nHành động này KHÔNG THỂ HOÀN TÁC!\n\nDữ liệu bị xóa:\n- Tài khoản\n- Tokens\n- Màu đã mua\n- Lịch sử`)) {
+    return;
+  }
+  
+  // Delete user data
+  const users = JSON.parse(localStorage.getItem('users') || '{}');
+  delete users[username];
+  localStorage.setItem('users', JSON.stringify(users));
+  
+  // Delete ban info if exists
+  const bans = JSON.parse(localStorage.getItem('userBans') || '{}');
+  delete bans[username];
+  localStorage.setItem('userBans', JSON.stringify(bans));
+  
+  // Delete garden history if exists
+  const gardenHistory = JSON.parse(localStorage.getItem('gardenHistory') || '{}');
+  delete gardenHistory[username];
+  localStorage.setItem('gardenHistory', JSON.stringify(gardenHistory));
+  
+  // If deleting current user, logout
+  const currentUser = localStorage.getItem('currentUser');
+  if (currentUser === username) {
+    localStorage.removeItem('currentUser');
+  }
+  
+  closeDeleteModal();
+  simpleAdmin.loadUsers();
+  alert(`✅ Đã xóa toàn bộ dữ liệu của "${username}"!`);
 }
 
 // Global function for password check
