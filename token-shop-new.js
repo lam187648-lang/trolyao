@@ -268,6 +268,8 @@ class TokenShop {
 
   showMessage(message, type = 'info') {
     const container = document.getElementById('token-message');
+    if (!container) return; // Exit if element not found
+    
     const messageDiv = document.createElement('div');
     messageDiv.className = `${type}-message`;
     messageDiv.textContent = message;
@@ -276,7 +278,7 @@ class TokenShop {
     container.appendChild(messageDiv);
     
     setTimeout(() => {
-      container.innerHTML = '';
+      if (container) container.innerHTML = '';
     }, 5000);
   }
 }

@@ -1,8 +1,29 @@
-const socket = io("http://localhost:4000");
+// Backend server configuration
+const RENDER_SERVER_URL = "https://trolyao-51sj.onrender.com";
+const LOCAL_SERVER_URL = "http://localhost:4000";
+
+// Determine server URL based on environment
+const SERVER_URL =
+  globalThis.location?.hostname === "localhost" || globalThis.location?.hostname === "127.0.0.1"
+    ? LOCAL_SERVER_URL
+    : RENDER_SERVER_URL;
+
+// Socket.io connection
+const socket = io(SERVER_URL);
 
 // Socket.IO event handlers
+socket.on("connect", () => {
+  console.log("✅ Socket connected to server:", SERVER_URL);
+});
+
+socket.on("connect_error", (err) => {
+  console.error("❌ Socket connection error:", err.message);
+});
+
 socket.on("users", (users) => {
-  console.log("User online:", users);
+  console.log("👥 Users online:", users);
+  activeUsers = new Map(users.map(u => [u.username, u]));
+  updateOnlineUsersDisplay(users);
 });
 
 socket.on("kicked", () => {
@@ -11,11 +32,7 @@ socket.on("kicked", () => {
 });
 
 // Backend dùng OPENROUTER_API_KEY (local: npm start; production: Render + env).
-const RENDER_CHAT_URL = "https://trolyao-51sj.onrender.com/chat";
-const CHAT_API_URL =
-  globalThis.location?.hostname === "localhost" || globalThis.location?.hostname === "127.0.0.1"
-    ? "http://localhost:3000/chat"
-    : RENDER_CHAT_URL;
+const CHAT_API_URL = `${SERVER_URL}/chat`;
 
 const OPENROUTER_MODEL = "openai/gpt-4o-mini";
 
@@ -302,10 +319,10 @@ function updateActiveUsersList() {
   const users = JSON.parse(localStorage.getItem('users') || '{}');
   const totalUsers = Object.keys(users).length;
   
-  totalUsersSpan.textContent = totalUsers;
-  onlineUsersSpan.textContent = activeUsers.size;
+  if (totalUsersSpan) totalUsersSpan.textContent = totalUsers;
+  if (onlineUsersSpan) onlineUsersSpan.textContent = activeUsers.size;
   
-  activeUsersList.innerHTML = '';
+  if (activeUsersList) activeUsersList.innerHTML = '';
   
   activeUsers.forEach((userData, username) => {
     const userItem = document.createElement('div');
@@ -332,6 +349,34 @@ function updateActiveUsersList() {
 function kickUser(username) {
   if (confirm(`Bạn có chắc muốn kick người dùng "${username}"?`)) {
     socket.emit("kick", username);
+  }
+}
+
+// Update online users display from Socket.io
+function updateOnlineUsersDisplay(users) {
+  // Update the online users count (use global onlineUsersSpan)
+  if (onlineUsersSpan) {
+    onlineUsersSpan.textContent = users.length;
+  }
+  
+  // Also update the admin panel list
+  if (activeUsersList) {
+    activeUsersList.innerHTML = '';
+    users.forEach(user => {
+      const userItem = document.createElement('div');
+      userItem.className = 'user-item';
+      userItem.innerHTML = `
+        <div class="user-info">
+          <div class="user-avatar-small">${user.username.charAt(0).toUpperCase()}</div>
+          <div class="user-details">
+            <div class="user-name-small">${user.username}</div>
+            <div class="user-status">${user.isAdmin ? '👑 Admin' : '👤 User'}</div>
+          </div>
+        </div>
+        <button class="kick-btn" onclick="kickUser('${user.username}')">Kick</button>
+      `;
+      activeUsersList.appendChild(userItem);
+    });
   }
 }
 
@@ -619,10 +664,19 @@ function selectColorTheme(theme) {
       localStorage.setItem('userTokens', currentTokens.toString());
       purchasedColors.push(theme.id);
       localStorage.setItem('purchasedColors', JSON.stringify(purchasedColors));
+      
       const currentUser = getCurrentUser();
       if (currentUser) {
+        // Update tokens in users object
+        const users = JSON.parse(localStorage.getItem('users') || '{}');
+        if (users[currentUser]) {
+          users[currentUser].tokens = currentTokens;
+          users[currentUser].purchasedColors = purchasedColors;
+          localStorage.setItem('users', JSON.stringify(users));
+        }
         saveUserData(currentUser);
       }
+      
       updateTokenDisplay();
       initColorThemes();
       addMessage(`Bạn đã mua màu ${theme.name} với ${theme.price} tokens!`, "bot");
@@ -634,6 +688,12 @@ function selectColorTheme(theme) {
     localStorage.setItem('selectedColorTheme', theme.id.toString());
     const currentUser = getCurrentUser();
     if (currentUser) {
+      // Update selected theme in users object
+      const users = JSON.parse(localStorage.getItem('users') || '{}');
+      if (users[currentUser]) {
+        users[currentUser].selectedColorTheme = theme.id.toString();
+        localStorage.setItem('users', JSON.stringify(users));
+      }
       saveUserData(currentUser);
     }
     applyColorTheme(theme);
@@ -672,8 +732,15 @@ function updateTokenDisplay() {
 function addTokens(amount) {
   currentTokens += amount;
   localStorage.setItem('userTokens', currentTokens.toString());
+  
   const currentUser = getCurrentUser();
   if (currentUser) {
+    // Update tokens in users object
+    const users = JSON.parse(localStorage.getItem('users') || '{}');
+    if (users[currentUser]) {
+      users[currentUser].tokens = currentTokens;
+      localStorage.setItem('users', JSON.stringify(users));
+    }
     saveUserData(currentUser);
   }
   updateTokenDisplay();

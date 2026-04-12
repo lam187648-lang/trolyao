@@ -29,6 +29,8 @@ class SimpleAdmin {
     const users = JSON.parse(localStorage.getItem('users') || '{}');
     const userList = document.getElementById('user-list');
     
+    if (!userList) return; // Exit if element not found
+    
     userList.innerHTML = '';
     
     Object.keys(users).forEach(username => {
@@ -105,8 +107,19 @@ function closeBanModal() {
 function parseDuration(input) {
   input = input.trim().toLowerCase();
   
+  // Combined format: 1g30p, 2g15p, etc. (hours + minutes)
+  const combinedMatch = input.match(/^(\d+)g(\d+)p$/);
+  if (combinedMatch) {
+    const hours = parseInt(combinedMatch[1]);
+    const minutes = parseInt(combinedMatch[2]);
+    if (hours >= 1 && hours <= 10 && minutes >= 0 && minutes <= 59) {
+      const totalMinutes = hours * 60 + minutes;
+      return totalMinutes <= 600 ? totalMinutes : null; // Max 10h
+    }
+  }
+  
   // Hours format: 1g, 2g, ..., 10g (g = giờ)
-  if (input.endsWith('g')) {
+  if (input.endsWith('g') && !input.includes('p')) {
     const hours = parseInt(input.slice(0, -1));
     if (!isNaN(hours) && hours >= 1 && hours <= 10) {
       return hours * 60; // Convert to minutes
@@ -123,7 +136,7 @@ function parseDuration(input) {
   
   // Legacy: plain number (treat as minutes)
   const minutes = parseInt(input);
-  if (!isNaN(minutes) && minutes > 0) {
+  if (!isNaN(minutes) && minutes > 0 && minutes <= 600) {
     return minutes;
   }
   
@@ -144,7 +157,7 @@ function confirmBan() {
   const durationMinutes = parseDuration(durationInput);
   
   if (!durationMinutes) {
-    alert('❌ Định dạng không hợp lệ!\nNhập: 1g-10g (giờ) hoặc 1p-180p (phút)\nVí dụ: 2g, 30p, 1g30p');
+    alert('❌ Định dạng không hợp lệ!\nNhập: 1g-10g (giờ), 1p-180p (phút), hoặc 1g30p\nVí dụ: 2g, 30p, 1g30p, 5g');
     return;
   }
   
