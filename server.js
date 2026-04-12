@@ -1,8 +1,13 @@
 const express = require("express");
 const cors = require("cors");
-const fetch = require("node-fetch");
 const http = require("http");
 const { Server } = require("socket.io");
+
+// Dynamic import for node-fetch v3 (ES module)
+let fetch;
+(async () => {
+  fetch = (await import('node-fetch')).default;
+})();
 
 const app = express();
 const server = http.createServer(app);
@@ -39,6 +44,11 @@ app.get("/health", (_req, res) => {
 
 app.post("/chat", async (req, res) => {
   try {
+    // Ensure fetch is available
+    if (!fetch) {
+      fetch = (await import('node-fetch')).default;
+    }
+    
     if (!API_KEY) {
       return res.status(500).json({
         error: "Missing OPENROUTER_API_KEY",

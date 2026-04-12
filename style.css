@@ -48,6 +48,8 @@ body.dark {
   --surface-hover: #262e4a;
   --text: #e8ecf4;
   --text-secondary: #a0a8ba;
+  --bot-bg: #262e4a;
+  --border: rgba(255, 255, 255, 0.1);
 }
 
 /* Authentication Modal Styles */

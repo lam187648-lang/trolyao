@@ -157,7 +157,6 @@ function loginUser(username, password) {
     return { success: false, message: 'Incorrect password!' };
   }
   
-  currentUser = username;
   localStorage.setItem('currentUser', username);
   
   // Emit join event to server
@@ -182,10 +181,10 @@ function loginUser(username, password) {
 }
 
 function logoutUser() {
+  const currentUser = getCurrentUser();
   if (currentUser) {
     saveUserData(currentUser);
   }
-  currentUser = null;
   localStorage.removeItem('currentUser');
   showAuthModal();
 }
@@ -353,6 +352,7 @@ function setTimeLimit() {
 }
 
 function checkTimeLimit() {
+  const currentUser = getCurrentUser();
   if (timeLimit && currentUser) {
     const userData = activeUsers.get(currentUser);
     if (userData) {
@@ -512,6 +512,7 @@ avatarUpload.addEventListener('change', (e) => {
       // Resize large images before storing
       resizeAvatarImage(dataUrl, (resizedDataUrl) => {
         localStorage.setItem('userAvatar', resizedDataUrl);
+        const currentUser = getCurrentUser();
         if (currentUser) {
           saveUserData(currentUser);
         }
@@ -618,6 +619,7 @@ function selectColorTheme(theme) {
       localStorage.setItem('userTokens', currentTokens.toString());
       purchasedColors.push(theme.id);
       localStorage.setItem('purchasedColors', JSON.stringify(purchasedColors));
+      const currentUser = getCurrentUser();
       if (currentUser) {
         saveUserData(currentUser);
       }
@@ -630,6 +632,7 @@ function selectColorTheme(theme) {
   } else {
     // Apply color theme
     localStorage.setItem('selectedColorTheme', theme.id.toString());
+    const currentUser = getCurrentUser();
     if (currentUser) {
       saveUserData(currentUser);
     }
@@ -643,6 +646,8 @@ function applyColorTheme(theme) {
   document.documentElement.style.setProperty('--primary', theme.primary);
   document.documentElement.style.setProperty('--primary-hover', theme.secondary);
   document.documentElement.style.setProperty('--primary-light', theme.bg);
+  // AI chat box background follows user's purchased theme
+  document.documentElement.style.setProperty('--bot-bg', theme.bg);
   document.body.style.background = `linear-gradient(145deg, ${theme.bg} 0%, ${theme.primary}15 50%, ${theme.bg} 100%)`;
 }
 
@@ -667,6 +672,7 @@ function updateTokenDisplay() {
 function addTokens(amount) {
   currentTokens += amount;
   localStorage.setItem('userTokens', currentTokens.toString());
+  const currentUser = getCurrentUser();
   if (currentUser) {
     saveUserData(currentUser);
   }
@@ -933,6 +939,7 @@ if (quickTags) {
 
 async function sendMessage() {
   // Check if user is authenticated
+  const currentUser = getCurrentUser();
   if (!currentUser) {
     addMessage("⚠️ Bạn cần đăng nhập để sử dụng chatbot!", "bot");
     showAuthModal();
