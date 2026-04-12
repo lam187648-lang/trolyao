@@ -1337,7 +1337,10 @@ function init() {
     
     // Update user name display
     const currentUser = getCurrentUser();
-    document.getElementById('user-name').textContent = currentUser;
+    const userNameEl = document.getElementById('user-name');
+    if (userNameEl && currentUser) {
+      userNameEl.textContent = currentUser;
+    }
     
     // Apply saved color theme if any
     const selectedTheme = localStorage.getItem('selectedColorTheme');
@@ -1364,6 +1367,18 @@ function init() {
   
   // Initialize token reward system (20 tokens every 10 minutes)
   initTokenRewardSystem();
+  
+  // Start periodic lastActive updater for admin panel online tracking
+  setInterval(() => {
+    const currentUser = getCurrentUser();
+    if (currentUser) {
+      const users = JSON.parse(localStorage.getItem('users') || '{}');
+      if (users[currentUser]) {
+        users[currentUser].lastActive = Date.now();
+        localStorage.setItem('users', JSON.stringify(users));
+      }
+    }
+  }, 60000); // Update every minute
 }
 
 // Start the application when DOM is ready
@@ -1374,21 +1389,17 @@ document.addEventListener('DOMContentLoaded', () => {
   const closeAdminModal = document.getElementById('close-admin-modal');
   const setTimeLimitBtn = document.getElementById('set-time-limit');
   
-  if (themeToggleMenu) {
-    themeToggleMenu.addEventListener('click', toggleTheme);
-  }
+  // Safe event listener attachment with null checks
+  const safeAddListener = (element, event, handler) => {
+    if (element && typeof handler === 'function') {
+      element.addEventListener(event, handler);
+    }
+  };
   
-  if (logoutBtn) {
-    logoutBtn.addEventListener('click', logoutUser);
-  }
-  
-  if (closeAdminModal) {
-    closeAdminModal.addEventListener('click', hideAdminPanel);
-  }
-  
-  if (setTimeLimitBtn) {
-    setTimeLimitBtn.addEventListener('click', setTimeLimit);
-  }
+  safeAddListener(themeToggleMenu, 'click', toggleTheme);
+  safeAddListener(logoutBtn, 'click', logoutUser);
+  safeAddListener(closeAdminModal, 'click', hideAdminPanel);
+  safeAddListener(setTimeLimitBtn, 'click', setTimeLimit);
   
   // Initialize the application
   init();

@@ -2382,156 +2382,46 @@ body.theme-starlight-active .wave {
   background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%23FFFFFF' fill-opacity='0.2' d='M0,192L48,197.3C96,203,192,213,288,229.3C384,245,480,267,576,250.7C672,235,768,181,864,181.3C960,181,1056,235,1152,234.7C1248,235,1344,181,1392,154.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3E%3C/path%3E%3C/svg%3E") repeat-x;
 }
 
-/* ========== ULTRA-OPTIMIZED SPECIAL EFFECTS ========== */
-/* Galaxy/Starlight - Ultra light particles */
-body.theme-galaxy-active::before,
-body.theme-starlight-active::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  background-image: 
-    radial-gradient(2px 2px at 20px 30px, rgba(255,255,255,0.6), transparent),
-    radial-gradient(1px 1px at 90px 40px, rgba(255,255,255,0.4), transparent);
-  background-repeat: repeat;
-  background-size: 120px 120px;
-  animation: twinkle 8s ease-in-out infinite;
-  will-change: opacity;
-  z-index: 0;
+/* ========== SIMPLE SPECIAL EFFECTS ========== */
+/* Rainbow effect for special themes - 3 colors shifting gently */
+body.theme-galaxy-active,
+body.theme-phoenix-active,
+body.theme-diamond-active,
+body.theme-magma-active,
+body.theme-aurora-active,
+body.theme-royal-active,
+body.theme-gold-active,
+body.theme-starlight-active {
+  animation: rainbowShift 6s ease-in-out infinite;
 }
 
-@keyframes twinkle {
-  0%, 100% { opacity: 0.2; }
-  50% { opacity: 0.5; }
+@keyframes rainbowShift {
+  0%, 100% { background-color: rgba(255, 100, 100, 0.05); }
+  33% { background-color: rgba(100, 255, 100, 0.05); }
+  66% { background-color: rgba(100, 100, 255, 0.05); }
 }
 
-/* Phoenix - Ultra light fire effect */
-body.theme-phoenix-active::before {
-  content: '';
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 30%;
-  pointer-events: none;
-  background: linear-gradient(to top, rgba(255,69,0,0.2), transparent);
-  animation: fireFlicker 4s ease-in-out infinite;
-  will-change: opacity;
-  z-index: 0;
-}
-
-@keyframes fireFlicker {
-  0%, 100% { opacity: 0.3; }
-  50% { opacity: 0.6; }
-}
-
-/* Diamond - Ultra light sparkle */
-body.theme-diamond-active::after {
-  content: '';
-  position: fixed;
-  top: 20%;
-  left: 20%;
-  width: 60%;
-  height: 60%;
-  pointer-events: none;
-  background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 50%);
-  animation: diamondPulse 5s ease-in-out infinite;
-  will-change: opacity;
-  z-index: 0;
-}
-
-@keyframes diamondPulse {
-  0%, 100% { opacity: 0.15; }
-  50% { opacity: 0.35; }
-}
-
-/* Aurora - Ultra light effect */
-body.theme-aurora-active::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 60%;
-  pointer-events: none;
-  background: linear-gradient(180deg, 
-    rgba(57,255,20,0.08) 0%, 
-    rgba(0,206,209,0.1) 50%, 
-    transparent 100%);
-  animation: auroraGlow 10s ease-in-out infinite;
-  will-change: opacity;
-  z-index: 0;
-}
-
-@keyframes auroraGlow {
-  0%, 100% { opacity: 0.2; }
-  50% { opacity: 0.4; }
-}
-
-/* Magma heat wave effect - OPTIMIZED */
-body.theme-magma-active::before {
-  content: '';
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 40%;
-  pointer-events: none;
-  background: radial-gradient(ellipse at center bottom, rgba(255,69,0,0.3), transparent 60%);
-  animation: heatWave 5s ease-in-out infinite;
-  will-change: opacity, transform;
-  transform: translateZ(0);
-  z-index: 0;
-}
-
-@keyframes heatWave {
-  0%, 100% { transform: scaleY(1) translateZ(0); opacity: 0.5; }
-  50% { transform: scaleY(1.1) translateZ(0); opacity: 0.8; }
-}
-
-/* Ice crystals effect - OPTIMIZED */
+/* Ocean wave effect for blue themes */
+body.theme-ocean-active::before,
 body.theme-ice-active::before {
   content: '';
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  bottom: 0;
+  left: -100%;
+  width: 300%;
+  height: 30%;
   pointer-events: none;
-  background-image: 
-    linear-gradient(45deg, transparent 48%, rgba(255,255,255,0.08) 50%, transparent 52%);
-  background-size: 80px 80px;
-  animation: iceShimmer 6s ease-in-out infinite;
-  will-change: opacity;
+  background: linear-gradient(90deg, 
+    transparent 0%,
+    rgba(0, 150, 255, 0.1) 25%,
+    rgba(0, 200, 255, 0.15) 50%,
+    rgba(0, 150, 255, 0.1) 75%,
+    transparent 100%);
+  animation: oceanWave 4s ease-in-out infinite;
   z-index: 0;
 }
 
-@keyframes iceShimmer {
-  0%, 100% { opacity: 0.2; }
-  50% { opacity: 0.5; }
-}
-
-/* Golden glow pulse - OPTIMIZED */
-body.theme-royal-active::before,
-body.theme-gold-active::before {
-  content: '';
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  width: 150vmax;
-  height: 150vmax;
-  transform: translate(-50%, -50%) translateZ(0);
-  pointer-events: none;
-  background: radial-gradient(circle, rgba(255,215,0,0.12) 0%, transparent 50%);
-  animation: goldPulse 5s ease-in-out infinite;
-  will-change: opacity;
-  z-index: 0;
-}
-
-@keyframes goldPulse {
-  0%, 100% { opacity: 0.5; }
-  50% { opacity: 0.8; }
+@keyframes oceanWave {
+  0%, 100% { transform: translateX(0); opacity: 0.3; }
+  50% { transform: translateX(33%); opacity: 0.6; }
 }

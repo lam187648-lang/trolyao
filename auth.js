@@ -79,10 +79,10 @@ class AuthSystem {
     
     if (loading) {
       btn.disabled = true;
-      text.innerHTML = '<span class="loading"></span> ??ang x? lý...';
+      text.innerHTML = '<span class="loading"></span> Đang xử lý...';
     } else {
       btn.disabled = false;
-      text.textContent = formType === 'login' ? '??ng Nh?p' : '??ng Ký';
+      text.textContent = formType === 'login' ? 'Đăng Nhập' : 'Đăng Ký';
     }
   }
 
@@ -91,7 +91,7 @@ class AuthSystem {
     const password = document.getElementById('login-password').value;
     
     if (!username || !password) {
-      this.showMessage('Vui lòng nh?p ??y ? thông tin!');
+      this.showMessage('Vui lòng nhập đầy đủ thông tin!');
       return;
     }
     
@@ -103,7 +103,7 @@ class AuthSystem {
       
       if (!users[username]) {
         this.setLoading('login', false);
-        this.showMessage('Tên ??ng nh?p không t?n t?i!');
+        this.showMessage('Tên đăng nhập không tồn tại!');
         return;
       }
       
@@ -115,7 +115,7 @@ class AuthSystem {
       
       if (storedPassword !== inputPassword) {
         this.setLoading('login', false);
-        this.showMessage('M?t kh?u sai!');
+        this.showMessage('Mật khẩu sai!');
         return;
       }
       
@@ -125,7 +125,7 @@ class AuthSystem {
       if (banInfo && banInfo.until > Date.now()) {
         const remainingTime = Math.ceil((banInfo.until - Date.now()) / 60000);
         this.setLoading('login', false);
-        this.showMessage(`Tài kho?n b? khóa! Vui lòng quay l?i sau ${remainingTime} phút.`);
+        this.showMessage(`Tài khoản bị khóa! Vui lòng quay lại sau ${remainingTime} phút.`);
         return;
       }
       
@@ -140,13 +140,14 @@ class AuthSystem {
       };
       sessionStorage.setItem('authSession', JSON.stringify(sessionData));
       
-      // Update last login
+      // Update last login and last active
       user.lastLogin = Date.now();
+      user.lastActive = Date.now();
       users[username] = user;
       localStorage.setItem('users', JSON.stringify(users));
       
       this.setLoading('login', false);
-      this.showMessage('??ng nh?p thành công!', 'success');
+      this.showMessage('Đăng nhập thành công!', 'success');
       
       // Redirect to main app
       setTimeout(() => {
@@ -162,17 +163,17 @@ class AuthSystem {
     const confirmPassword = document.getElementById('register-confirm').value;
     
     if (!username || !password || !confirmPassword) {
-      this.showMessage('Vui lòng nh?p ??y ? thông tin!');
+      this.showMessage('Vui lòng nhập đầy đủ thông tin!');
       return;
     }
     
     if (password !== confirmPassword) {
-      this.showMessage('M?t kh?u xác nh?n không kh?p!');
+      this.showMessage('Mật khẩu xác nhận không khớp!');
       return;
     }
     
     if (password.length < 6) {
-      this.showMessage('M?t kh?u ph?i có ít nh?t 6 ký t?!');
+      this.showMessage('Mật khẩu phải có ít nhất 6 ký tự!');
       return;
     }
     
@@ -184,7 +185,7 @@ class AuthSystem {
       
       if (users[username]) {
         this.setLoading('register', false);
-        this.showMessage('Tên ??ng nh?p ?? t?n t?i!');
+        this.showMessage('Tên đăng nhập đã tồn tại!');
         return;
       }
       
@@ -198,6 +199,7 @@ class AuthSystem {
         selectedColorTheme: '0',
         createdAt: Date.now(),
         lastLogin: Date.now(),
+        lastActive: Date.now(),
         hasReceivedFirstBonus: true, // Already got initial tokens
         studyStats: {
           totalMinutes: 0,
@@ -222,7 +224,7 @@ class AuthSystem {
       sessionStorage.setItem('authSession', JSON.stringify(sessionData));
       
       this.setLoading('register', false);
-      this.showMessage('??ng ký thành công! ??ang chuy?n ??n...', 'success');
+      this.showMessage('Đăng ký thành công! Đang chuyển đến...', 'success');
       
       // Redirect to main app
       setTimeout(() => {
@@ -270,9 +272,15 @@ class SessionManager {
         return false;
       }
       
-      // Update last activity
+      // Update last activity in session
       session.lastActivity = Date.now();
       sessionStorage.setItem('authSession', JSON.stringify(session));
+      
+      // Also update lastActive in users data for admin panel tracking
+      if (users[currentUser]) {
+        users[currentUser].lastActive = Date.now();
+        localStorage.setItem('users', JSON.stringify(users));
+      }
       
       return true;
     } catch (error) {
