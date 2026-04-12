@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="style.css">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔐</text></svg>">
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<script src="https://js.pusher.com/8.2/pusher.min.js"></script>
 <style>
 .admin-container {
     max-width: 1200px;
@@ -209,6 +210,35 @@
                 </div>
                 <p style="font-size: 12px; color: var(--text-secondary);">
                     Token hiện tại: <span id="current-tokens" style="font-weight: bold; color: var(--primary);">0</span>
+                </p>
+            </div>
+        </div>
+
+        <!-- Gift Color Section -->
+        <div class="admin-section">
+            <h3>🎁 Tặng Màu Real-Time (Pusher)</h3>
+            <div class="token-control">
+                <div class="token-input-group">
+                    <input type="text" id="gift-username" class="token-input" placeholder="Tên user cần tặng...">
+                </div>
+                <div class="token-input-group">
+                    <select id="gift-color-id" class="token-input" style="flex: 1;">
+                        <option value="5">🌌 Galaxy (ID: 5)</option>
+                        <option value="6">🔥 Phoenix (ID: 6)</option>
+                        <option value="7">💎 Diamond (ID: 7)</option>
+                        <option value="8">🌋 Magma (ID: 8)</option>
+                        <option value="9">🌊 Ocean (ID: 9)</option>
+                        <option value="10">❄️ Ice (ID: 10)</option>
+                        <option value="11">👑 Royal (ID: 11)</option>
+                        <option value="12">🏆 Gold (ID: 12)</option>
+                        <option value="13">⭐ Starlight (ID: 13)</option>
+                        <option value="14">🌈 Aurora (ID: 14)</option>
+                        <option value="15">✨ Holographic (ID: 15)</option>
+                    </select>
+                    <button onclick="giftSelectedColor()" class="token-btn" style="background: linear-gradient(135deg, #8b5cf6, #ec4899);">🎁 Tặng Màu</button>
+                </div>
+                <p style="font-size: 11px; color: var(--text-secondary); margin-top: 8px;">
+                    💡 User sẽ nhận được màu ngay lập tức qua Pusher real-time!
                 </p>
             </div>
         </div>

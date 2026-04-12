@@ -2,12 +2,22 @@ const express = require("express");
 const cors = require("cors");
 const http = require("http");
 const { Server } = require("socket.io");
+const Pusher = require("pusher");
 
 // Dynamic import for node-fetch v3 (ES module)
 let fetch;
 (async () => {
   fetch = (await import('node-fetch')).default;
 })();
+
+// Pusher configuration - Thay thế bằng keys của bạn từ dashboard Pusher
+const pusher = new Pusher({
+  appId: process.env.PUSHER_APP_ID || "YOUR_APP_ID",
+  key: process.env.PUSHER_KEY || "YOUR_KEY",
+  secret: process.env.PUSHER_SECRET || "YOUR_SECRET",
+  cluster: process.env.PUSHER_CLUSTER || "ap1",
+  useTLS: true
+});
 
 const app = express();
 const server = http.createServer(app);
@@ -173,6 +183,123 @@ io.on("connection", (socket) => {
     console.log("❌ User disconnected:", socket.id);
     users = users.filter(u => u.id !== socket.id);
     io.emit("users", users);
+  });
+});
+
+// ========== PUSHER REAL-TIME ADMIN ENDPOINTS ==========
+// Track online users for Pusher
+let pusherUsers = {};
+
+// User online - báo server khi user vào
+app.post("/pusher/user-online", (req, res) => {
+  const userId = req.body.id;
+  const username = req.body.username || userId;
+  
+  if (userId) {
+    pusherUsers[userId] = { username, lastSeen: Date.now() };
+    
+    // Broadcast updated user list
+    pusher.trigger("admin-channel", "user-update", {
+      users: Object.entries(pusherUsers).map(([id, data]) => ({
+        id,
+        username: data.username,
+        online: true
+      }))
+    });
+    
+    console.log("🟢 Pusher user online:", username);
+  }
+  
+  res.json({ success: true, users: Object.keys(pusherUsers) });
+});
+
+// User offline - báo khi user thoát
+app.post("/pusher/user-offline", (req, res) => {
+  const userId = req.body.id;
+  
+  if (userId && pusherUsers[userId]) {
+    delete pusherUsers[userId];
+    
+    pusher.trigger("admin-channel", "user-update", {
+      users: Object.entries(pusherUsers).map(([id, data]) => ({
+        id,
+        username: data.username,
+        online: true
+      }))
+    });
+    
+    console.log("🔴 Pusher user offline:", userId);
+  }
+  
+  res.json({ success: true });
+});
+
+// API kick user real-time
+app.post("/pusher/kick", (req, res) => {
+  const userId = req.body.id;
+  const reason = req.body.reason || "Bạn đã bị admin kick khỏi hệ thống";
+  
+  if (userId) {
+    // Gửi lệnh kick realtime đến user cụ thể
+    pusher.trigger("user-" + userId, "kick", {
+      id: userId,
+      reason: reason,
+      timestamp: Date.now()
+    });
+    
+    // Xóa khỏi danh sách online
+    if (pusherUsers[userId]) {
+      delete pusherUsers[userId];
+    }
+    
+    // Cập nhật lại danh sách user
+    pusher.trigger("admin-channel", "user-update", {
+      users: Object.entries(pusherUsers).map(([id, data]) => ({
+        id,
+        username: data.username,
+        online: true
+      }))
+    });
+    
+    console.log("🚫 Pusher kick user:", userId);
+    res.json({ success: true, message: "Đã kick user " + userId });
+  } else {
+    res.status(400).json({ success: false, error: "Thiếu user ID" });
+  }
+});
+
+// API tặng màu cho user real-time
+app.post("/pusher/gift-color", (req, res) => {
+  const userId = req.body.id;
+  const colorId = req.body.colorId;
+  const colorName = req.body.colorName || "Màu đặc biệt";
+  
+  if (userId && colorId) {
+    // Gửi thông báo tặng màu realtime đến user cụ thể
+    pusher.trigger("user-" + userId, "gift-color", {
+      id: userId,
+      colorId: colorId,
+      colorName: colorName,
+      message: `Bạn đã nhận được ${colorName} từ admin!`,
+      timestamp: Date.now()
+    });
+    
+    console.log("🎁 Pusher gift color:", colorId, "to user:", userId);
+    res.json({ success: true, message: `Đã tặng ${colorName} cho ${userId}` });
+  } else {
+    res.status(400).json({ success: false, error: "Thiếu user ID hoặc color ID" });
+  }
+});
+
+// API lấy danh sách user online
+app.get("/pusher/users", (req, res) => {
+  res.json({
+    users: Object.entries(pusherUsers).map(([id, data]) => ({
+      id,
+      username: data.username,
+      lastSeen: data.lastSeen
+    })),
+    count: Object.keys(pusherUsers).length
   });
 });
 

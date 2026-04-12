@@ -176,8 +176,8 @@ body::before {
     100% { background-position-x: 1440px; }
 }
 
-/* ========== EXCLUSIVE COLOR ICON DROP-IN ANIMATION ========== */
-/* Animated icon that drops in from top for exclusive colors */
+/* ========== OPTIMIZED EXCLUSIVE COLOR ICON - CLICK ONLY ========== */
+/* Static icon styling - no automatic animations for performance */
 .color-item.exclusive .color-icon,
 .color-item.premium-exclusive .color-icon {
     position: absolute;
@@ -186,42 +186,34 @@ body::before {
     transform: translate(-50%, -50%);
     font-size: 42px;
     z-index: 10;
-    filter: drop-shadow(0 1px 0 rgba(255,255,255,0.8))
-            drop-shadow(0 2px 0 rgba(255,255,255,0.6))
-            drop-shadow(0 3px 0 rgba(255,255,255,0.4))
-            drop-shadow(0 4px 8px rgba(0,0,0,0.4))
-            drop-shadow(0 8px 16px rgba(0,0,0,0.3))
-            drop-shadow(0 0 20px rgba(255,255,255,0.5));
-    animation: iconDropIn 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+    /* Simple single shadow for performance */
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3), 0 0 10px rgba(255,255,255,0.5);
+    will-change: transform;
+    /* No automatic animation - only animate on click */
 }
 
-@keyframes iconDropIn {
+/* Click-triggered animation class - added via JS when clicked */
+.color-item.exclusive .color-icon.animate-pop,
+.color-item.premium-exclusive .color-icon.animate-pop {
+    animation: iconPop 0.5s ease-out forwards;
+}
+
+/* Optimized pop animation using only transform and opacity */
+@keyframes iconPop {
     0% {
-        transform: translate(-50%, -200%) scale(0) rotate(-180deg);
-        opacity: 0;
-        filter: drop-shadow(0 0 0 transparent);
+        transform: translate(-50%, -50%) scale(0.8);
+        opacity: 0.5;
     }
-    60% {
-        transform: translate(-50%, -60%) scale(1.2) rotate(10deg);
-        opacity: 1;
-        filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
-    }
-    80% {
-        transform: translate(-50%, -45%) scale(0.9) rotate(-5deg);
+    50% {
+        transform: translate(-50%, -50%) scale(1.1);
     }
     100% {
-        transform: translate(-50%, -50%) scale(1) rotate(0deg);
+        transform: translate(-50%, -50%) scale(1);
         opacity: 1;
-        filter: drop-shadow(0 1px 0 rgba(255,255,255,0.8))
-                drop-shadow(0 2px 0 rgba(255,255,255,0.6))
-                drop-shadow(0 3px 0 rgba(255,255,255,0.4))
-                drop-shadow(0 4px 8px rgba(0,0,0,0.4))
-                drop-shadow(0 8px 16px rgba(0,0,0,0.3))
-                drop-shadow(0 0 20px rgba(255,255,255,0.5));
     }
 }
 
-/* Drop shadow effect under icon */
+/* Simple static shadow under icon */
 .color-item.exclusive .color-preview::after,
 .color-item.premium-exclusive .color-preview::after {
     content: "";
@@ -233,42 +225,10 @@ body::before {
     height: 6px;
     background: rgba(0,0,0,0.15);
     border-radius: 50%;
-    animation: dropShadowScale 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
-    opacity: 0;
+    opacity: 0.2;
 }
 
-@keyframes dropShadowScale {
-    0% {
-        transform: translateX(-50%) scale(0);
-        opacity: 0;
-    }
-    60% {
-        transform: translateX(-50%) scale(1.5);
-        opacity: 0.3;
-    }
-    100% {
-        transform: translateX(-50%) scale(1);
-        opacity: 0.2;
-    }
-}
-
-/* Floating animation after drop-in */
-.color-item.exclusive .color-icon.floating,
-.color-item.premium-exclusive .color-icon.floating {
-    animation: iconDropIn 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards,
-               iconFloat 3s ease-in-out infinite 0.8s;
-}
-
-@keyframes iconFloat {
-    0%, 100% {
-        transform: translate(-50%, -50%);
-    }
-    50% {
-        transform: translate(-50%, -55%);
-    }
-}
-
-/* Sparkle effect around icon */
+/* Sparkle effect - only on hover/click for performance */
 .color-item.exclusive .color-preview::before,
 .color-item.premium-exclusive .color-preview::before {
     content: "✨";
@@ -277,19 +237,19 @@ body::before {
     right: 20%;
     font-size: 16px;
     opacity: 0;
-    animation: sparkle 2s ease-in-out infinite 1s;
     z-index: 11;
 }
 
-@keyframes sparkle {
-    0%, 100% {
-        opacity: 0;
-        transform: scale(0) rotate(0deg);
-    }
-    50% {
-        opacity: 1;
-        transform: scale(1.2) rotate(180deg);
-    }
+.color-item.exclusive:hover .color-preview::before,
+.color-item.premium-exclusive:hover .color-preview::before,
+.color-item.exclusive.active .color-preview::before,
+.color-item.premium-exclusive.active .color-preview::before {
+    animation: sparkleQuick 0.6s ease-out;
+}
+
+@keyframes sparkleQuick {
+    0%, 100% { opacity: 0; transform: scale(0); }
+    50% { opacity: 1; transform: scale(1); }
 }
 
 /* ========== OPTIMIZED WAVE ANIMATION ========== */
@@ -351,6 +311,7 @@ body.theme-starlight-active .wave {
 </style>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<script src="https://js.pusher.com/8.2/pusher.min.js"></script>
 </head>
 
 <body>

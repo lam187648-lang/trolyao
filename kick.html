@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚫 Bạn đã bị kick - Tro Ly Ao</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚫</text></svg>">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        
+        .kick-container {
+            text-align: center;
+            padding: 40px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 24px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+            max-width: 400px;
+            width: 90%;
+            animation: shake 0.5s ease-in-out;
+        }
+        
+        .kick-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            animation: bounce 1s infinite;
+        }
+        
+        .kick-title {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 16px;
+            color: #ff4757;
+        }
+        
+        .kick-message {
+            font-size: 16px;
+            color: rgba(255,255,255,0.7);
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        
+        .back-btn {
+            display: inline-block;
+            padding: 14px 32px;
+            background: linear-gradient(135deg, #ff4757, #ff6348);
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        .back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(255, 71, 87, 0.4);
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        .timestamp {
+            margin-top: 20px;
+            font-size: 12px;
+            color: rgba(255,255,255,0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="kick-container">
+        <div class="kick-icon">🚫</div>
+        <h1 class="kick-title">Bạn đã bị kick!</h1>
+        <p class="kick-message">
+            Tài khoản của bạn đã bị admin kick khỏi hệ thống.<br>
+            Vui lòng liên hệ admin nếu bạn cho rằng đây là lỗi.
+        </p>
+        <a href="auth.html" class="back-btn">← Quay lại Đăng nhập</a>
+        <p class="timestamp" id="timestamp"></p>
+    </div>
+    
+    <script>
+        // Clear user data when kicked
+        localStorage.removeItem('currentUser');
+        sessionStorage.removeItem('authSession');
+        
+        // Show timestamp
+        document.getElementById('timestamp').textContent = 
+            'Thời gian: ' + new Date().toLocaleString('vi-VN');
+    </script>
+</body>
+</html>

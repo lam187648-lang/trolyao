@@ -109,9 +109,9 @@ class AuthSystem {
       
       const user = users[username];
       
-      // Compare passwords (stored as base64)
+      // Compare passwords (stored as base64 with UTF-8 support)
       const storedPassword = user.password;
-      const inputPassword = btoa(password);
+      const inputPassword = this.encodePassword(password);
       
       if (storedPassword !== inputPassword) {
         this.setLoading('login', false);
@@ -192,7 +192,7 @@ class AuthSystem {
       // Create new user
       const newUser = {
         username: username,
-        password: btoa(password), // Store as base64
+        password: this.encodePassword(password), // Store as base64 with UTF-8 support
         tokens: 100, // Initial tokens
         avatar: '',
         purchasedColors: [],
@@ -232,6 +232,14 @@ class AuthSystem {
       }, 1500);
       
     }, 1000);
+  }
+
+  // Unicode-safe password encoding
+  encodePassword(password) {
+    // Convert UTF-8 string to base64 safely
+    const utf8Bytes = new TextEncoder().encode(password);
+    const base64String = btoa(String.fromCharCode(...utf8Bytes));
+    return base64String;
   }
 
   redirectToMain() {
