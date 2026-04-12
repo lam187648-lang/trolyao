@@ -35,6 +35,9 @@ socket.on("kicked", () => {
 // Pusher configuration
 const PUSHER_KEY = '2ac5a1cf96ed0ab79735'; // Key từ Pusher dashboard
 const PUSHER_CLUSTER = 'ap1';
+
+// Enable Pusher debug logging (bỏ comment khi cần debug)
+// Pusher.logToConsole = true;
 let pusherClient = null;
 let pusherChannel = null;
 
