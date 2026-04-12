@@ -679,14 +679,88 @@ function addTokens(amount) {
   updateTokenDisplay();
 }
 
-// Study time tracking
-function trackStudyTime() {
-  const studyDuration = Date.now() - studyStartTime;
-  if (studyDuration >= 10 * 60 * 1000) { // 10 minutes
-    addTokens(20);
-    studyStartTime = Date.now();
-    addMessage("chúc mừng bạn đã học được 10 phút và nhận được 20 tokens! này là món quà nhỏ cho sự cố gắng của bạn.", "bot");
+// Token reward system - 20 tokens every 10 minutes
+let lastRewardTime = Date.now();
+let totalSessionTime = 0;
+
+function initTokenRewardSystem() {
+  // Load last reward time from storage
+  const savedRewardTime = localStorage.getItem('lastTokenRewardTime');
+  if (savedRewardTime) {
+    lastRewardTime = parseInt(savedRewardTime);
   }
+  
+  // Start tracking
+  setInterval(checkTokenReward, 60000); // Check every minute
+  
+  // Track active time
+  setInterval(() => {
+    if (document.visibilityState === 'visible') {
+      totalSessionTime += 1;
+    }
+  }, 60000); // Add 1 minute every minute when page is visible
+}
+
+function checkTokenReward() {
+  const currentUser = getCurrentUser();
+  if (!currentUser) return; // Only reward logged in users
+  
+  const now = Date.now();
+  const timeSinceLastReward = now - lastRewardTime;
+  
+  // Award 20 tokens every 10 minutes (600000 ms)
+  if (timeSinceLastReward >= 10 * 60 * 1000) {
+    // Add tokens
+    addTokens(20);
+    
+    // Update last reward time
+    lastRewardTime = now;
+    localStorage.setItem('lastTokenRewardTime', lastRewardTime.toString());
+    
+    // Show notification
+    showTokenRewardNotification(20);
+    
+    console.log(`💎 Token reward: +20 tokens awarded to ${currentUser}`);
+  }
+}
+
+function showTokenRewardNotification(amount) {
+  // Create notification element
+  const notification = document.createElement('div');
+  notification.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+    padding: 16px 24px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(245, 158, 11, 0.3);
+    z-index: 10000;
+    font-weight: 600;
+    animation: slideInRight 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  `;
+  notification.innerHTML = `💎 +${amount} Tokens! <span style="font-size: 12px; opacity: 0.9;">Cứ 10 phút nhận thưởng</span>`;
+  
+  document.body.appendChild(notification);
+  
+  // Update token display in menu
+  updateTokenDisplay();
+  
+  // Remove after 5 seconds
+  setTimeout(() => {
+    notification.style.animation = 'slideOutRight 0.3s ease';
+    setTimeout(() => notification.remove(), 300);
+  }, 5000);
+}
+
+// Study time tracking (legacy - merged with token reward)
+function trackStudyTime() {
+  // Now handled by checkTokenReward
+  checkTokenReward();
 }
 
 // Command system
@@ -1108,6 +1182,9 @@ function init() {
   
   // Start time limit checking
   setInterval(checkTimeLimit, 30000); // Check every 30 seconds
+  
+  // Initialize token reward system (20 tokens every 10 minutes)
+  initTokenRewardSystem();
 }
 
 // Start the application when DOM is ready

@@ -45,7 +45,7 @@ class StudyRoomSystem {
     document.body.innerHTML = `
       <div style="display: flex; justify-content: center; align-items: center; height: 100vh; background: linear-gradient(145deg, #f0f9ff 0%, #e0f2fe 100%); font-family: Inter, sans-serif;">
         <div style="background: white; padding: 40px; border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); text-align: center; max-width: 400px;">
-          <div style="font-size: 48px; margin-bottom: 20px;">??</div>
+          <div style="font-size: 48px; margin-bottom: 20px;">🔒</div>
           <h2 style="color: #1e40af; margin-bottom: 16px;">Authentication Required</h2>
           <p style="color: #64748b; margin-bottom: 24px;">You must be logged in to join the study room!</p>
           <button onclick="window.location.href='auth.html'" style="background: #3b82f6; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 500;">
@@ -353,10 +353,10 @@ class StudyRoomSystem {
     toast.className = `toast-notification toast-${type}`;
     
     const icons = {
-      'error': '??',
-      'success': '??', 
-      'info': '??',
-      'warning': '??'
+      'error': '❌',
+      'success': '✅', 
+      'info': 'ℹ️',
+      'warning': '⚠️'
     };
     
     const colors = {

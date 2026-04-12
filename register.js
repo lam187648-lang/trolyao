@@ -158,37 +158,37 @@ class RegisterPage {
     
     // Validation
     if (!username) {
-      this.showError(usernameInput, 'Vui lòng nh?p tên ??ng nh?p!');
+      this.showError(usernameInput, 'Vui lòng nhập tên đăng nhập!');
       return;
     }
     
     if (username.length < 3) {
-      this.showError(usernameInput, 'Tên ??ng nh?p ph?i có ít nh?t 3 ký t?!');
+      this.showError(usernameInput, 'Tên đăng nhập phải có ít nhất 3 ký tự!');
       return;
     }
     
     if (!/^[a-zA-Z0-9_]+$/.test(username)) {
-      this.showError(usernameInput, 'Tên ??ng nh?p ch? ch?a ký t?, s? và g?ch d??!');
+      this.showError(usernameInput, 'Tên đăng nhập chỉ chứa ký tự, số và gạch dưới!');
       return;
     }
     
     if (!password) {
-      this.showError(passwordInput, 'Vui lòng nh?p m?t kh?u!');
+      this.showError(passwordInput, 'Vui lòng nhập mật khẩu!');
       return;
     }
     
     if (password.length < 6) {
-      this.showError(passwordInput, 'M?t kh?u ph?i có ít nh?t 6 ký t?!');
+      this.showError(passwordInput, 'Mật khẩu phải có ít nhất 6 ký tự!');
       return;
     }
     
     if (!confirmPassword) {
-      this.showError(confirmPasswordInput, 'Vui lòng xác nh?n m?t kh?u!');
+      this.showError(confirmPasswordInput, 'Vui lòng xác nhận mật khẩu!');
       return;
     }
     
     if (password !== confirmPassword) {
-      this.showError(confirmPasswordInput, 'M?t kh?u xác nh?n không kh?p!');
+      this.showError(confirmPasswordInput, 'Mật khẩu xác nhận không khớp!');
       return;
     }
     
@@ -200,7 +200,7 @@ class RegisterPage {
         
         if (users[username]) {
           this.setLoading(false);
-          this.showMessage('Tên ??ng nh?p ?? t?n t?i! <a href="login.html">??ng nh?p ngay</a>', 'error');
+          this.showMessage('Tên đăng nhập đã tồn tại! <a href="login.html">Đăng nhập ngay</a>', 'error');
           return;
         }
         
@@ -238,7 +238,7 @@ class RegisterPage {
         this.setStorageItem('authSession', JSON.stringify(sessionData));
         
         this.setLoading(false);
-        this.showMessage('??ng ký thành công! Nh?n 100 tokens và ??ang chuy?n...', 'success');
+        this.showMessage('Đăng ký thành công! Nhận 100 tokens và đang chuyển...', 'success');
         
         // Redirect to main app
         setTimeout(() => {
@@ -248,7 +248,7 @@ class RegisterPage {
       } catch (error) {
         console.log('Registration error:', error);
         this.setLoading(false);
-        this.showMessage('??ng ký th?t b?i! Vui lòng th? l?i.', 'error');
+        this.showMessage('Đăng ký thất bại! Vui lòng thử lại.', 'error');
       }
     }, 1500);
   }
@@ -289,10 +289,10 @@ class RegisterPage {
     
     if (loading) {
       btn.disabled = true;
-      text.innerHTML = '<span class="loading"></span> ??ang x? lý...';
+      text.innerHTML = '<span class="loading"></span> Đang xử lý...';
     } else {
       btn.disabled = false;
-      text.textContent = '??ng Ký';
+      text.textContent = 'Đăng Ký';
     }
   }
 
@@ -304,9 +304,9 @@ class RegisterPage {
     messageDiv.className = `${type}-message`;
     
     if (type === 'error') {
-      messageDiv.innerHTML = `<span>??</span> ${message}`;
+      messageDiv.innerHTML = `<span>❌</span> ${message}`;
     } else if (type === 'success') {
-      messageDiv.innerHTML = `<span>??</span> ${message}`;
+      messageDiv.innerHTML = `<span>✅</span> ${message}`;
     }
     
     container.innerHTML = '';

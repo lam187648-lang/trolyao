@@ -176,14 +176,31 @@
     </div>
 </div>
 
+<!-- Password Modal -->
+<div class="ban-modal" id="password-modal" style="display: flex;">
+    <div class="ban-content">
+        <h3>🔐 Nhập Mật Khẩu Admin</h3>
+        <input type="password" id="admin-password" class="ban-input" placeholder="Nhập mật khẩu...">
+        <p id="password-error" style="font-size: 12px; color: #ef4444; display: none;">
+            Mật khẩu sai! Vui lòng thử lại.
+        </p>
+        <div>
+            <button class="ban-btn" onclick="checkAdminPassword()">Xác nhận</button>
+            <button class="cancel-btn" onclick="window.location.href='index.html'">Quay lại</button>
+        </div>
+    </div>
+</div>
+
 <!-- Ban Modal -->
 <div class="ban-modal" id="ban-modal">
     <div class="ban-content">
         <h3>🚫 Kick Người Dùng</h3>
         <p id="ban-username"></p>
-        <input type="number" id="ban-duration" class="ban-input" placeholder="Nhập thời gian chờ (phút)" min="1">
+        <input type="text" id="ban-duration" class="ban-input" placeholder="Nhập thời gian (VD: 30p, 2g, 5g)" maxlength="3">
         <p style="font-size: 12px; color: var(--text-secondary);">
-            Người dùng sẽ không thể truy cập trong khoảng thời gian này
+            <b>Định dạng:</b> Nhập số + "g" (giờ) hoặc "p" (phút)<br>
+            Ví dụ: <code>1g</code> = 1 giờ, <code>30p</code> = 30 phút<br>
+            Giới hạn: 1g-10g hoặc 1p-180p
         </p>
         <div>
             <button class="ban-btn" onclick="confirmBan()">Xác nhận Kick</button>

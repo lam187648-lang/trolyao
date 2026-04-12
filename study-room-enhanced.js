@@ -40,11 +40,11 @@ class EnhancedStudyRoom {
     document.body.innerHTML = `
       <div style="display: flex; justify-content: center; align-items: center; height: 100vh; background: linear-gradient(145deg, #f0f9ff 0%, #e0f2fe 100%); font-family: Inter, sans-serif;">
         <div style="background: white; padding: 40px; border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); text-align: center; max-width: 400px;">
-          <div style="font-size: 48px; margin-bottom: 20px;">??</div>
-          <h2 style="color: #1e40af; margin-bottom: 16px;">Yêu Càu ??ng Nh?p</h2>
-          <p style="color: #64748b; margin-bottom: 24px;">B?n ph?i ??ng nh?p ?? tham gia phòng h?c!</p>
+          <div style="font-size: 48px; margin-bottom: 20px;">🔒</div>
+          <h2 style="color: #1e40af; margin-bottom: 16px;">Yêu Cầu Đăng Nhập</h2>
+          <p style="color: #64748b; margin-bottom: 24px;">Bạn phải đăng nhập để tham gia phòng học!</p>
           <button onclick="window.location.href='auth.html'" style="background: #3b82f6; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 500;">
-            ??ng Nh?p Ngay
+            Đăng Nhập Ngay
           </button>
         </div>
       </div>
@@ -124,7 +124,7 @@ class EnhancedStudyRoom {
     const users = JSON.parse(localStorage.getItem('users') || '{}');
     
     if (!currentUser || !users[currentUser]) {
-      this.showMessage('B?n ph?i ??ng nh?p ?? tham gia phòng h?c!', 'error');
+      this.showMessage('Bạn phải đăng nhập để tham gia phòng học!', 'error');
       return;
     }
 
@@ -164,7 +164,7 @@ class EnhancedStudyRoom {
     
     this.renderGrid();
     this.saveToLocalStorage();
-    this.showMessage(`Chào m?ng ${userData.name} ?? tham gia phòng h?c!`, 'success');
+    this.showMessage(`Chào mừng ${userData.name} đã tham gia phòng học!`, 'success');
   }
 
   saveUserInfoToMainApp(userData) {
@@ -210,7 +210,7 @@ class EnhancedStudyRoom {
     
     this.renderGrid();
     this.saveToLocalStorage();
-    this.showMessage('B?n ?? r?i khoi phòng h?c!', 'info');
+    this.showMessage('Bạn đã rời khỏi phòng học!', 'info');
   }
 
   updateStudyStats(sessionTime) {
@@ -337,7 +337,7 @@ class EnhancedStudyRoom {
       userElement.innerHTML = `
         <div class="user-avatar">${user.name.charAt(0).toUpperCase()}</div>
         <div class="user-name">${user.name}</div>
-        <div class="user-status">??ang h?c</div>
+        <div class="user-status">Đang học</div>
       `;
       grid.appendChild(userElement);
     });
@@ -356,8 +356,8 @@ class EnhancedStudyRoom {
     const statsDiv = document.getElementById('room-stats');
     if (statsDiv) {
       statsDiv.innerHTML = `
-        <p>Ng??i dùng: ${this.users.size}</p>
-        <p>T?ng th?i gian: ${Math.floor(this.totalStudyTime / 60)} gi?</p>
+        <p>Người dùng: ${this.users.size}</p>
+        <p>Tổng thời gian: ${Math.floor(this.totalStudyTime / 60)} giờ</p>
       `;
     }
   }
@@ -369,10 +369,10 @@ class EnhancedStudyRoom {
     
     // Icon mapping for different message types
     const icons = {
-      'error': '??',
-      'success': '??', 
-      'info': '??',
-      'warning': '??'
+      'error': '❌',
+      'success': '✅', 
+      'info': 'ℹ️',
+      'warning': '⚠️'
     };
     
     // Color mapping for different message types

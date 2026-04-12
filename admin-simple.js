@@ -6,27 +6,23 @@ class SimpleAdmin {
   }
 
   init() {
-    this.checkPassword();
-    this.loadUsers();
+    // Password modal shown by default, load users after check
+    this.currentUserToBan = null;
   }
 
   checkPassword() {
-    const password = prompt('🔐 Nhập mật khẩu admin:');
+    const password = document.getElementById('admin-password').value;
+    const errorMsg = document.getElementById('password-error');
+    
     if (password !== '093981') {
-      document.body.innerHTML = `
-        <div style="display: flex; justify-content: center; align-items: center; height: 100vh; background: linear-gradient(145deg, #f0f9ff 0%, #e0f2fe 100%); font-family: Inter, sans-serif;">
-          <div style="background: white; padding: 40px; border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); text-align: center; max-width: 400px;">
-            <div style="font-size: 48px; margin-bottom: 20px;">❌</div>
-            <h2 style="color: #ef4444; margin-bottom: 16px;">Mật Khẩu Sai!</h2>
-            <p style="color: #64748b; margin-bottom: 24px;">Bạn không có quyền truy cập trang này!</p>
-            <button onclick="window.location.href='index.html'" style="background: #3b82f6; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 500;">
-              Quay lại
-            </button>
-          </div>
-        </div>
-      `;
-      return;
+      errorMsg.style.display = 'block';
+      return false;
     }
+    
+    // Hide password modal and load users
+    document.getElementById('password-modal').style.display = 'none';
+    this.loadUsers();
+    return true;
   }
 
   loadUsers() {
@@ -89,9 +85,12 @@ class SimpleAdmin {
   }
 }
 
+// Global variable for current user to ban
+let currentUserToBan = null;
+
 // Global functions
 function showBanModal(username) {
-  SimpleAdmin.currentUserToBan = username;
+  currentUserToBan = username;
   document.getElementById('ban-username').textContent = `Người dùng: ${username}`;
   document.getElementById('ban-modal').style.display = 'flex';
   document.getElementById('ban-duration').value = '';
@@ -100,21 +99,66 @@ function showBanModal(username) {
 
 function closeBanModal() {
   document.getElementById('ban-modal').style.display = 'none';
-  SimpleAdmin.currentUserToBan = null;
+  currentUserToBan = null;
+}
+
+function parseDuration(input) {
+  input = input.trim().toLowerCase();
+  
+  // Hours format: 1g, 2g, ..., 10g (g = giờ)
+  if (input.endsWith('g')) {
+    const hours = parseInt(input.slice(0, -1));
+    if (!isNaN(hours) && hours >= 1 && hours <= 10) {
+      return hours * 60; // Convert to minutes
+    }
+  }
+  
+  // Minutes format: 1p, 2p, ..., 180p (p = phút)
+  if (input.endsWith('p')) {
+    const minutes = parseInt(input.slice(0, -1));
+    if (!isNaN(minutes) && minutes >= 1 && minutes <= 180) {
+      return minutes;
+    }
+  }
+  
+  // Legacy: plain number (treat as minutes)
+  const minutes = parseInt(input);
+  if (!isNaN(minutes) && minutes > 0) {
+    return minutes;
+  }
+  
+  return null; // Invalid
+}
+
+function formatDuration(minutes) {
+  if (minutes >= 60) {
+    const h = Math.floor(minutes / 60);
+    const m = minutes % 60;
+    return m > 0 ? `${h}g ${m}p` : `${h}g`;
+  }
+  return `${minutes}p`;
 }
 
 function confirmBan() {
-  const duration = parseInt(document.getElementById('ban-duration').value);
+  const durationInput = document.getElementById('ban-duration').value;
+  const durationMinutes = parseDuration(durationInput);
   
-  if (isNaN(duration) || duration < 1) {
-    alert('Vui lòng nhập thời gian hợp lệ (tối thiểu 1 phút)!');
+  if (!durationMinutes) {
+    alert('❌ Định dạng không hợp lệ!\nNhập: 1g-10g (giờ) hoặc 1p-180p (phút)\nVí dụ: 2g, 30p, 1g30p');
     return;
   }
   
-  if (SimpleAdmin.currentUserToBan) {
-    SimpleAdmin.banUser(SimpleAdmin.currentUserToBan, duration);
+  if (currentUserToBan) {
+    simpleAdmin.banUser(currentUserToBan, durationMinutes);
     closeBanModal();
-    alert(`Đã kick ${SimpleAdmin.currentUserToBan} trong ${duration} phút!`);
+    alert(`✅ Đã kick ${currentUserToBan} trong ${formatDuration(durationMinutes)}!`);
+  }
+}
+
+// Global function for password check
+function checkAdminPassword() {
+  if (simpleAdmin.checkPassword()) {
+    // Success - modal hidden by checkPassword
   }
 }
 
