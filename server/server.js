@@ -12,9 +12,9 @@ let fetch;
 
 // Pusher configuration - Thay thế bằng keys của bạn từ dashboard Pusher
 const pusher = new Pusher({
-  appId: process.env.PUSHER_APP_ID || "YOUR_APP_ID",
-  key: process.env.PUSHER_KEY || "YOUR_KEY",
-  secret: process.env.PUSHER_SECRET || "YOUR_SECRET",
+  appId: process.env.PUSHER_APP_ID || "2140409",
+  key: process.env.PUSHER_KEY || "2ac5a1cf96ed0ab79735",
+  secret: process.env.PUSHER_SECRET || "5618f3cef6c7e0a56efd",
   cluster: process.env.PUSHER_CLUSTER || "ap1",
   useTLS: true
 });

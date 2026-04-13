@@ -771,20 +771,6 @@ function initColorThemes() {
     `;
     
     themeItem.addEventListener('click', () => {
-      // Add pop animation to icon when clicked (optimized for performance)
-      if (theme.icon) {
-        const icon = themeItem.querySelector('.color-icon');
-        if (icon) {
-          // Remove existing animation class to reset
-          icon.classList.remove('animate-pop');
-          // Force reflow to ensure animation restart
-          void icon.offsetWidth;
-          // Add animation class
-          icon.classList.add('animate-pop');
-          // Remove class after animation completes
-          setTimeout(() => icon.classList.remove('animate-pop'), 500);
-        }
-      }
       selectColorTheme(theme);
     });
     colorGrid.appendChild(themeItem);

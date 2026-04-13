@@ -160,7 +160,7 @@ class AuthSystem {
   handleRegister() {
     const username = document.getElementById('register-username').value.trim();
     const password = document.getElementById('register-password').value;
-    const confirmPassword = document.getElementById('register-confirm').value;
+    const confirmPassword = document.getElementById('register-confirm-password').value;
     
     if (!username || !password || !confirmPassword) {
       this.showMessage('Vui lòng nhập đầy đủ thông tin!');
