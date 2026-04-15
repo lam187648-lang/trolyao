@@ -137,4 +137,4 @@ npm start
 
 ## 📝 License
 
-MIT © 2024 Tro Ly Ao Team
+MIT © 2025 nguyenvietlam team

@@ -3,41 +3,36 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Trò Chơi Theo Dõi Đầu</title>
+  <title>Trò Chơi Nghiêng Điện Thoại</title>
   <link rel="stylesheet" href="head-tracking-game.css">
-  <script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
 </head>
 <body>
   <!-- Start Screen -->
   <div id="start-screen" class="screen active">
     <div class="container">
-      <h1>🎮 Game Theo Dõi Đầu</h1>
-      <p>Trả lời câu hỏi bằng cách di chuyển đầu</p>
+      <h1>🎮 Game Nghiêng Điện Thoại</h1>
+      <p>Trả lời câu hỏi bằng cách nghiêng điện thoại</p>
       <div class="instructions">
-        <div class="instruction-item">⬅️ Nhìn TRÁI = Sai</div>
-        <div class="instruction-item">➡️ Nhìn PHẢI = Đúng</div>
+        <div class="instruction-item">⬅️ Nghiêng TRÁI = Sai</div>
+        <div class="instruction-item">➡️ Nghiêng PHẢI = Đúng</div>
       </div>
       <button id="start-btn" class="btn">Bắt Đầu</button>
     </div>
   </div>
 
-  <!-- Loading Screen -->
-  <div id="loading-screen" class="screen">
-    <div class="container">
-      <h2>Đang tải...</h2>
-      <div class="loader"></div>
-    </div>
-  </div>
-
   <!-- Game Screen -->
   <div id="game-screen" class="screen">
-    <video id="video" autoplay muted playsinline></video>
-    <canvas id="overlay"></canvas>
-    
     <div class="game-ui">
       <div class="top-bar">
         <div class="score">🏆 <span id="score">0</span></div>
         <div class="question-count">📝 <span id="current-question">1</span>/<span id="total-questions">10</span></div>
+      </div>
+      
+      <div class="tilt-indicator">
+        <div class="tilt-bar">
+          <div class="tilt-fill" id="tilt-fill"></div>
+        </div>
+        <div class="tilt-label">Nghiêng điện thoại</div>
       </div>
       
       <div class="question-panel">

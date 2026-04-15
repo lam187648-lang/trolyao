@@ -40,6 +40,8 @@ const screens = {
 const video = document.getElementById('video');
 const overlay = document.getElementById('overlay');
 const ctx = overlay.getContext('2d');
+let faceMesh;
+let camera;
 
 function init() {
   document.getElementById('start-btn').addEventListener('click', startGame);
@@ -55,14 +57,28 @@ function showScreen(screenName) {
 async function startGame() {
   showScreen('loading');
   try {
-    await faceapi.nets.tinyFaceDetector.loadFromUri('https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.12/model/');
-    await faceapi.nets.faceLandmark68Net.loadFromUri('https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.12/model/');
+    await initFaceMesh();
     await requestCamera();
   } catch (error) {
-    console.error('Error loading models:', error);
-    alert('Lỗi khi tải mô hình. Vui lòng tải lại trang.');
+    console.error('Error:', error);
+    alert('Lỗi khi khởi tạo. Vui lòng tải lại trang.');
     showScreen('start');
   }
+}
+
+async function initFaceMesh() {
+  faceMesh = new FaceMesh({locateFile: (file) => {
+    return `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`;
+  }});
+  
+  faceMesh.setOptions({
+    maxNumFaces: 1,
+    refineLandmarks: true,
+    minDetectionConfidence: 0.5,
+    minTrackingConfidence: 0.5
+  });
+  
+  faceMesh.onResults(onFaceResults);
 }
 
 async function requestCamera() {
@@ -75,13 +91,22 @@ async function requestCamera() {
       } 
     });
     video.srcObject = stream;
-    video.onloadedmetadata = () => {
-      overlay.width = video.videoWidth;
-      overlay.height = video.videoHeight;
-      startFaceDetection();
-      showScreen('game');
-      startQuiz();
-    };
+    
+    camera = new Camera(video, {
+      onFrame: async () => {
+        await faceMesh.send({image: video});
+      },
+      width: 640,
+      height: 480
+    });
+    
+    await camera.start();
+    
+    overlay.width = video.videoWidth;
+    overlay.height = video.videoHeight;
+    
+    showScreen('game');
+    startQuiz();
   } catch (error) {
     console.error('Error accessing camera:', error);
     alert('Không thể truy cập camera. Vui lòng kiểm tra quyền.');
@@ -89,70 +114,65 @@ async function requestCamera() {
   }
 }
 
-let detectionInterval;
 let lastHeadDirection = 'center';
 let headDirectionHoldTime = 0;
 const HEAD_HOLD_THRESHOLD = 800;
 
-async function startFaceDetection() {
-  gameState.isDetecting = true;
+function onFaceResults(results) {
+  ctx.clearRect(0, 0, overlay.width, overlay.height);
   
-  detectionInterval = setInterval(async () => {
-    if (!gameState.isDetecting) return;
+  if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
+    const landmarks = results.multiFaceLandmarks[0];
     
-    const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
-      .withFaceLandmarks();
+    // Calculate head direction using nose and eyes
+    const nose = landmarks[1];
+    const leftEye = landmarks[33];
+    const rightEye = landmarks[262];
     
-    ctx.clearRect(0, 0, overlay.width, overlay.height);
+    const eyeCenterX = (leftEye.x + rightEye.x) / 2;
+    const headOffset = eyeCenterX - nose.x;
     
-    if (detections.length > 0) {
-      const landmarks = detections[0].landmarks;
-      const leftEye = landmarks.getLeftEye()[0];
-      const rightEye = landmarks.getRightEye()[3];
-      
-      const eyeCenterX = (leftEye.x + rightEye.x) / 2;
-      const faceCenter = detections[0].detection.box.width / 2 + detections[0].detection.box.x;
-      const headOffset = eyeCenterX - faceCenter;
-      
-      let currentDirection = 'center';
-      if (headOffset < -15) currentDirection = 'left';
-      else if (headOffset > 15) currentDirection = 'right';
-      
-      updateHeadIndicator(currentDirection);
-      
-      if (currentDirection !== lastHeadDirection) {
-        lastHeadDirection = currentDirection;
-        headDirectionHoldTime = Date.now();
-      } else {
-        if (Date.now() - headDirectionHoldTime > HEAD_HOLD_THRESHOLD) {
-          if (currentDirection !== 'center' && !gameState.answerCooldown) {
-            handleAnswer(currentDirection);
-          }
+    let currentDirection = 'center';
+    if (headOffset < -0.02) currentDirection = 'left';
+    else if (headOffset > 0.02) currentDirection = 'right';
+    
+    updateHeadIndicator(currentDirection);
+    
+    if (currentDirection !== lastHeadDirection) {
+      lastHeadDirection = currentDirection;
+      headDirectionHoldTime = Date.now();
+    } else {
+      if (Date.now() - headDirectionHoldTime > HEAD_HOLD_THRESHOLD) {
+        if (currentDirection !== 'center' && !gameState.answerCooldown) {
+          handleAnswer(currentDirection);
         }
       }
-      
-      // Draw face tracking squares on landmarks
-      drawFaceSquares(landmarks);
     }
-  }, 100);
+    
+    // Draw face tracking squares
+    drawFaceSquares(landmarks);
+  }
 }
 
 function drawFaceSquares(landmarks) {
-  const points = landmarks.positions;
   const squareSize = 8;
   
   ctx.fillStyle = '#00ff00';
   ctx.strokeStyle = '#00ff00';
   ctx.lineWidth = 1;
   
-  points.forEach(point => {
-    ctx.fillRect(point.x - squareSize/2, point.y - squareSize/2, squareSize, squareSize);
+  landmarks.forEach(point => {
+    const x = point.x * overlay.width;
+    const y = point.y * overlay.height;
+    ctx.fillRect(x - squareSize/2, y - squareSize/2, squareSize, squareSize);
   });
   
   // Draw larger square on nose
-  const nose = landmarks.getNose()[3];
+  const nose = landmarks[1];
+  const noseX = nose.x * overlay.width;
+  const noseY = nose.y * overlay.height;
   ctx.fillStyle = '#ff0000';
-  ctx.fillRect(nose.x - 12, nose.y - 12, 24, 24);
+  ctx.fillRect(noseX - 12, noseY - 12, 24, 24);
 }
 
 function updateHeadIndicator(direction) {
@@ -221,7 +241,10 @@ function handleAnswer(direction) {
 
 function endGame() {
   gameState.isDetecting = false;
-  clearInterval(detectionInterval);
+  
+  if (camera) {
+    camera.stop();
+  }
   
   if (video.srcObject) {
     video.srcObject.getTracks().forEach(track => track.stop());
@@ -244,7 +267,10 @@ function restartGame() {
 
 function goHome() {
   gameState.isDetecting = false;
-  clearInterval(detectionInterval);
+  
+  if (camera) {
+    camera.stop();
+  }
   
   if (video.srcObject) {
     video.srcObject.getTracks().forEach(track => track.stop());
