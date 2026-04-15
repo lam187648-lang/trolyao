@@ -1672,83 +1672,13 @@ button:disabled {
 
 /* Drop shadow effect under icon - REMOVED ANIMATION */
 
-/* Gold theme - Shimmer effect */
-.theme-gold {
-  position: relative;
-  overflow: hidden;
-}
+/* Gold theme - Shimmer effect REMOVED */
 
-.theme-gold::after {
-  content: "";
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: linear-gradient(
-    45deg,
-    transparent 30%,
-    rgba(255, 215, 0, 0.4) 50%,
-    transparent 70%
-  );
-  animation: shimmer 3s infinite;
-}
+/* Silver theme - Shine effect REMOVED */
 
-@keyframes shimmer {
-  0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
-  100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
-}
+/* Bronze theme - Glow pulse effect REMOVED */
 
-/* Silver theme - Shine effect */
-.theme-silver {
-  position: relative;
-  overflow: hidden;
-}
-
-.theme-silver::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.6),
-    transparent
-  );
-  animation: shine 2.5s infinite;
-}
-
-@keyframes shine {
-  0% { left: -100%; }
-  50%, 100% { left: 100%; }
-}
-
-/* Bronze theme - Glow pulse effect */
-.theme-bronze {
-  position: relative;
-  animation: bronzeGlow 2s ease-in-out infinite;
-}
-
-@keyframes bronzeGlow {
-  0%, 100% { box-shadow: 0 0 10px rgba(205, 127, 50, 0.5); }
-  50% { box-shadow: 0 0 25px rgba(205, 127, 50, 0.8), 0 0 40px rgba(205, 127, 50, 0.4); }
-}
-
-/* Rainbow theme - Rainbow shift effect */
-.theme-rainbow {
-  position: relative;
-  background-size: 200% 200% !important;
-  animation: rainbowShift 4s ease infinite !important;
-}
-
-@keyframes rainbowShift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
+/* Rainbow theme - Rainbow shift effect REMOVED */
 
 /* Exclusive badge in color panel */
 .color-item.exclusive {
@@ -1765,14 +1695,7 @@ button:disabled {
   font-weight: 700;
 }
 
-/* Applied theme effects on body */
-body.theme-gold-active {
-  animation: goldShimmer 5s ease-in-out infinite;
-}
-
-body.theme-rainbow-active {
-  animation: rainbowBg 8s ease infinite;
-}
+/* Applied theme effects on body - REMOVED */
 
 /* ========== BRIGHT TEXT FOR SPECIAL DARK THEMES ========== */
 /* Galaxy - bright glowing text */
@@ -2050,216 +1973,87 @@ body.theme-emerald-active .header-content h1 {
   text-shadow: 0 0 20px rgba(80, 200, 120, 0.9), 0 0 40px rgba(34, 139, 34, 0.7);
 }
 
-@keyframes goldShimmer {
-  0%, 100% { background-color: #FFFAF0; }
-  50% { background-color: #FFF8DC; }
-}
-
-@keyframes rainbowBg {
-  0% { filter: hue-rotate(0deg); }
-  100% { filter: hue-rotate(360deg); }
-}
-
-/* Premium exclusive color effects */
+/* Premium exclusive color effects - ANIMATIONS REMOVED */
 .theme-holographic {
   background: linear-gradient(45deg, #FF00FF, #00FFFF, #FF00FF) !important;
-  will-change: opacity;
-  animation: holographicShift 4s ease infinite;
-}
-
-@keyframes holographicShift {
-  0%, 100% { opacity: 0.9; }
-  50% { opacity: 1; }
 }
 
 .theme-galaxy {
   background: radial-gradient(ellipse at center, #4B0082, #000000, #191970) !important;
-  will-change: box-shadow;
-  animation: galaxyPulse 3s ease-in-out infinite;
-}
-
-@keyframes galaxyPulse {
-  0%, 100% { box-shadow: 0 0 15px rgba(75, 0, 130, 0.6); }
-  50% { box-shadow: 0 0 30px rgba(75, 0, 130, 0.9); }
 }
 
 .theme-aurora {
   background: linear-gradient(135deg, #39FF14, #00CED1, #FF1493) !important;
-  will-change: opacity;
-  animation: auroraWave 4s ease infinite;
-}
-
-@keyframes auroraWave {
-  0%, 100% { opacity: 0.95; }
-  50% { opacity: 1; }
 }
 
 .theme-phoenix {
   background: linear-gradient(180deg, #FF4500, #FF6347, #FFD700) !important;
-  will-change: box-shadow;
-  animation: phoenixFlame 3s ease-in-out infinite;
-}
-
-@keyframes phoenixFlame {
-  0%, 100% { box-shadow: 0 0 10px rgba(255, 69, 0, 0.7); }
-  50% { box-shadow: 0 0 25px rgba(255, 69, 0, 0.9); }
 }
 
 .theme-cyberpunk {
   background: linear-gradient(135deg, #000000, #FFFF00, #FF00FF) !important;
-  will-change: opacity;
-  animation: cyberpunkGlitch 3s ease-in-out infinite;
-}
-
-@keyframes cyberpunkGlitch {
-  0%, 100% { opacity: 0.95; }
-  50% { opacity: 1; }
 }
 
 /* ========== NEW PREMIUM COLOR EFFECTS ========== */
 
-/* Diamond - Sparkling ice effect */
+/* Diamond - Sparkling ice effect - ANIMATION REMOVED */
 .theme-diamond {
   background: linear-gradient(135deg, #E0F7FA, #00CED1, #FFFFFF) !important;
-  will-change: box-shadow, opacity;
-  animation: diamondSparkle 3s ease-in-out infinite;
 }
 
-@keyframes diamondSparkle {
-  0%, 100% { box-shadow: 0 0 12px rgba(0, 206, 209, 0.5); opacity: 0.95; }
-  50% { box-shadow: 0 0 25px rgba(0, 206, 209, 0.8); opacity: 1; }
-}
-
-/* Royal Amethyst - Mystical purple glow */
+/* Royal Amethyst - Mystical purple glow - ANIMATION REMOVED */
 .theme-amethyst {
   background: linear-gradient(145deg, #E6E6FA, #9966CC, #4B0082) !important;
-  will-change: box-shadow;
-  animation: amethystGlow 3s ease-in-out infinite;
 }
 
-@keyframes amethystGlow {
-  0%, 100% { box-shadow: 0 0 15px rgba(153, 102, 204, 0.6); }
-  50% { box-shadow: 0 0 30px rgba(153, 102, 204, 0.9); }
-}
-
-/* Sunset Gold - Warm gradient pulse */
+/* Sunset Gold - Warm gradient pulse - ANIMATION REMOVED */
 .theme-sunset {
   background: linear-gradient(180deg, #FFD700, #FF8C00, #FF6347) !important;
-  will-change: opacity;
-  animation: sunsetPulse 4s ease-in-out infinite;
 }
 
-@keyframes sunsetPulse {
-  0%, 100% { opacity: 0.95; }
-  50% { opacity: 1; }
-}
-
-/* Frozen Ice - Cool shimmer */
+/* Frozen Ice - Cool shimmer - ANIMATION REMOVED */
 .theme-ice {
   background: linear-gradient(135deg, #E0FFFF, #00FFFF, #87CEEB) !important;
-  will-change: opacity;
-  animation: iceShimmer 3s ease-in-out infinite;
 }
 
-@keyframes iceShimmer {
-  0%, 100% { opacity: 0.95; }
-  50% { opacity: 1; }
-}
-
-/* Ocean Deep - Deep blue wave */
+/* Ocean Deep - Deep blue wave - ANIMATION REMOVED */
 .theme-ocean {
   background: linear-gradient(180deg, #00CED1, #006994, #003366) !important;
-  will-change: box-shadow;
-  animation: oceanWave 3s ease-in-out infinite;
 }
 
-@keyframes oceanWave {
-  0%, 100% { box-shadow: 0 0 15px rgba(0, 105, 148, 0.6); }
-  50% { box-shadow: 0 0 30px rgba(0, 206, 209, 0.9); }
-}
-
-/* Magma - Intense fire */
+/* Magma - Intense fire - ANIMATION REMOVED */
 .theme-magma {
   background: linear-gradient(180deg, #FFD700, #FF4500, #8B0000) !important;
-  will-change: box-shadow;
-  animation: magmaFlame 3s ease-in-out infinite;
 }
 
-@keyframes magmaFlame {
-  0%, 100% { box-shadow: 0 0 15px rgba(255, 69, 0, 0.8); }
-  50% { box-shadow: 0 0 35px rgba(255, 69, 0, 1); }
-}
-
-/* Sakura - Gentle pink petals */
+/* Sakura - Gentle pink petals - ANIMATION REMOVED */
 .theme-sakura {
   background: linear-gradient(135deg, #FFF0F5, #FFB7C5, #FF69B4) !important;
-  will-change: opacity;
-  animation: sakuraFloat 4s ease-in-out infinite;
 }
 
-@keyframes sakuraFloat {
-  0%, 100% { opacity: 0.95; }
-  50% { opacity: 1; }
-}
-
-/* Emerald Forest - Rich green pulse */
+/* Emerald Forest - Rich green pulse - ANIMATION REMOVED */
 .theme-emerald {
   background: linear-gradient(145deg, #98FB98, #50C878, #228B22) !important;
-  will-change: box-shadow;
-  animation: emeraldPulse 3s ease-in-out infinite;
 }
 
-@keyframes emeraldPulse {
-  0%, 100% { box-shadow: 0 0 15px rgba(80, 200, 120, 0.6); }
-  50% { box-shadow: 0 0 30px rgba(80, 200, 120, 0.9); }
-}
-
-/* Starlight - Cosmic shimmer */
+/* Starlight - Cosmic shimmer - ANIMATION REMOVED */
 .theme-starlight {
   background: radial-gradient(ellipse at center, #1a1a2e, #16213e, #0f3460) !important;
-  will-change: opacity;
-  animation: starlightShimmer 4s ease-in-out infinite;
 }
 
-@keyframes starlightShimmer {
-  0%, 100% { opacity: 0.95; }
-  50% { opacity: 1; }
-}
-
-/* Midnight - Deep dark glow */
+/* Midnight - Deep dark glow - ANIMATION REMOVED */
 .theme-midnight {
   background: linear-gradient(180deg, #2C3E50, #191970, #000000) !important;
-  will-change: opacity;
-  animation: midnightGlow 4s ease-in-out infinite;
 }
 
-@keyframes midnightGlow {
-  0%, 100% { opacity: 0.95; }
-  50% { opacity: 1; }
-}
-
-/* Golden Royal - Luxury gold */
+/* Golden Royal - Luxury gold - ANIMATION REMOVED */
 .theme-royal {
   background: linear-gradient(145deg, #FFF8DC, #D4AF37, #B8860B) !important;
-  will-change: opacity;
-  animation: royalShimmer 3s ease-in-out infinite;
 }
 
-@keyframes royalShimmer {
-  0%, 100% { opacity: 0.95; }
-  50% { opacity: 1; }
-}
-
-/* Prism - Rainbow spin */
+/* Prism - Rainbow spin - ANIMATION REMOVED */
 .theme-prism {
   background: conic-gradient(from 0deg, #FF1493, #FFD700, #00FF00, #00BFFF, #FF1493) !important;
-  will-change: transform;
-  animation: prismSpin 8s linear infinite;
-}
-
-@keyframes prismSpin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
 }
 
 /* ========== OPTIMIZED WAVE ANIMATION ========== */
@@ -2320,24 +2114,6 @@ body.theme-starlight-active .wave {
 }
 
 /* ========== SIMPLE SPECIAL EFFECTS ========== */
-/* Rainbow effect for special themes - 3 colors shifting gently */
-body.theme-galaxy-active,
-body.theme-phoenix-active,
-body.theme-diamond-active,
-body.theme-magma-active,
-body.theme-aurora-active,
-body.theme-royal-active,
-body.theme-gold-active,
-body.theme-starlight-active {
-  animation: rainbowShift 6s ease-in-out infinite;
-}
-
-@keyframes rainbowShift {
-  0%, 100% { background-color: rgba(255, 100, 100, 0.05); }
-  33% { background-color: rgba(100, 255, 100, 0.05); }
-  66% { background-color: rgba(100, 100, 255, 0.05); }
-}
-
 /* Ocean wave effect for blue themes */
 body.theme-ocean-active::before,
 body.theme-ice-active::before {
@@ -2348,17 +2124,11 @@ body.theme-ice-active::before {
   width: 300%;
   height: 30%;
   pointer-events: none;
-  background: linear-gradient(90deg, 
+  background: linear-gradient(90deg,
     transparent 0%,
     rgba(0, 150, 255, 0.1) 25%,
-    rgba(0, 200, 255, 0.15) 50%,
+    rgba(0, 150, 255, 0.1) 50%,
     rgba(0, 150, 255, 0.1) 75%,
     transparent 100%);
-  animation: oceanWave 4s ease-in-out infinite;
   z-index: 0;
-}
-
-@keyframes oceanWave {
-  0%, 100% { transform: translateX(0); opacity: 0.3; }
-  50% { transform: translateX(33%); opacity: 0.6; }
 }
