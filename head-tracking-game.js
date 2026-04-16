@@ -30,6 +30,39 @@ let gameState = {
   answerCooldown: false
 };
 
+let playerStats = {
+  totalGames: 0,
+  totalWins: 0,
+  totalCorrect: 0,
+  totalWrong: 0
+};
+
+function loadPlayerStats() {
+  const saved = localStorage.getItem('headTrackingGameStats');
+  if (saved) {
+    playerStats = JSON.parse(saved);
+  }
+  updateStatsDisplay();
+}
+
+function savePlayerStats() {
+  localStorage.setItem('headTrackingGameStats', JSON.stringify(playerStats));
+  updateStatsDisplay();
+}
+
+function updateStatsDisplay() {
+  const statsDiv = document.getElementById('player-stats');
+  if (statsDiv) {
+    statsDiv.innerHTML = `
+      <p>📊 <strong>Thống kê của bạn:</strong></p>
+      <p>• Số lượt chơi: ${playerStats.totalGames}</p>
+      <p>• Số lần thắng: ${playerStats.totalWins}</p>
+      <p>• Tổng câu đúng: ${playerStats.totalCorrect}</p>
+      <p>• Tổng câu sai: ${playerStats.totalWrong}</p>
+    `;
+  }
+}
+
 const screens = {
   start: document.getElementById('start-screen'),
   loading: document.getElementById('loading-screen'),
@@ -49,7 +82,13 @@ function init() {
   console.log('FaceMesh available:', typeof FaceMesh !== 'undefined');
   console.log('Camera available:', typeof Camera !== 'undefined');
   
-  document.getElementById('start-btn').addEventListener('click', startGame);
+  loadPlayerStats();
+  
+  document.getElementById('start-btn').addEventListener('click', () => {
+    console.log('Start button clicked!');
+    alert('Nút Bắt Đầu đã được bấm!');
+    startGame();
+  });
   document.getElementById('allow-camera-btn').addEventListener('click', requestCamera);
   document.getElementById('deny-camera-btn').addEventListener('click', goHome);
   document.getElementById('restart-btn').addEventListener('click', restartGame);
@@ -70,6 +109,9 @@ async function startGame() {
   console.log('startGame called');
   showScreen('loading');
   console.log('Loading screen shown');
+  
+  playerStats.totalGames++;
+  savePlayerStats();
   
   try {
     document.getElementById('loading-status').textContent = 'Đang tải mô hình Face Mesh...';
@@ -289,6 +331,17 @@ function endGame() {
   document.getElementById('correct-count').textContent = gameState.correctAnswers;
   document.getElementById('total-count').textContent = totalQuestions;
   document.getElementById('percentage').textContent = percentage + '%';
+  
+  // Save player stats
+  playerStats.totalCorrect += gameState.correctAnswers;
+  playerStats.totalWrong += (totalQuestions - gameState.correctAnswers);
+  
+  // Count as win if percentage >= 70%
+  if (percentage >= 70) {
+    playerStats.totalWins++;
+  }
+  
+  savePlayerStats();
   
   showScreen('result');
 }

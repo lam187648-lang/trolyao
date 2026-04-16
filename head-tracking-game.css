@@ -70,6 +70,24 @@ p {
   margin: 10px 0;
 }
 
+.player-stats {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 15px;
+  border-radius: 15px;
+  margin: 15px 0;
+  text-align: left;
+}
+
+.player-stats p {
+  margin: 5px 0;
+  font-size: 14px;
+}
+
+.player-stats strong {
+  font-size: 16px;
+}
+
 .btn {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
