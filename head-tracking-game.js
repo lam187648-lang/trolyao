@@ -33,6 +33,7 @@ let gameState = {
 const screens = {
   start: document.getElementById('start-screen'),
   loading: document.getElementById('loading-screen'),
+  cameraPermission: document.getElementById('camera-permission-screen'),
   game: document.getElementById('game-screen'),
   result: document.getElementById('result-screen')
 };
@@ -45,6 +46,8 @@ let camera;
 
 function init() {
   document.getElementById('start-btn').addEventListener('click', startGame);
+  document.getElementById('allow-camera-btn').addEventListener('click', requestCamera);
+  document.getElementById('deny-camera-btn').addEventListener('click', goHome);
   document.getElementById('restart-btn').addEventListener('click', restartGame);
   document.getElementById('home-btn').addEventListener('click', goHome);
 }
@@ -57,8 +60,10 @@ function showScreen(screenName) {
 async function startGame() {
   showScreen('loading');
   try {
+    document.getElementById('loading-status').textContent = 'Đang tải mô hình Face Mesh...';
     await initFaceMesh();
-    await requestCamera();
+    document.getElementById('loading-status').textContent = 'Đã tải xong!';
+    showScreen('cameraPermission');
   } catch (error) {
     console.error('Error:', error);
     alert('Lỗi khi khởi tạo. Vui lòng tải lại trang.');
