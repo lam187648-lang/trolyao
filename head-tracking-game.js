@@ -45,24 +45,39 @@ let faceMesh;
 let camera;
 
 function init() {
+  console.log('Initializing game...');
+  console.log('FaceMesh available:', typeof FaceMesh !== 'undefined');
+  console.log('Camera available:', typeof Camera !== 'undefined');
+  
   document.getElementById('start-btn').addEventListener('click', startGame);
   document.getElementById('allow-camera-btn').addEventListener('click', requestCamera);
   document.getElementById('deny-camera-btn').addEventListener('click', goHome);
   document.getElementById('restart-btn').addEventListener('click', restartGame);
   document.getElementById('home-btn').addEventListener('click', goHome);
+  
+  console.log('Event listeners added');
 }
 
 function showScreen(screenName) {
+  console.log('showScreen called with:', screenName);
+  console.log('Screens:', screens);
   Object.values(screens).forEach(screen => screen.classList.remove('active'));
   screens[screenName].classList.add('active');
+  console.log('Screen switched to:', screenName);
 }
 
 async function startGame() {
+  console.log('startGame called');
   showScreen('loading');
+  console.log('Loading screen shown');
+  
   try {
     document.getElementById('loading-status').textContent = 'Đang tải mô hình Face Mesh...';
+    console.log('Initializing FaceMesh...');
     await initFaceMesh();
+    console.log('FaceMesh initialized');
     document.getElementById('loading-status').textContent = 'Đã tải xong!';
+    console.log('Showing camera permission screen');
     showScreen('cameraPermission');
   } catch (error) {
     console.error('Error:', error);
@@ -72,10 +87,13 @@ async function startGame() {
 }
 
 async function initFaceMesh() {
+  console.log('Creating FaceMesh...');
   faceMesh = new FaceMesh({locateFile: (file) => {
+    console.log('Loading file:', file);
     return `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`;
   }});
   
+  console.log('Setting FaceMesh options...');
   faceMesh.setOptions({
     maxNumFaces: 1,
     refineLandmarks: true,
@@ -83,11 +101,15 @@ async function initFaceMesh() {
     minTrackingConfidence: 0.5
   });
   
+  console.log('Setting onResults callback...');
   faceMesh.onResults(onFaceResults);
+  console.log('FaceMesh setup complete');
 }
 
 async function requestCamera() {
+  console.log('requestCamera called');
   try {
+    console.log('Requesting camera permission...');
     const stream = await navigator.mediaDevices.getUserMedia({ 
       video: { 
         width: 640, 
@@ -95,8 +117,10 @@ async function requestCamera() {
         facingMode: 'user'
       } 
     });
+    console.log('Camera permission granted');
     video.srcObject = stream;
     
+    console.log('Creating Camera object...');
     camera = new Camera(video, {
       onFrame: async () => {
         await faceMesh.send({image: video});
@@ -105,11 +129,14 @@ async function requestCamera() {
       height: 480
     });
     
+    console.log('Starting camera...');
     await camera.start();
+    console.log('Camera started');
     
     overlay.width = video.videoWidth;
     overlay.height = video.videoHeight;
     
+    console.log('Showing game screen');
     showScreen('game');
     startQuiz();
   } catch (error) {
