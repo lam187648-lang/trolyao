@@ -328,68 +328,12 @@ Màu này sẽ được thêm vào bộ sưu tập của bạn và có thể s�
   }
 
   showAdminPanel() {
-    const password = prompt('🔐 Nhập mật khẩu Admin:');
-    if (password !== '093981') {
-      alert('❌ Mật khẩu không đúng!');
-      return;
-    }
-    
-    // Show admin stats
-    const users = JSON.parse(localStorage.getItem('users') || '{}');
-    const userCount = Object.keys(users).length;
-    const currentUser = localStorage.getItem('currentUser');
-    
-    let adminHTML = `
-      <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 10000; display: flex; justify-content: center; align-items: center; font-family: Inter, sans-serif;">
-        <div style="background: white; padding: 30px; border-radius: 16px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto;">
-          <h2 style="color: #6366f1; margin-bottom: 20px;">🔐 Admin Panel</h2>
-          <p><strong>Tổng users:</strong> ${userCount}</p>
-          <p><strong>User hiện tại:</strong> ${currentUser}</p>
-          <hr style="margin: 20px 0;">
-          <h3>Quản lý người dùng:</h3>
-          <div style="margin-top: 15px;">
-    `;
-    
-    Object.entries(users).forEach(([username, data]) => {
-      adminHTML += `
-        <div style="padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
-          <span>${username} (${data.tokens || 0} tokens)</span>
-          <button onclick="tokenShop.giveTokens('${username}')" style="background: #10b981; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px;">+💰</button>
-        </div>
-      `;
-    });
-    
-    adminHTML += `
-          </div>
-          <button onclick="this.closest('.admin-modal').remove()" style="margin-top: 20px; width: 100%; background: #ef4444; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer;">Đóng</button>
-        </div>
-      </div>
-    `;
-    
-    const modal = document.createElement('div');
-    modal.className = 'admin-modal';
-    modal.innerHTML = adminHTML;
-    document.body.appendChild(modal);
+    this.showMessage("Chức năng quản trị đang tạm khóa cho đến khi có xác thực phía máy chủ.", "error");
   }
 
-  giveTokens(username) {
-    const amount = parseInt(prompt(`Nhập số tokens muốn cộng cho ${username}:`));
-    if (!amount || amount <= 0) return;
-    
-    const users = JSON.parse(localStorage.getItem('users') || '{}');
-    if (users[username]) {
-      users[username].tokens = (users[username].tokens || 0) + amount;
-      localStorage.setItem('users', JSON.stringify(users));
-      
-      // Update current user display if it's them
-      if (username === localStorage.getItem('currentUser')) {
-        this.currentTokens = users[username].tokens;
-        this.updateTokenDisplay();
-      }
-      
-      alert(`✅ Đã cộng ${amount} tokens cho ${username}!`);
-      this.showAdminPanel(); // Refresh
-    }
+  giveTokens() {
+    this.showMessage("Không thể tự cộng token từ trình duyệt. Chức năng này cần được chuyển sang máy chủ có phân quyền.", "error");
+  }
   }
 }
 
