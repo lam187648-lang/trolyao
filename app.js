@@ -31,78 +31,7 @@ socket.on("kicked", () => {
   logoutUser();
 });
 
-// ========== PUSHER REAL-TIME FEATURES ==========
-// Pusher configuration
-const PUSHER_KEY = '2ac5a1cf96ed0ab79735'; // Key từ Pusher dashboard
-const PUSHER_CLUSTER = 'ap1';
-
-// Enable Pusher debug logging (bỏ comment khi cần debug)
-// Pusher.logToConsole = true;
-let pusherClient = null;
-let pusherChannel = null;
-
-// Initialize Pusher for real-time admin features
-function initPusher() {
-  if (typeof Pusher === 'undefined') {
-    console.log('⚠️ Pusher library chưa load');
-    return;
-  }
-  
-  const currentUser = getCurrentUser();
-  if (!currentUser) return;
-  
-  pusherClient = new Pusher(PUSHER_KEY, {
-    cluster: PUSHER_CLUSTER,
-    forceTLS: true
-  });
-  
-  // Subscribe to personal channel (user-specific)
-  pusherChannel = pusherClient.subscribe('user-' + currentUser);
-  
-  // Listen for kick event
-  pusherChannel.bind('kick', (data) => {
-    console.log('🚫 Nhận lệnh kick từ admin:', data);
-    alert(data.reason || 'Bạn đã bị admin kick khỏi hệ thống!');
-    logoutUser();
-    window.location.href = 'kick.html';
-  });
-  
-  // Listen for gift color event
-  pusherChannel.bind('gift-color', (data) => {
-    console.log('🎁 Nhận màu từ admin:', data);
-    
-    // Add color to purchased colors
-    const purchasedColors = JSON.parse(localStorage.getItem('purchasedColors') || '[]');
-    if (!purchasedColors.includes(data.colorId)) {
-      purchasedColors.push(data.colorId);
-      localStorage.setItem('purchasedColors', JSON.stringify(purchasedColors));
-    }
-    
-    // Show notification
-    alert(`🎁 ${data.message}\n\nMàu đã được thêm vào kho đồ của bạn!`);
-    
-    // Refresh color panel if open
-    initColorThemes();
-  });
-  
-  // 🔥 Báo server là user đã online (giống code mẫu)
-  fetch(`${SERVER_URL}/pusher/user-online`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ 
-      id: currentUser,
-      username: currentUser
-    })
-  }).catch(err => console.log('Pusher online signal error:', err));
-  
-  // Báo khi user thoát
-  window.addEventListener('beforeunload', () => {
-    navigator.sendBeacon(`${SERVER_URL}/pusher/user-offline`, 
-      JSON.stringify({ id: currentUser }));
-  });
-  
-  console.log('✅ Pusher connected for user:', currentUser);
-}
+// Pusher real-time admin features are disabled; the backend no longer exposes unauthenticated Pusher routes.
 
 // Backend dùng OPENROUTER_API_KEY (local: npm start; production: Render + env).
 const CHAT_API_URL = `${SERVER_URL}/chat`;
@@ -1416,10 +1345,8 @@ function init() {
         applyColorTheme(theme);
       }
     }
-    
-    // Initialize Pusher for real-time admin features
-    initPusher();
-  }
+    // Pusher was removed with the disabled legacy admin endpoints.
+}
   
   // Load time limit if exists
   const savedTimeLimit = localStorage.getItem('timeLimit');
