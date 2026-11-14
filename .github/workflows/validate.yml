@@ -18,6 +18,7 @@ jobs:
           node-version: 20
       - name: Check active JavaScript syntax
         run: |
+          node --check server.js
           node --check app.js
           node --check server/server.js
           node --check token-shop-new.js
