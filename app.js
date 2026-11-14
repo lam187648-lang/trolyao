@@ -415,68 +415,33 @@ function trackUserActivity(username) {
 }
 
 function updateActiveUsersList() {
-  const users = JSON.parse(localStorage.getItem('users') || '{}');
-  const totalUsers = Object.keys(users).length;
-  
-  if (totalUsersSpan) totalUsersSpan.textContent = totalUsers;
+  if (totalUsersSpan) {
+    try { totalUsersSpan.textContent = Object.keys(JSON.parse(localStorage.getItem("users") || "{}")).length; }
+    catch { totalUsersSpan.textContent = "—"; }
+  }
   if (onlineUsersSpan) onlineUsersSpan.textContent = activeUsers.size;
-  
-  if (activeUsersList) activeUsersList.innerHTML = '';
-  
-  activeUsers.forEach((userData, username) => {
-    const userItem = document.createElement('div');
-    userItem.className = 'user-item';
-    
-    const loginTime = new Date(userData.loginTime).toLocaleTimeString('vi-VN');
-    const duration = Math.floor((Date.now() - userData.loginTime) / 60000); // minutes
-    
-    userItem.innerHTML = `
-      <div class="user-info">
-        <div class="user-avatar-small">${username.charAt(0).toUpperCase()}</div>
-        <div class="user-details">
-          <div class="user-name-small">${username}</div>
-          <div class="user-status">Online ${duration} phút</div>
-        </div>
-      </div>
-      <button class="kick-btn" onclick="kickUser('${username}')">Kick</button>
-    `;
-    
-    activeUsersList.appendChild(userItem);
-  });
+  if (activeUsersList) {
+    activeUsersList.replaceChildren();
+    const notice = document.createElement("p");
+    notice.className = "user-status";
+    notice.textContent = "Các thao tác quản trị đang tạm khóa cho đến khi có đăng nhập và phân quyền an toàn phía máy chủ.";
+    activeUsersList.appendChild(notice);
+  }
 }
 
-function kickUser(username) {
-  if (confirm(`Bạn có chắc muốn kick người dùng "${username}"?`)) {
-    socket.emit("kick", username);
-  }
+function kickUser() {
+  addMessage("Chức năng quản trị đang tạm khóa để bảo vệ tài khoản.", "bot");
 }
 
 // Update online users display from Socket.io
 function updateOnlineUsersDisplay(users) {
-  // Update the online users count (use global onlineUsersSpan)
-  if (onlineUsersSpan) {
-    onlineUsersSpan.textContent = users.length;
-  }
-  
-  // Also update the admin panel list
-  if (activeUsersList) {
-    activeUsersList.innerHTML = '';
-    users.forEach(user => {
-      const userItem = document.createElement('div');
-      userItem.className = 'user-item';
-      userItem.innerHTML = `
-        <div class="user-info">
-          <div class="user-avatar-small">${user.username.charAt(0).toUpperCase()}</div>
-          <div class="user-details">
-            <div class="user-name-small">${user.username}</div>
-            <div class="user-status">${user.isAdmin ? '👑 Admin' : '👤 User'}</div>
-          </div>
-        </div>
-        <button class="kick-btn" onclick="kickUser('${user.username}')">Kick</button>
-      `;
-      activeUsersList.appendChild(userItem);
-    });
-  }
+  if (onlineUsersSpan) onlineUsersSpan.textContent = Array.isArray(users) ? users.length : 0;
+  if (!activeUsersList) return;
+  activeUsersList.replaceChildren();
+  const notice = document.createElement("p");
+  notice.className = "user-status";
+  notice.textContent = "Danh sách online chỉ dùng để hiển thị; công cụ quản trị đang khóa.";
+  activeUsersList.appendChild(notice);
 }
 
 function updateSystemInfo() {
@@ -1028,16 +993,8 @@ function processCommand(text) {
   } else if (command === '/tambietlop9') {
     return "🔗 Link đặc biệt: https://example.com/special-link";
   } else if (command.startsWith('/admin')) {
-    // Redirect to simple admin page
-    window.location.href = 'admin-simple.html';
-    return "🔐 Đang chuyển đến trang quản lý người dùng...";
+    return "🔒 Trang quản trị đang tạm khóa. Cần hoàn tất xác thực và phân quyền phía máy chủ trước khi mở lại.";
   } else if (command.startsWith('/token')) {
-    // Check password before redirecting
-    const password = prompt('🔐 Nhập mật khẩu để vào Cửa Hàng Token:');
-    if (password !== '093981') {
-      return '❌ Mật khẩu không đúng! Bạn không có quyền truy cập Cửa Hàng Token.';
-    }
-    // Redirect to new token shop page
     window.location.href = 'token-shop-new.html';
     return '🎨 Đang chuyển đến Cửa Hàng Token...';
   }
@@ -1105,8 +1062,12 @@ function createMessageWrapper(sender) {
     avatar.textContent = "🤖";
   } else {
     const userAvatarSrc = localStorage.getItem('userAvatar');
-    if (userAvatarSrc) {
-      avatar.innerHTML = `<img src="${userAvatarSrc}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
+    if (typeof userAvatarSrc === "string" && userAvatarSrc.startsWith("data:image/")) {
+      const img = document.createElement("img");
+      img.alt = "Ảnh đại diện";
+      img.src = userAvatarSrc;
+      img.style.cssText = "width:100%;height:100%;border-radius:50%;object-fit:cover;";
+      avatar.appendChild(img);
     } else {
       avatar.textContent = "👤";
     }
@@ -1122,11 +1083,8 @@ function addMessage(text, sender, isHtml = false) {
   const div = document.createElement("div");
   div.className = `message ${sender}`;
 
-  if (isHtml) {
-    div.innerHTML = text;
-  } else {
-    div.textContent = text;
-  }
+  // Always render untrusted content as text. Rich content is built with DOM APIs.
+  div.textContent = String(text ?? "");
 
   wrapper.appendChild(div);
   chatBody.appendChild(wrapper);
@@ -1296,7 +1254,20 @@ async function sendMessage() {
 
   if (file) {
     const url = URL.createObjectURL(file);
-    addMessage(`<img src="${url}" alt="Ảnh người dùng tải lên">`, "user", true);
+    if (typeof url === "string" && url.startsWith("blob:")) {
+      const imageWrapper = createMessageWrapper("user");
+      const imageMessage = document.createElement("div");
+      imageMessage.className = "message user";
+      const image = document.createElement("img");
+      image.src = url;
+      image.alt = "Ảnh người dùng tải lên";
+      image.style.maxWidth = "min(100%, 420px)";
+      image.style.borderRadius = "12px";
+      imageMessage.appendChild(image);
+      imageWrapper.appendChild(imageMessage);
+      chatBody.appendChild(imageWrapper);
+      chatBody.scrollTop = chatBody.scrollHeight;
+    }
   }
 
   input.value = "";
