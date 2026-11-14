@@ -220,10 +220,10 @@ function hideAuthModal() {
 }
 
 function switchToRegisterMode() {
-  modalTitle.textContent = 'Register';
+  modalTitle.textContent = 'Đăng ký';
   loginForm.style.display = 'none';
   registerForm.style.display = 'block';
-  switchText.innerHTML = 'Already have an account? <a href="#" id="switch-to-login">Login</a>';
+  switchText.innerHTML = 'Đã có tài khoản? <a href="#" id="switch-to-login">Đăng nhập</a>';
   document.getElementById('switch-to-login').addEventListener('click', (e) => {
     e.preventDefault();
     switchToLoginMode();
@@ -231,10 +231,10 @@ function switchToRegisterMode() {
 }
 
 function switchToLoginMode() {
-  modalTitle.textContent = 'Login';
+  modalTitle.textContent = 'Đăng nhập';
   loginForm.style.display = 'block';
   registerForm.style.display = 'none';
-  switchText.innerHTML = "Don't have an account? <a href=\"#\" id=\"switch-to-register\">Register now</a>";
+  switchText.innerHTML = 'Chưa có tài khoản? <a href="#" id="switch-to-register">Đăng ký ngay</a>';
   document.getElementById('switch-to-register').addEventListener('click', (e) => {
     e.preventDefault();
     switchToRegisterMode();
