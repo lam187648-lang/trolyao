@@ -244,7 +244,7 @@ function switchToLoginMode() {
 function registerUser(username, password) {
   const users = JSON.parse(localStorage.getItem('users') || '{}');
 
-  if (!/^[\\p{L}\\p{N}_-]{2,24}$/u.test(username)) {
+  if (!/^[\p{L}\p{N}_-]{2,24}$/u.test(username)) {
     return { success: false, message: 'Tên đăng nhập cần dài 2–24 ký tự, chỉ gồm chữ, số, dấu gạch dưới hoặc gạch ngang.' };
   }
   if (typeof password !== 'string' || password.length < 8 || password.length > 128) {
