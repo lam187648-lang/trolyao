@@ -1190,6 +1190,13 @@ uploadBtn.addEventListener("click", () => imageInput.click());
 
 imageInput.addEventListener("change", () => {
   const file = imageInput.files?.[0];
+  if (file && (!/^image\\/(png|jpeg|webp|gif)$/.test(file.type) || file.size > 5 * 1024 * 1024)) {
+    imageInput.value = "";
+    fileInfo.classList.add("hidden");
+    fileName.textContent = "";
+    addMessage("Ảnh không hợp lệ hoặc vượt quá 5 MB. Hãy chọn PNG, JPG, WEBP hoặc GIF nhỏ hơn.", "bot");
+    return;
+  }
   if (file) {
     fileName.textContent = file.name;
     fileInfo.classList.remove("hidden");
