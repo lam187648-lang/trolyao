@@ -1,0 +1,33 @@
+name: Validate project
+
+on:
+  push:
+    branches: [master, futuristic-overhaul-final]
+  pull_request:
+    branches: [master]
+
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Check active JavaScript syntax
+        run: |
+          node --check server.js
+          node --check app.js
+          node --check server/server.js
+          node --check token-shop-new.js
+          node --check token-shop.js
+          node --check token-page.js
+          node --check admin-simple.js
+          node --check admin-panel.js
+          node --check path-manager.js
+      - name: Validate JSON configuration
+        run: |
+          node -e "JSON.parse(require('fs').readFileSync('path-config.json', 'utf8'))"
+          node -e "JSON.parse(require('fs').readFileSync('server/package.json', 'utf8'))"

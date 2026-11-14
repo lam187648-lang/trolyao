@@ -37,10 +37,10 @@ class PathManager {
           },
           features: {
             studyRoom: true,
-            adminPanel: true,
+            adminPanel: false,
             tokenSystem: true,
             colorThemes: true,
-            userManagement: true
+            userManagement: false
           },
           version: "1.0.0",
           lastUpdated: new Date().toISOString()

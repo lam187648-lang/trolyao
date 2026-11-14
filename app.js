@@ -220,10 +220,10 @@ function hideAuthModal() {
 }
 
 function switchToRegisterMode() {
-  modalTitle.textContent = 'Register';
+  modalTitle.textContent = 'Đăng ký';
   loginForm.style.display = 'none';
   registerForm.style.display = 'block';
-  switchText.innerHTML = 'Already have an account? <a href="#" id="switch-to-login">Login</a>';
+  switchText.innerHTML = 'Đã có tài khoản? <a href="#" id="switch-to-login">Đăng nhập</a>';
   document.getElementById('switch-to-login').addEventListener('click', (e) => {
     e.preventDefault();
     switchToLoginMode();
@@ -231,10 +231,10 @@ function switchToRegisterMode() {
 }
 
 function switchToLoginMode() {
-  modalTitle.textContent = 'Login';
+  modalTitle.textContent = 'Đăng nhập';
   loginForm.style.display = 'block';
   registerForm.style.display = 'none';
-  switchText.innerHTML = "Don't have an account? <a href=\"#\" id=\"switch-to-register\">Register now</a>";
+  switchText.innerHTML = 'Chưa có tài khoản? <a href="#" id="switch-to-register">Đăng ký ngay</a>';
   document.getElementById('switch-to-register').addEventListener('click', (e) => {
     e.preventDefault();
     switchToRegisterMode();
@@ -243,7 +243,14 @@ function switchToLoginMode() {
 
 function registerUser(username, password) {
   const users = JSON.parse(localStorage.getItem('users') || '{}');
-  
+
+  if (!/^[\p{L}\p{N}_-]{2,24}$/u.test(username)) {
+    return { success: false, message: 'Tên đăng nhập cần dài 2–24 ký tự, chỉ gồm chữ, số, dấu gạch dưới hoặc gạch ngang.' };
+  }
+  if (typeof password !== 'string' || password.length < 8 || password.length > 128) {
+    return { success: false, message: 'Mật khẩu cần có từ 8 đến 128 ký tự.' };
+  }
+
   if (users[username]) {
     return { success: false, message: 'Tên này already exists!' };
   }
@@ -576,8 +583,8 @@ registerForm.addEventListener('submit', (e) => {
     return;
   }
   
-  if (password.length < 4) {
-    addMessage("Mât khâu phai co it nhat 4 ky tu!", "bot");
+  if (password.length < 8 || password.length > 128) {
+    addMessage("Mật khẩu cần có từ 8 đến 128 ký tự.", "bot");
     return;
   }
   
@@ -1190,7 +1197,7 @@ uploadBtn.addEventListener("click", () => imageInput.click());
 
 imageInput.addEventListener("change", () => {
   const file = imageInput.files?.[0];
-  if (file && (!/^image\\/(png|jpeg|webp|gif)$/.test(file.type) || file.size > 5 * 1024 * 1024)) {
+  if (file && (!/^image\/(png|jpeg|webp|gif)$/.test(file.type) || file.size > 5 * 1024 * 1024)) {
     imageInput.value = "";
     fileInfo.classList.add("hidden");
     fileName.textContent = "";
@@ -1311,7 +1318,10 @@ async function sendMessage() {
       content: userContent
     };
 
-    const messages = [...conversationHistory, userMessage];
+    const recentHistory = conversationHistory.length > 39
+      ? [conversationHistory[0], ...conversationHistory.slice(-38)]
+      : conversationHistory;
+    const messages = [...recentHistory, userMessage];
     const response = await fetch(CHAT_API_URL, {
       method: "POST",
       headers: {
@@ -1339,6 +1349,9 @@ async function sendMessage() {
       role: "assistant",
       content: reply
     });
+    if (conversationHistory.length > 39) {
+      conversationHistory.splice(1, conversationHistory.length - 39);
+    }
 
     removeTypingIndicator();
     addMessage(reply, "bot");
