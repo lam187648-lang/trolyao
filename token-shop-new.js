@@ -334,7 +334,6 @@ Màu này sẽ được thêm vào bộ sưu tập của bạn và có thể s�
   giveTokens() {
     this.showMessage("Không thể tự cộng token từ trình duyệt. Chức năng này cần được chuyển sang máy chủ có phân quyền.", "error");
   }
-  }
 }
 
 // Global function
