@@ -126,12 +126,30 @@ app.post("/chat", chatRateLimit, async (req, res) => {
     }
     const safeMessages = [];
     for (const message of messages) {
-      if (!message || !["user", "assistant"].includes(message.role) ||
-          !(typeof message.content === "string" || Array.isArray(message.content)) ||
-          JSON.stringify(message.content).length > 12000) {
-        return res.status(400).json({ error: "Nội dung tin nhắn không hợp lệ hoặc quá dài." });
+      if (!message || !["user", "assistant"].includes(message.role)) {
+        return res.status(400).json({ error: "Nội dung tin nhắn không hợp lệ." });
       }
-      safeMessages.push({ role: message.role, content: message.content });
+      if (typeof message.content === "string") {
+        if (message.content.length > 12000) return res.status(400).json({ error: "Tin nhắn quá dài." });
+        safeMessages.push({ role: message.role, content: message.content });
+        continue;
+      }
+      if (message.role !== "user" || !Array.isArray(message.content) || message.content.length > 2) {
+        return res.status(400).json({ error: "Định dạng nội dung không hợp lệ." });
+      }
+      const safeParts = [];
+      for (const part of message.content) {
+        if (part?.type === "text" && typeof part.text === "string" && part.text.length <= 12000) {
+          safeParts.push({ type: "text", text: part.text });
+        } else if (part?.type === "image_url" &&
+                   typeof part.image_url?.url === "string" &&
+                   /^data:image\\/(png|jpeg|webp|gif);base64,[A-Za-z0-9+/=]{1,7000000}$/.test(part.image_url.url)) {
+          safeParts.push({ type: "image_url", image_url: { url: part.image_url.url } });
+        } else {
+          return res.status(400).json({ error: "Ảnh hoặc nội dung gửi lên không hợp lệ." });
+        }
+      }
+      safeMessages.push({ role: message.role, content: safeParts });
     }
 
     const payload = {
