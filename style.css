@@ -2343,3 +2343,16 @@ body::before { opacity: .3; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+
+
+.auth-security-note {
+  max-width: 440px;
+  margin: 12px auto 0;
+  padding: 10px 12px;
+  color: #9db7d0;
+  border: 1px solid rgba(125, 211, 252, .14);
+  border-radius: 12px;
+  background: rgba(5, 17, 31, .48);
+  font-size: 12px;
+  line-height: 1.6;
+}
