@@ -243,7 +243,14 @@ function switchToLoginMode() {
 
 function registerUser(username, password) {
   const users = JSON.parse(localStorage.getItem('users') || '{}');
-  
+
+  if (!/^[\\p{L}\\p{N}_-]{2,24}$/u.test(username)) {
+    return { success: false, message: 'Tên đăng nhập cần dài 2–24 ký tự, chỉ gồm chữ, số, dấu gạch dưới hoặc gạch ngang.' };
+  }
+  if (typeof password !== 'string' || password.length < 8 || password.length > 128) {
+    return { success: false, message: 'Mật khẩu cần có từ 8 đến 128 ký tự.' };
+  }
+
   if (users[username]) {
     return { success: false, message: 'Tên này already exists!' };
   }
@@ -576,8 +583,8 @@ registerForm.addEventListener('submit', (e) => {
     return;
   }
   
-  if (password.length < 4) {
-    addMessage("Mât khâu phai co it nhat 4 ky tu!", "bot");
+  if (password.length < 8 || password.length > 128) {
+    addMessage("Mật khẩu cần có từ 8 đến 128 ký tự.", "bot");
     return;
   }
   
