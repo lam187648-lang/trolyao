@@ -35,11 +35,6 @@ class PathManager {
             data: "./data/",
             temp: "./temp/"
           },
-          security: {
-            adminPassword: "093981",
-            sessionTimeout: 3600000,
-            maxLoginAttempts: 3
-          },
           features: {
             studyRoom: true,
             adminPanel: true,
