@@ -143,7 +143,7 @@ app.post("/chat", chatRateLimit, async (req, res) => {
           safeParts.push({ type: "text", text: part.text });
         } else if (part?.type === "image_url" &&
                    typeof part.image_url?.url === "string" &&
-                   /^data:image\\/(png|jpeg|webp|gif);base64,[A-Za-z0-9+/=]{1,7000000}$/.test(part.image_url.url)) {
+                   /^data:image\/(png|jpeg|webp|gif);base64,[A-Za-z0-9+/=]{1,7000000}$/.test(part.image_url.url)) {
           safeParts.push({ type: "image_url", image_url: { url: part.image_url.url } });
         } else {
           return res.status(400).json({ error: "Ảnh hoặc nội dung gửi lên không hợp lệ." });
@@ -203,7 +203,7 @@ io.on("connection", (socket) => {
   
   // Handle user join
   socket.on("join", (user) => {
-    if (!user || typeof user.username !== "string" || !/^[\\p{L}\\p{N}_-]{2,24}$/u.test(user.username)) return;
+    if (!user || typeof user.username !== "string" || !/^[\p{L}\p{N}_-]{2,24}$/u.test(user.username)) return;
     const safeUsername = user.username;
     
     // Remove existing user with same username
