@@ -1318,7 +1318,10 @@ async function sendMessage() {
       content: userContent
     };
 
-    const messages = [...conversationHistory, userMessage];
+    const recentHistory = conversationHistory.length > 39
+      ? [conversationHistory[0], ...conversationHistory.slice(-38)]
+      : conversationHistory;
+    const messages = [...recentHistory, userMessage];
     const response = await fetch(CHAT_API_URL, {
       method: "POST",
       headers: {
@@ -1346,6 +1349,9 @@ async function sendMessage() {
       role: "assistant",
       content: reply
     });
+    if (conversationHistory.length > 39) {
+      conversationHistory.splice(1, conversationHistory.length - 39);
+    }
 
     removeTypingIndicator();
     addMessage(reply, "bot");
