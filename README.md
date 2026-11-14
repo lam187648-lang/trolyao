@@ -35,13 +35,13 @@ cd server
 ```bash
 git add .
 git commit -m "Update for deployment"
-git push origin main
+git push origin master
 ```
 
 **Bước 2:** Enable GitHub Pages
 1. Vào repo Settings → Pages
 2. Source: Deploy from a branch
-3. Branch: main / root
+3. Branch: master / root
 4. Save
 
 **Bước 3:** Update server URL trong `app.js`:
@@ -74,9 +74,9 @@ troly/
 | 🤖 AI Chat | Chat với AI hỗ trợ học tập |
 | 🎨 Themes | Đổi màu giao diện bằng token |
 | 🪙 Token Shop | Mua/mở khóa màu đặc biệt |
-| 🎁 Gifting | Tặng màu cho người dùng khác |
+| 🎁 Gifting | Tạm khóa cho đến khi có phân quyền phía máy chủ |
 | 📚 Study Room | Phòng học nhóm real-time |
-| 👑 Admin Panel | Quản lý user, kick user |
+| 👑 Admin Panel | Tạm khóa để tránh quản trị trái phép từ trình duyệt |
 | ⏱️ Token Rewards | 20 tokens/10 phút học tập |
 
 ## 🔌 Kết nối Backend
@@ -105,7 +105,14 @@ const response = await fetch(`${SERVER_URL}/chat`, {
 - ✅ AI API key chỉ ở Backend (ENV)
 - ✅ Frontend KHÔNG chứa key
 - ✅ CORS giới hạn chỉ GitHub Pages
-- ✅ Authentication qua localStorage + server
+- ⚠️ Tài khoản hiện vẫn lưu ở localStorage, mật khẩu Base64; chưa phải xác thực an toàn
+- ⚠️ Token và vật phẩm vẫn do trình duyệt quản lý, chưa chống được sửa dữ liệu
+- ✅ API chat có giới hạn tốc độ, kiểm tra dữ liệu đầu vào và model do server kiểm soát
+- ✅ Các thao tác quản trị không xác thực đã bị khóa
+
+## ⚠️ Trạng thái bảo mật hiện tại
+
+Không dùng lại mật khẩu quan trọng trên phiên bản hiện tại. Muốn mở lại tài khoản đa thiết bị, token có giá trị tin cậy và trang quản trị cần cấu hình PostgreSQL (hoặc database bền vững khác), hash mật khẩu ở server và phiên đăng nhập có chữ ký. Secret Pusher cũ từng bị lộ trong lịch sử Git; phải thu hồi/rotate tại Pusher Dashboard, không chỉ xóa khỏi file hiện tại.
 
 ## 🛠️ Local Development
 
