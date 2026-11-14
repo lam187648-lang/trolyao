@@ -125,8 +125,9 @@ app.post("/chat", chatRateLimit, async (req, res) => {
       return res.status(400).json({ error: "Tin nhắn không hợp lệ." });
     }
     const safeMessages = [];
-    for (const message of messages) {
-      if (!message || !["user", "assistant"].includes(message.role)) {
+    for (const [index, message] of messages.entries()) {
+      if (!message || !["system", "user", "assistant"].includes(message.role) ||
+          (message.role === "system" && index !== 0)) {
         return res.status(400).json({ error: "Nội dung tin nhắn không hợp lệ." });
       }
       if (typeof message.content === "string") {
