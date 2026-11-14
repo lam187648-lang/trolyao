@@ -25,6 +25,32 @@ const pusher = pusherConfigured
 
 const app = express();
 const server = http.createServer(app);
+app.disable("x-powered-by");
+app.set("trust proxy", 1);
+
+// Per-instance/IP throttling for the public AI endpoint.
+const chatRateBuckets = new Map();
+function chatRateLimit(req, res, next) {
+  const key = req.ip || req.socket.remoteAddress || "unknown";
+  const now = Date.now();
+  const bucket = chatRateBuckets.get(key) || { count: 0, resetAt: now + 60_000 };
+  if (now >= bucket.resetAt) { bucket.count = 0; bucket.resetAt = now + 60_000; }
+  bucket.count += 1;
+  chatRateBuckets.set(key, bucket);
+  if (chatRateBuckets.size > 5000) {
+    for (const [ip, value] of chatRateBuckets) if (now >= value.resetAt) chatRateBuckets.delete(ip);
+  }
+  if (bucket.count > 12) return res.status(429).json({ error: "Bạn gửi yêu cầu quá nhanh. Vui lòng đợi một phút rồi thử lại." });
+  next();
+}
+
+app.use((_req, res, next) => {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  next();
+});
 
 // CORS configuration - Allow GitHub Pages and localhost
 const corsOptions = {
@@ -78,7 +104,7 @@ app.get("/health", (_req, res) => {
 });
 
 // AI Chat endpoint
-app.post("/chat", async (req, res) => {
+app.post("/chat", chatRateLimit, async (req, res) => {
   try {
     // Ensure fetch is available
     if (!fetch) {
@@ -143,7 +169,7 @@ app.post("/chat", async (req, res) => {
     console.log("✅ Chat response received");
     res.json(data);
   } catch (err) {
-    console.error("❌ Server error:", err);
+    console.error("Server request failed:", err?.name || "Error");
     res.status(500).json({ error: "Máy chủ gặp lỗi khi xử lý yêu cầu." });
   }
 });
@@ -159,14 +185,15 @@ io.on("connection", (socket) => {
   
   // Handle user join
   socket.on("join", (user) => {
-    console.log("👤 User joined:", user.username);
+    if (!user || typeof user.username !== "string" || !/^[\\p{L}\\p{N}_-]{2,24}$/u.test(user.username)) return;
+    const safeUsername = user.username;
     
     // Remove existing user with same username
-    users = users.filter(u => u.username !== user.username);
+    users = users.filter(u => u.username !== safeUsername);
     
     const newUser = {
       id: socket.id,
-      username: user.username,
+      username: safeUsername,
       isAdmin: false,
       joinTime: Date.now()
     };
@@ -177,17 +204,10 @@ io.on("connection", (socket) => {
     io.emit("users", users);
   });
 
-  // Handle kick user
-  socket.on("kick", (username) => {
-    console.log("🚫 Kick user:", username);
-    const user = users.find(u => u.username === username);
-
-    if (user) {
-      io.to(user.id).emit("kicked"); // Send kick event to specific user
-      users = users.filter(u => u.username !== username);
-      io.emit("users", users); // Broadcast updated list
-    }
-  });
+  // Admin kick is disabled until a verified server-side admin session exists.
+  socket.on("kick", () => socket.emit("admin-action-disabled", {
+    message: "Chức năng quản trị đang tạm khóa để bảo vệ tài khoản."
+  }));
 
   // Handle disconnect
   socket.on("disconnect", () => {
@@ -208,9 +228,6 @@ app.post("/pusher/user-online", (req, res) => {
   const username = typeof req.body?.username === "string" ? req.body.username.slice(0, 40) : userId;
   if (!userId) return res.status(400).json({ success: false, error: "Invalid user ID." });
   pusherUsers[userId] = { username, lastSeen: Date.now() };
-  pusher.trigger("admin-channel", "user-update", {
-    users: Object.entries(pusherUsers).map(([id, data]) => ({ id, username: data.username, online: true }))
-  }).catch(() => {});
   res.json({ success: true });
 });
 
