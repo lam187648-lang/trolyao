@@ -58,7 +58,7 @@ const corsOptions = {
     "http://localhost:5500",
     "http://localhost:3000",
     "http://127.0.0.1:5500",
-    "https://lam187648.github.io" // GitHub Pages origin only
+    "https://lam187648-lang.github.io" // GitHub Pages origin only
   ],
   methods: ["GET", "POST", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
@@ -75,7 +75,7 @@ const io = new Server(server, {
       "http://localhost:5500",
       "http://localhost:3000",
       "http://127.0.0.1:5500",
-      "https://lam187648.github.io",
+      "https://lam187648-lang.github.io",
     ],
     methods: ["GET", "POST"],
     credentials: true
@@ -88,7 +88,7 @@ app.use(express.json({ limit: "8mb" }));
 const API_KEY = process.env.OPENROUTER_API_KEY;
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL || "openai/gpt-4o-mini";
-const OPENROUTER_SITE_URL = process.env.OPENROUTER_SITE_URL || "https://lam187648.github.io/troly";
+const OPENROUTER_SITE_URL = process.env.OPENROUTER_SITE_URL || "https://lam187648-lang.github.io/trolyao/";
 
 // Health check endpoint
 app.get("/", (_req, res) => {
