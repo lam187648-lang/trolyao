@@ -17,10 +17,18 @@ Backend server cho ứng dụng Chatbot hỗ trợ học tập.
 Trong Render Dashboard → Environment → Add:
 
 ```
-OPENROUTER_API_KEY=sk-or-v1-xxxxxxxxxxxx
+OPENROUTER_API_KEY=your_new_openrouter_key
+OPENROUTER_MODEL=openai/gpt-4o-mini
+# Chỉ bật Pusher khi đã tạo secret mới và cấu hình đủ cả 4 biến:
+PUSHER_APP_ID=your_app_id
+PUSHER_KEY=your_public_key
+PUSHER_SECRET=your_new_secret
+PUSHER_CLUSTER=your_cluster
 ```
 
 Lấy API key từ: https://openrouter.ai/keys
+
+**Quan trọng:** Secret Pusher cũ từng xuất hiện trong mã nguồn. Hãy thu hồi/rotate secret đó trong Pusher Dashboard ngay; không tái sử dụng secret cũ và không commit secret mới lên GitHub. Chỉ nhập secret mới trực tiếp vào Render Environment. Nếu chưa cấu hình đủ 4 biến Pusher, tính năng realtime sẽ tự tắt.
 
 ### Bước 4: Deploy
 Click "Create Web Service" → Wait for build ✅
@@ -57,15 +65,18 @@ server/
 |-------|-----------|-------|
 | `join` | Client → Server | User đăng nhập |
 | `users` | Server → Client | Danh sách user online |
-| `kick` | Client → Server | Kick user |
-| `kicked` | Server → Client | Bị kick |
+| `kick` | — | Tạm vô hiệu hóa; cần xác thực admin phía server trước khi bật |
 | `disconnect` | Auto | User ngắt kết nối |
 
 ## 🔒 Bảo mật
 
 - AI API key chỉ nằm ở server (ENV)
 - Frontend KHÔNG chứa API key
-- CORS được cấu hình chỉ cho phép GitHub Pages
+- CORS giới hạn theo origin GitHub Pages và localhost phát triển
+- Không lưu Pusher secret trong mã nguồn; Pusher tự tắt nếu thiếu ENV
+- Endpoint quản trị kick/tặng màu bị khóa khi chưa có xác thực server-side
+- Không tin cậy cờ isAdmin do trình duyệt gửi lên
+- Chat giới hạn số lượng, độ dài tin nhắn và model/token do server kiểm soát
 
 ## 🐛 Troubleshooting
 
@@ -74,6 +85,9 @@ server/
 
 ### Lỗi CORS
 → Kiểm tra `origin` trong `corsOptions` khớp với GitHub Pages URL
+
+### Pusher chưa hoạt động
+→ Kiểm tra đủ 4 biến PUSHER_APP_ID, PUSHER_KEY, PUSHER_SECRET, PUSHER_CLUSTER trong Render Environment.
 
 ### 2 máy không thấy nhau
 → Check console có `"✅ Socket connected"` không
