@@ -10,14 +10,18 @@ let fetch;
   fetch = (await import('node-fetch')).default;
 })();
 
-// Pusher configuration - Thay thế bằng keys của bạn từ dashboard Pusher
-const pusher = new Pusher({
-  appId: process.env.PUSHER_APP_ID || "2140409",
-  key: process.env.PUSHER_KEY || "2ac5a1cf96ed0ab79735",
-  secret: process.env.PUSHER_SECRET || "5618f3cef6c7e0a56efd",
-  cluster: process.env.PUSHER_CLUSTER || "ap1",
-  useTLS: true
-});
+// Pusher is optional. Never keep credentials in source control.
+const pusherConfigured = ["PUSHER_APP_ID", "PUSHER_KEY", "PUSHER_SECRET", "PUSHER_CLUSTER"]
+  .every((name) => Boolean(process.env[name]));
+const pusher = pusherConfigured
+  ? new Pusher({
+      appId: process.env.PUSHER_APP_ID,
+      key: process.env.PUSHER_KEY,
+      secret: process.env.PUSHER_SECRET,
+      cluster: process.env.PUSHER_CLUSTER,
+      useTLS: true
+    })
+  : null;
 
 const app = express();
 const server = http.createServer(app);
@@ -28,8 +32,7 @@ const corsOptions = {
     "http://localhost:5500",
     "http://localhost:3000",
     "http://127.0.0.1:5500",
-    "https://lam187648.github.io", // GitHub Pages domain
-    "https://*.github.io", // All GitHub Pages
+    "https://lam187648.github.io" // GitHub Pages origin only
   ],
   methods: ["GET", "POST", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
@@ -47,14 +50,13 @@ const io = new Server(server, {
       "http://localhost:3000",
       "http://127.0.0.1:5500",
       "https://lam187648.github.io",
-      "https://*.github.io",
     ],
     methods: ["GET", "POST"],
     credentials: true
   }
 });
 
-app.use(express.json({ limit: "15mb" }));
+app.use(express.json({ limit: "8mb" }));
 
 // Environment variables
 const API_KEY = process.env.OPENROUTER_API_KEY;
@@ -92,16 +94,25 @@ app.post("/chat", async (req, res) => {
 
     const body = req.body && typeof req.body === "object" ? req.body : {};
     const messages = body.messages;
-    
-    if (!Array.isArray(messages) || messages.length === 0) {
-      return res.status(400).json({ error: "Invalid payload: messages must be a non-empty array" });
+
+    if (!Array.isArray(messages) || messages.length === 0 || messages.length > 40) {
+      return res.status(400).json({ error: "Tin nhắn không hợp lệ." });
+    }
+    const safeMessages = [];
+    for (const message of messages) {
+      if (!message || !["user", "assistant"].includes(message.role) ||
+          !(typeof message.content === "string" || Array.isArray(message.content)) ||
+          JSON.stringify(message.content).length > 12000) {
+        return res.status(400).json({ error: "Nội dung tin nhắn không hợp lệ hoặc quá dài." });
+      }
+      safeMessages.push({ role: message.role, content: message.content });
     }
 
     const payload = {
-      model: body.model || OPENROUTER_MODEL,
-      messages,
-      temperature: typeof body.temperature === "number" ? body.temperature : 0.55,
-      max_tokens: typeof body.max_tokens === "number" ? body.max_tokens : 2200
+      model: OPENROUTER_MODEL,
+      messages: safeMessages,
+      temperature: 0.55,
+      max_tokens: 1800
     };
 
     console.log("🤖 Sending request to OpenRouter...");
@@ -125,15 +136,15 @@ app.post("/chat", async (req, res) => {
     }
 
     if (!response.ok) {
-      console.error("❌ OpenRouter error:", data);
-      return res.status(response.status).json(data);
+      console.error("OpenRouter upstream status:", response.status);
+      return res.status(502).json({ error: "Dịch vụ AI hiện chưa phản hồi được. Vui lòng thử lại sau." });
     }
 
     console.log("✅ Chat response received");
     res.json(data);
   } catch (err) {
     console.error("❌ Server error:", err);
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: "Máy chủ gặp lỗi khi xử lý yêu cầu." });
   }
 });
 
@@ -156,7 +167,7 @@ io.on("connection", (socket) => {
     const newUser = {
       id: socket.id,
       username: user.username,
-      isAdmin: user.isAdmin || false,
+      isAdmin: false,
       joinTime: Date.now()
     };
 
@@ -186,121 +197,32 @@ io.on("connection", (socket) => {
   });
 });
 
-// ========== PUSHER REAL-TIME ADMIN ENDPOINTS ==========
-// Track online users for Pusher
+// ========== PUSHER REAL-TIME ENDPOINTS ==========
+// Public client events may announce presence only. Administrative actions
+// are disabled until a server-side authentication and authorization system exists.
 let pusherUsers = {};
 
-// User online - báo server khi user vào
 app.post("/pusher/user-online", (req, res) => {
-  const userId = req.body.id;
-  const username = req.body.username || userId;
-  
-  if (userId) {
-    pusherUsers[userId] = { username, lastSeen: Date.now() };
-    
-    // Broadcast updated user list
-    pusher.trigger("admin-channel", "user-update", {
-      users: Object.entries(pusherUsers).map(([id, data]) => ({
-        id,
-        username: data.username,
-        online: true
-      }))
-    });
-    
-    console.log("🟢 Pusher user online:", username);
-  }
-  
-  res.json({ success: true, users: Object.keys(pusherUsers) });
-});
-
-// User offline - báo khi user thoát
-app.post("/pusher/user-offline", (req, res) => {
-  const userId = req.body.id;
-  
-  if (userId && pusherUsers[userId]) {
-    delete pusherUsers[userId];
-    
-    pusher.trigger("admin-channel", "user-update", {
-      users: Object.entries(pusherUsers).map(([id, data]) => ({
-        id,
-        username: data.username,
-        online: true
-      }))
-    });
-    
-    console.log("🔴 Pusher user offline:", userId);
-  }
-  
+  if (!pusher) return res.status(503).json({ success: false, error: "Realtime service is not configured." });
+  const userId = typeof req.body?.id === "string" ? req.body.id.slice(0, 80) : "";
+  const username = typeof req.body?.username === "string" ? req.body.username.slice(0, 40) : userId;
+  if (!userId) return res.status(400).json({ success: false, error: "Invalid user ID." });
+  pusherUsers[userId] = { username, lastSeen: Date.now() };
+  pusher.trigger("admin-channel", "user-update", {
+    users: Object.entries(pusherUsers).map(([id, data]) => ({ id, username: data.username, online: true }))
+  }).catch(() => {});
   res.json({ success: true });
 });
 
-// API kick user real-time
-app.post("/pusher/kick", (req, res) => {
-  const userId = req.body.id;
-  const reason = req.body.reason || "Bạn đã bị admin kick khỏi hệ thống";
-  
-  if (userId) {
-    // Gửi lệnh kick realtime đến user cụ thể
-    pusher.trigger("user-" + userId, "kick", {
-      id: userId,
-      reason: reason,
-      timestamp: Date.now()
-    });
-    
-    // Xóa khỏi danh sách online
-    if (pusherUsers[userId]) {
-      delete pusherUsers[userId];
-    }
-    
-    // Cập nhật lại danh sách user
-    pusher.trigger("admin-channel", "user-update", {
-      users: Object.entries(pusherUsers).map(([id, data]) => ({
-        id,
-        username: data.username,
-        online: true
-      }))
-    });
-    
-    console.log("🚫 Pusher kick user:", userId);
-    res.json({ success: true, message: "Đã kick user " + userId });
-  } else {
-    res.status(400).json({ success: false, error: "Thiếu user ID" });
-  }
+app.post("/pusher/user-offline", (req, res) => {
+  const userId = typeof req.body?.id === "string" ? req.body.id.slice(0, 80) : "";
+  if (userId) delete pusherUsers[userId];
+  res.json({ success: true });
 });
 
-// API tặng màu cho user real-time
-app.post("/pusher/gift-color", (req, res) => {
-  const userId = req.body.id;
-  const colorId = req.body.colorId;
-  const colorName = req.body.colorName || "Màu đặc biệt";
-  
-  if (userId && colorId) {
-    // Gửi thông báo tặng màu realtime đến user cụ thể
-    pusher.trigger("user-" + userId, "gift-color", {
-      id: userId,
-      colorId: colorId,
-      colorName: colorName,
-      message: `Bạn đã nhận được ${colorName} từ admin!`,
-      timestamp: Date.now()
-    });
-    
-    console.log("🎁 Pusher gift color:", colorId, "to user:", userId);
-    res.json({ success: true, message: `Đã tặng ${colorName} cho ${userId}` });
-  } else {
-    res.status(400).json({ success: false, error: "Thiếu user ID hoặc color ID" });
-  }
-});
-
-// API lấy danh sách user online
-app.get("/pusher/users", (req, res) => {
-  res.json({
-    users: Object.entries(pusherUsers).map(([id, data]) => ({
-      id,
-      username: data.username,
-      lastSeen: data.lastSeen
-    })),
-    count: Object.keys(pusherUsers).length
-  });
+// Do not expose admin actions (kick/gift) through unauthenticated HTTP endpoints.
+app.all(["/pusher/kick", "/pusher/gift-color", "/pusher/users"], (_req, res) => {
+  res.status(403).json({ success: false, error: "Administrative access is not enabled until secure server-side authentication is configured." });
 });
 
 // Start server
