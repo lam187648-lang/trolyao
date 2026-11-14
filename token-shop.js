@@ -28,30 +28,11 @@ class TokenShop {
   }
 
   init() {
-    this.checkPassword();
     this.loadUserData();
     this.renderColors();
     this.updateTokenDisplay();
   }
 
-  checkPassword() {
-    const password = prompt('🔐 Nhập mật khẩu:');
-    if (password !== '093981') {
-      document.body.innerHTML = `
-        <div style="display: flex; justify-content: center; align-items: center; height: 100vh; background: linear-gradient(145deg, #f0f9ff 0%, #e0f2fe 100%); font-family: Inter, sans-serif;">
-          <div style="background: white; padding: 40px; border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); text-align: center; max-width: 400px;">
-            <div style="font-size: 48px; margin-bottom: 20px;">❌</div>
-            <h2 style="color: #ef4444; margin-bottom: 16px;">Mật Khẩu Sai!</h2>
-            <p style="color: #64748b; margin-bottom: 24px;">Bạn không có quyền truy cập trang này!</p>
-            <button onclick="window.location.href='index.html'" style="background: #3b82f6; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 500;">
-              Quay lại
-            </button>
-          </div>
-        </div>
-      `;
-      return;
-    }
-  }
 
   loadUserData() {
     const currentUser = localStorage.getItem('currentUser');
