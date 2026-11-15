@@ -680,8 +680,9 @@
             50% { transform: translateX(33%); opacity: 0.6; }
         }
     </style>
+<link rel="stylesheet" href="light-ai-theme.css?v=20261115">
 </head>
-<body>
+<body class="garden-page">
     <header>
         <h1>Khu Vườn Kiên Nhẫn</h1>
         <nav>
@@ -767,8 +768,11 @@
                     </div>
                 </div>
             `;
-            throw new Error('User not authenticated');
-        }
+            document.addEventListener('DOMContentLoaded', () => {
+                document.querySelector('.theme-toggle')?.remove();
+                document.getElementById('color-theme-panel')?.remove();
+            });
+        } else {
         
         // Update user info display
         document.getElementById('current-user').textContent = currentUser;
@@ -1222,6 +1226,7 @@
                 }
             }, 60000); // Update every minute
         });
+        }
     </script>
 
     <!-- Color Theme Toggle Button -->
@@ -1235,5 +1240,6 @@
         </div>
         <div id="color-grid" class="color-grid"></div>
     </div>
+<script src="theme-manager.js?v=20261115"></script>
 </body>
 </html>

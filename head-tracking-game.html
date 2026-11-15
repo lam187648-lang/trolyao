@@ -2,13 +2,11 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Trò Chơi Theo Dõi Đầu</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trò Chơi Theo Dõi Đầu | Trợ Lý Ảo</title>
   <link rel="stylesheet" href="head-tracking-game.css">
+  <link rel="stylesheet" href="light-ai-theme.css?v=20261115">
   <link rel="icon" href="data:;base64,=">
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
 </head>
 <body>
@@ -18,6 +16,7 @@
       <h1>🎮 Game Theo Dõi Đầu</h1>
       <p>Trả lời câu hỏi bằng cách di chuyển đầu</p>
       <div id="player-stats" class="player-stats"></div>
+      <p class="game-status" id="game-status" role="status" aria-live="polite"></p>
       <div class="privacy-notice">
         <p>📷 <strong>Chính sách bảo mật:</strong></p>
         <p>Trò chơi này sử dụng camera để theo dõi chuyển động đầu của bạn.</p>
@@ -53,6 +52,7 @@
         <p>• Không lưu trữ hoặc gửi bất kỳ hình ảnh nào</p>
         <p>• Bạn có thể dừng sử dụng camera bất cứ lúc nào</p>
       </div>
+      <p class="camera-status" id="camera-status" role="status" aria-live="polite">Video được xử lý trực tiếp trên thiết bị của bạn.</p>
       <button id="allow-camera-btn" class="btn">Cho phép truy cập Camera</button>
       <button id="deny-camera-btn" class="btn secondary">Từ chối</button>
     </div>
@@ -67,6 +67,7 @@
       <div class="top-bar">
         <div class="score">🏆 <span id="score">0</span></div>
         <div class="question-count">📝 <span id="current-question">1</span>/<span id="total-questions">10</span></div>
+        <button id="pause-btn" class="btn secondary" type="button">Tạm dừng</button>
       </div>
       
       <div class="question-panel">
@@ -100,5 +101,6 @@
   </div>
 
   <script src="head-tracking-game.js"></script>
+  <script src="theme-manager.js?v=20261115"></script>
 </body>
 </html>

@@ -27,6 +27,7 @@ let gameState = {
   correctAnswers: 0,
   questions: [],
   isDetecting: false,
+  isPaused: false,
   answerCooldown: false
 };
 
@@ -75,117 +76,189 @@ const video = document.getElementById('video');
 const overlay = document.getElementById('overlay');
 const ctx = overlay.getContext('2d');
 let faceMesh;
-let camera;
+let cameraStream = null;
+let frameLoopId = null;
+let frameProcessing = false;
+let lastFrameTime = 0;
+let answerTimerId = null;
+
+const cameraStatus = document.getElementById('camera-status');
+const cameraButton = document.getElementById('allow-camera-btn');
 
 function init() {
-  console.log('Initializing game...');
-  console.log('FaceMesh available:', typeof FaceMesh !== 'undefined');
-  console.log('Camera available:', typeof Camera !== 'undefined');
-  
   loadPlayerStats();
-  
-  document.getElementById('start-btn').addEventListener('click', () => {
-    console.log('Start button clicked!');
-    alert('Nút Bắt Đầu đã được bấm!');
-    startGame();
-  });
-  document.getElementById('allow-camera-btn').addEventListener('click', requestCamera);
+
+  document.getElementById('start-btn').addEventListener('click', startGame);
+  cameraButton.addEventListener('click', requestCamera);
   document.getElementById('deny-camera-btn').addEventListener('click', goHome);
   document.getElementById('restart-btn').addEventListener('click', restartGame);
   document.getElementById('home-btn').addEventListener('click', goHome);
-  
-  console.log('Event listeners added');
+  document.getElementById('pause-btn').addEventListener('click', pauseGame);
 }
 
 function showScreen(screenName) {
-  console.log('showScreen called with:', screenName);
-  console.log('Screens:', screens);
   Object.values(screens).forEach(screen => screen.classList.remove('active'));
-  screens[screenName].classList.add('active');
-  console.log('Screen switched to:', screenName);
+  screens[screenName]?.classList.add('active');
 }
 
 async function startGame() {
-  console.log('startGame called');
+  gameState.isPaused = false;
+  gameState.questions = [];
+  document.getElementById('game-status').textContent = '';
   showScreen('loading');
-  console.log('Loading screen shown');
-  
-  playerStats.totalGames++;
-  savePlayerStats();
-  
+
   try {
     document.getElementById('loading-status').textContent = 'Đang tải mô hình Face Mesh...';
-    console.log('Initializing FaceMesh...');
-    await initFaceMesh();
-    console.log('FaceMesh initialized');
-    document.getElementById('loading-status').textContent = 'Đã tải xong!';
-    console.log('Showing camera permission screen');
+    if (!faceMesh) await initFaceMesh();
+    document.getElementById('loading-status').textContent = 'Đã tải xong. Camera chỉ bật sau khi bạn cho phép.';
+    cameraButton.textContent = 'Cho phép truy cập Camera';
+    setCameraStatus('Video được xử lý trực tiếp trên thiết bị của bạn.', false);
     showScreen('cameraPermission');
   } catch (error) {
-    console.error('Error:', error);
-    alert('Lỗi khi khởi tạo. Vui lòng tải lại trang.');
+    console.error('Không thể tải mô hình nhận diện:', error);
+    document.getElementById('game-status').textContent =
+      'Không tải được mô hình nhận diện. Hãy kiểm tra kết nối mạng rồi thử lại.';
     showScreen('start');
   }
 }
 
 async function initFaceMesh() {
-  console.log('Creating FaceMesh...');
+  if (typeof FaceMesh !== 'function') {
+    throw new Error('Thư viện Face Mesh chưa tải được.');
+  }
+
   faceMesh = new FaceMesh({locateFile: (file) => {
-    console.log('Loading file:', file);
     return `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`;
   }});
-  
-  console.log('Setting FaceMesh options...');
+
   faceMesh.setOptions({
     maxNumFaces: 1,
     refineLandmarks: true,
     minDetectionConfidence: 0.5,
     minTrackingConfidence: 0.5
   });
-  
-  console.log('Setting onResults callback...');
   faceMesh.onResults(onFaceResults);
-  console.log('FaceMesh setup complete');
 }
 
 async function requestCamera() {
-  console.log('requestCamera called');
+  const resuming = gameState.isPaused;
+  cameraButton.disabled = true;
+  setCameraStatus('Đang yêu cầu quyền truy cập camera…', false);
+
   try {
-    console.log('Requesting camera permission...');
-    const stream = await navigator.mediaDevices.getUserMedia({ 
+    const isLocalhost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+    if (!window.isSecureContext && !isLocalhost) {
+      throw new Error('SECURE_CONTEXT_REQUIRED');
+    }
+    if (!navigator.mediaDevices?.getUserMedia) {
+      throw new Error('CAMERA_API_UNAVAILABLE');
+    }
+    if (!faceMesh) await initFaceMesh();
+
+    cameraStream = await navigator.mediaDevices.getUserMedia({
       video: { 
         width: 640, 
         height: 480,
         facingMode: 'user'
-      } 
-    });
-    console.log('Camera permission granted');
-    video.srcObject = stream;
-    
-    console.log('Creating Camera object...');
-    camera = new Camera(video, {
-      onFrame: async () => {
-        await faceMesh.send({image: video});
       },
-      width: 640,
-      height: 480
+      audio: false
     });
-    
-    console.log('Starting camera...');
-    await camera.start();
-    console.log('Camera started');
-    
-    overlay.width = video.videoWidth;
-    overlay.height = video.videoHeight;
-    
-    console.log('Showing game screen');
+    video.srcObject = cameraStream;
+    await video.play();
+
+    overlay.width = video.videoWidth || 640;
+    overlay.height = video.videoHeight || 480;
     showScreen('game');
-    startQuiz();
+    if (resuming) {
+      gameState.isPaused = false;
+      lastHeadDirection = 'center';
+      headDirectionHoldTime = Date.now();
+    } else {
+      startQuiz();
+    }
+    gameState.isDetecting = true;
+    startFrameLoop();
   } catch (error) {
-    console.error('Error accessing camera:', error);
-    alert('Không thể truy cập camera. Vui lòng kiểm tra quyền.');
-    showScreen('start');
+    console.error('Không thể khởi động camera:', error);
+    stopCamera();
+    setCameraStatus(getCameraErrorMessage(error), true);
+    cameraButton.textContent = gameState.isPaused ? 'Thử kết nối lại để tiếp tục' : 'Thử lại camera';
+    showScreen('cameraPermission');
+  } finally {
+    cameraButton.disabled = false;
   }
+}
+
+function getCameraErrorMessage(error) {
+  if (error?.message === 'SECURE_CONTEXT_REQUIRED') {
+    return 'Camera cần kết nối HTTPS. Hãy mở website bằng địa chỉ bảo mật https://.';
+  }
+  if (error?.message === 'CAMERA_API_UNAVAILABLE') {
+    return 'Trình duyệt không hỗ trợ camera hoặc trang chưa được mở qua HTTPS.';
+  }
+  if (error?.name === 'NotAllowedError' || error?.name === 'PermissionDeniedError') {
+    return 'Bạn chưa cấp quyền camera. Hãy cho phép camera trong cài đặt trình duyệt rồi thử lại.';
+  }
+  if (error?.name === 'NotFoundError' || error?.name === 'DevicesNotFoundError') {
+    return 'Không tìm thấy camera trên thiết bị này.';
+  }
+  if (error?.name === 'NotReadableError' || error?.name === 'TrackStartError') {
+    return 'Camera đang được ứng dụng khác sử dụng. Hãy đóng ứng dụng đó rồi thử lại.';
+  }
+  return 'Không thể mở camera. Hãy kiểm tra quyền truy cập và thử lại.';
+}
+
+function setCameraStatus(message, isError) {
+  cameraStatus.textContent = message;
+  cameraStatus.classList.toggle('error', isError);
+}
+
+function startFrameLoop() {
+  const processFrame = async (timestamp) => {
+    if (!gameState.isDetecting || !cameraStream?.active) return;
+
+    if (!frameProcessing && timestamp - lastFrameTime >= 1000 / 30 && video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+      frameProcessing = true;
+      lastFrameTime = timestamp;
+      try {
+        await faceMesh.send({ image: video });
+      } catch (error) {
+        console.error('Lỗi xử lý khung hình camera:', error);
+        if (gameState.isDetecting) {
+          stopCamera();
+          gameState.isPaused = true;
+          setCameraStatus('Lỗi xử lý hình ảnh. Kết nối lại camera để tiếp tục trò chơi.', true);
+          cameraButton.textContent = 'Thử kết nối lại để tiếp tục';
+          showScreen('cameraPermission');
+        }
+      } finally {
+        frameProcessing = false;
+      }
+    }
+
+    if (gameState.isDetecting) {
+      frameLoopId = requestAnimationFrame(processFrame);
+    }
+  };
+
+  frameLoopId = requestAnimationFrame(processFrame);
+}
+
+function stopCamera() {
+  gameState.isDetecting = false;
+  if (frameLoopId !== null) cancelAnimationFrame(frameLoopId);
+  frameLoopId = null;
+  if (answerTimerId !== null) clearTimeout(answerTimerId);
+  answerTimerId = null;
+  gameState.answerCooldown = false;
+
+  if (cameraStream) {
+    cameraStream.getTracks().forEach(track => track.stop());
+    cameraStream = null;
+  }
+  video.pause();
+  video.srcObject = null;
+  ctx.clearRect(0, 0, overlay.width, overlay.height);
 }
 
 let lastHeadDirection = 'center';
@@ -193,6 +266,7 @@ let headDirectionHoldTime = 0;
 const HEAD_HOLD_THRESHOLD = 800;
 
 function onFaceResults(results) {
+  if (!gameState.isDetecting) return;
   ctx.clearRect(0, 0, overlay.width, overlay.height);
   
   if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
@@ -229,24 +303,16 @@ function onFaceResults(results) {
 }
 
 function drawFaceSquares(landmarks) {
-  const squareSize = 8;
-  
-  ctx.fillStyle = '#00ff00';
-  ctx.strokeStyle = '#00ff00';
-  ctx.lineWidth = 1;
-  
-  landmarks.forEach(point => {
-    const x = point.x * overlay.width;
-    const y = point.y * overlay.height;
-    ctx.fillRect(x - squareSize/2, y - squareSize/2, squareSize, squareSize);
-  });
-  
-  // Draw larger square on nose
   const nose = landmarks[1];
   const noseX = nose.x * overlay.width;
   const noseY = nose.y * overlay.height;
-  ctx.fillStyle = '#ff0000';
-  ctx.fillRect(noseX - 12, noseY - 12, 24, 24);
+  ctx.strokeStyle = '#6366f1';
+  ctx.lineWidth = 3;
+  ctx.strokeRect(noseX - 12, noseY - 12, 24, 24);
+  ctx.beginPath();
+  ctx.arc(noseX, noseY, 3, 0, Math.PI * 2);
+  ctx.fillStyle = '#6366f1';
+  ctx.fill();
 }
 
 function updateHeadIndicator(direction) {
@@ -265,6 +331,12 @@ function startQuiz() {
   gameState.currentQuestionIndex = 0;
   gameState.score = 0;
   gameState.correctAnswers = 0;
+  gameState.isPaused = false;
+  lastHeadDirection = 'center';
+  headDirectionHoldTime = Date.now();
+
+  playerStats.totalGames++;
+  savePlayerStats();
   
   document.getElementById('total-questions').textContent = gameState.questions.length;
   loadQuestion();
@@ -272,6 +344,8 @@ function startQuiz() {
 
 function loadQuestion() {
   const question = gameState.questions[gameState.currentQuestionIndex];
+  lastHeadDirection = 'center';
+  headDirectionHoldTime = Date.now();
   
   document.getElementById('current-question').textContent = gameState.currentQuestionIndex + 1;
   document.getElementById('question-text').textContent = question.question;
@@ -301,7 +375,8 @@ function handleAnswer(direction) {
     gameState.correctAnswers++;
   }
   
-  setTimeout(() => {
+  answerTimerId = setTimeout(() => {
+    answerTimerId = null;
     gameState.answerCooldown = false;
     gameState.currentQuestionIndex++;
     
@@ -314,15 +389,8 @@ function handleAnswer(direction) {
 }
 
 function endGame() {
-  gameState.isDetecting = false;
-  
-  if (camera) {
-    camera.stop();
-  }
-  
-  if (video.srcObject) {
-    video.srcObject.getTracks().forEach(track => track.stop());
-  }
+  gameState.isPaused = false;
+  stopCamera();
   
   const totalQuestions = gameState.questions.length;
   const percentage = Math.round((gameState.correctAnswers / totalQuestions) * 100);
@@ -347,20 +415,23 @@ function endGame() {
 }
 
 function restartGame() {
+  stopCamera();
   startGame();
 }
 
+function pauseGame() {
+  if (!gameState.isDetecting) return;
+  gameState.isPaused = true;
+  stopCamera();
+  setCameraStatus('Trò chơi đã tạm dừng và camera đã được tắt. Cho phép camera để tiếp tục.', false);
+  cameraButton.textContent = 'Tiếp tục trò chơi';
+  showScreen('cameraPermission');
+}
+
 function goHome() {
-  gameState.isDetecting = false;
-  
-  if (camera) {
-    camera.stop();
-  }
-  
-  if (video.srcObject) {
-    video.srcObject.getTracks().forEach(track => track.stop());
-  }
-  
+  stopCamera();
+  gameState.isPaused = false;
+  cameraButton.textContent = 'Cho phép truy cập Camera';
   showScreen('start');
 }
 
@@ -373,3 +444,4 @@ function shuffleArray(array) {
 }
 
 document.addEventListener('DOMContentLoaded', init);
+window.addEventListener('pagehide', stopCamera);

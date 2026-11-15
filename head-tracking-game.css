@@ -129,8 +129,12 @@ p {
 #game-screen {
   position: relative;
   background: #000;
-  display: flex;
+  display: none;
   flex-direction: column;
+}
+
+#game-screen.active {
+  display: flex;
 }
 
 #video {
