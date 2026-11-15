@@ -1,0 +1,125 @@
+.garden-page .garden-display {
+  position: relative;
+}
+
+.garden-page .tree-image {
+  width: min(100%, 360px);
+  height: 330px;
+  object-fit: contain;
+  transform-origin: center bottom;
+  transition: filter .35s ease, transform .35s ease;
+}
+
+.garden-page .tree-image[data-stage="seedling"] {
+  transform: scale(.76);
+}
+
+.garden-page .tree-image[data-stage="growing"] {
+  transform: scale(.9);
+}
+
+.garden-page .tree-image[data-stage="mature"] {
+  transform: scale(1);
+}
+
+.garden-page .tree-image[data-stage="withered"] {
+  filter: saturate(.72);
+}
+
+.garden-page .tree-image.stage-enter {
+  animation: gardenStageReveal .55s ease both;
+}
+
+.garden-page #startBtn,
+.garden-page #pauseBtn,
+.garden-page #resumeBtn,
+.garden-page #stopBtn {
+  min-height: 44px;
+  margin: 8px 6px 0 0;
+  padding: 11px 18px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: filter .2s ease, transform .2s ease;
+}
+
+.garden-page #pauseBtn,
+.garden-page #resumeBtn {
+  border: 1px solid var(--ai-border);
+  border-radius: 12px;
+  color: var(--ai-text);
+  background: var(--ai-surface-soft);
+}
+
+.garden-page #stopBtn {
+  border: 0;
+  border-radius: 12px;
+  color: #fff;
+}
+
+.garden-page #startBtn:hover,
+.garden-page #pauseBtn:hover,
+.garden-page #resumeBtn:hover,
+.garden-page #stopBtn:hover {
+  filter: brightness(1.06);
+  transform: translateY(-1px);
+}
+
+.garden-page .seed,
+.garden-page .time {
+  cursor: pointer;
+}
+
+.garden-page.garden-growing .garden {
+  box-shadow: 0 18px 48px rgba(37, 112, 78, .14);
+}
+
+.garden-page.garden-paused .tree-image {
+  filter: saturate(.8);
+}
+
+.garden-page.garden-complete .tree-image {
+  filter: drop-shadow(0 10px 24px rgba(56, 142, 86, .25));
+}
+
+.garden-page.garden-withered .tree-image {
+  filter: saturate(.6);
+}
+
+@keyframes gardenStageReveal {
+  from {
+    opacity: .65;
+    filter: blur(2px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+@media (max-width: 560px) {
+  .garden-page .tree-image {
+    height: 270px;
+  }
+
+  .garden-page #startBtn,
+  .garden-page #pauseBtn,
+  .garden-page #resumeBtn,
+  .garden-page #stopBtn {
+    margin-right: 4px;
+    padding: 10px 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .garden-page .tree-image,
+  .garden-page #startBtn,
+  .garden-page #pauseBtn,
+  .garden-page #resumeBtn,
+  .garden-page #stopBtn {
+    transition: none;
+  }
+
+  .garden-page .tree-image.stage-enter {
+    animation: none;
+  }
+}

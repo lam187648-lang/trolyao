@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Đang mở trang quản trị | Trợ Lý Ảo</title>
+</head>
+<body>
+  <p>Đang chuyển đến trang quản trị…</p>
+  <p><a id="admin-link" href="../admin-panel.html">Tiếp tục đến trang quản trị</a></p>
+  <script>
+    let entryPath = location.pathname;
+    if (entryPath.endsWith("/index.html")) {
+      entryPath = entryPath.slice(0, -"index.html".length);
+    } else if (!entryPath.endsWith("/")) {
+      entryPath += "/";
+    }
+    const entryUrl = new URL(entryPath, location.href);
+    const adminUrl = new URL("../admin-panel.html", entryUrl);
+    document.getElementById("admin-link").href = adminUrl.href;
+    location.replace(adminUrl.href);
+  </script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 420">
+  <defs>
+    <linearGradient id="dryStem" x2="1">
+      <stop stop-color="#77603c"/>
+      <stop offset="1" stop-color="#9a7a48"/>
+    </linearGradient>
+  </defs>
+  <ellipse cx="200" cy="380" rx="105" ry="20" fill="#77715b" opacity=".2"/>
+  <path d="M110 360 Q200 331 290 360 L274 385 Q200 404 126 385Z" fill="#806047"/>
+  <path d="M197 359 Q202 286 195 205" fill="none" stroke="url(#dryStem)" stroke-width="15" stroke-linecap="round"/>
+  <path d="M198 300 Q151 282 133 312 Q158 323 197 312Z" fill="#89864b"/>
+  <path d="M197 274 Q243 246 266 277 Q239 294 198 285Z" fill="#777948"/>
+  <path d="M195 207 Q224 178 253 197 Q256 223 228 232 Q212 227 195 207Z" fill="#a47b3d"/>
+  <path d="M204 204 Q232 207 252 197" fill="none" stroke="#d0a450" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="238" cy="199" r="19" fill="#654b30"/>
+  <g fill="#b9985e">
+    <circle cx="231" cy="194" r="2"/><circle cx="240" cy="190" r="2"/>
+    <circle cx="246" cy="199" r="2"/><circle cx="235" cy="204" r="2"/>
+    <circle cx="246" cy="208" r="2"/>
+  </g>
+  <path d="M110 360 Q200 348 290 360" fill="none" stroke="#b49a74" stroke-width="5" stroke-linecap="round"/>
+</svg>

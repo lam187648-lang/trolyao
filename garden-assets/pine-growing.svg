@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 420">
+  <defs>
+    <linearGradient id="needles" x2="1">
+      <stop stop-color="#337449"/>
+      <stop offset=".55" stop-color="#4f9a58"/>
+      <stop offset="1" stop-color="#286444"/>
+    </linearGradient>
+  </defs>
+  <ellipse cx="200" cy="380" rx="104" ry="20" fill="#567f4f" opacity=".2"/>
+  <path d="M108 359 Q200 329 292 359 L276 385 Q200 405 124 385Z" fill="#98613c"/>
+  <path d="M188 361 L212 361 L208 185 L192 185Z" fill="#875536"/>
+  <path d="M200 100 L151 190 L181 184 L137 239 L177 231 L124 296 L192 279 L192 356 L208 356 L208 279 L276 296 L223 231 L263 239 L219 184 L249 190Z" fill="url(#needles)"/>
+  <path d="M200 119 L200 344" stroke="#89bd69" stroke-width="4" opacity=".75"/>
+  <path d="M111 359 Q200 344 289 359" fill="none" stroke="#d0a06c" stroke-width="5" stroke-linecap="round"/>
+</svg>

@@ -681,6 +681,7 @@
         }
     </style>
 <link rel="stylesheet" href="light-ai-theme.css?v=20261115b">
+<link rel="stylesheet" href="garden-game.css?v=20261115a">
 </head>
 <body class="garden-page">
     <header>
@@ -721,18 +722,20 @@
                     <div class="time" data-time="180">180 phút</div>
                 </div>
                 <button id="startBtn">Bắt Đầu Trồng Cây</button>
-                <button id="stopBtn" style="display: none; background: #ff6b6b;">Dừng (Cây Sẽ Héo!)</button>
+                <button id="pauseBtn" type="button" style="display: none;">Tạm Dừng</button>
+                <button id="resumeBtn" type="button" style="display: none;">Tiếp Tục</button>
+                <button id="stopBtn" type="button" style="display: none; background: #ff6b6b;">Ngừng (Cây Sẽ Héo)</button>
             </div>
 
             <div class="garden">
                 <h2>Khu Vườn Của Bạn</h2>
                 <div class="garden-display">
-                    <img id="treeImg" class="tree-image" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌰</text></svg>" alt="Chọn hạt giống">
+                    <img id="treeImg" class="tree-image" src="garden-assets/choose-seed.svg" data-stage="empty" alt="Chọn cây để xem mầm">
                     <div id="timer" class="timer">--:--</div>
                     <div class="progress">
                         <div id="progressBar" class="progress-bar"></div>
                     </div>
-                    <div id="status">Chọn hạt giống và thời gian để bắt đầu!</div>
+                    <div id="status" aria-live="polite">Chọn hạt giống và thời gian để bắt đầu!</div>
                 </div>
                 <div id="reward" class="reward">
                     <h3>🎉 Chúc Mừng! Bạn Đã Kiên Trì!</h3>
@@ -878,56 +881,66 @@
         let selectedSeed = null;
         let selectedTime = null;
         let timerInterval = null;
-        let startTime = null;
-        let totalTime = 0;
+        let gameSession = null;
+        let sessionSequence = 0;
+        let lastRenderedStage = null;
+        let plantRenderVersion = 0;
         let rewardTokens = 0;
-        let alertShown = false; // Track if 5-min alert was shown
 
         const seeds = {
             oak: {
-                0: 'cây%20sồi/1.jpg',  // Mầm non
-                25: 'cây%20sồi/2.jpg',  // Đang lớn
-                65: 'cây%20sồi/3.jpg',  // Đã lớn
-                100: 'cây%20sồi/3.jpg' // Hoàn thành
+                name: 'Cây sồi',
+                images: {
+                    seedling: 'garden-assets/oak-seedling.svg',
+                    growing: 'garden-assets/oak-growing.svg',
+                    mature: 'garden-assets/oak-mature.svg',
+                    withered: 'garden-assets/oak-withered.svg'
+                }
             },
             sunflower: {
-                0: 'hoa%20hướng%20dương/1.jpg',  // Mầm non
-                25: 'hoa%20hướng%20dương/35890109173445172555.jpg',  // Đang lớn (file số 2)
-                65: 'hoa%20hướng%20dương/3.jpg',  // Đã lớn
-                100: 'hoa%20hướng%20dương/3.jpg'  // Hoàn thành
+                name: 'Hoa hướng dương',
+                images: {
+                    seedling: 'garden-assets/sunflower-seedling.svg',
+                    growing: 'garden-assets/sunflower-growing.svg',
+                    mature: 'garden-assets/sunflower-mature.svg',
+                    withered: 'garden-assets/sunflower-withered.svg'
+                }
             },
             pine: {
-                0: 'cây%20thông/1.jpg',  // Mầm non
-                25: 'cây%20thông/2.jpg',  // Đang lớn
-                65: 'cây%20thông/22482613962931634623.jpg',  // Đã lớn (file số 3)
-                100: 'cây%20thông/22482613962931634623.jpg'  // Hoàn thành
+                name: 'Cây thông',
+                images: {
+                    seedling: 'garden-assets/pine-seedling.svg',
+                    growing: 'garden-assets/pine-growing.svg',
+                    mature: 'garden-assets/pine-mature.svg',
+                    withered: 'garden-assets/pine-withered.svg'
+                }
             }
         };
 
-        // Chọn hạt giống
         document.querySelectorAll('.seed').forEach(seed => {
             seed.addEventListener('click', () => {
-                if (timerInterval) return; // Disable during game
+                if (gameSession) return;
+                const seedKey = seed.dataset.seed;
+                if (!seeds[seedKey]) return;
+                prepareForSelection();
                 document.querySelectorAll('.seed').forEach(s => s.classList.remove('selected'));
                 seed.classList.add('selected');
-                selectedSeed = seed.dataset.seed;
-                // Update preview image
-                document.getElementById('treeImg').src = seeds[selectedSeed][0];
+                selectedSeed = seedKey;
+                renderPlant(selectedSeed, 'seedling');
                 document.getElementById('status').textContent = 'Đã chọn hạt giống!';
             });
         });
 
-        // Chọn thời gian
         document.querySelectorAll('.time').forEach(time => {
             time.addEventListener('click', () => {
-                if (timerInterval) return; // Disable during game
+                if (gameSession) return;
                 document.querySelectorAll('.time').forEach(t => t.classList.remove('selected'));
                 time.classList.add('selected');
                 selectedTime = parseInt(time.dataset.time);
+                prepareForSelection();
             });
         });
 
-        // Bắt đầu
         document.getElementById('startBtn').addEventListener('click', () => {
             if (!selectedSeed || !selectedTime) {
                 alert('Vui lòng chọn hạt giống và thời gian!');
@@ -936,92 +949,199 @@
             startGame();
         });
 
-        // Dừng
+        document.getElementById('pauseBtn').addEventListener('click', pauseGame);
+        document.getElementById('resumeBtn').addEventListener('click', resumeGame);
         document.getElementById('stopBtn').addEventListener('click', () => {
             if (confirm('Bạn có chắc muốn dừng? Cây sẽ héo!')) {
-                stopGame(true);
+                stopGame();
             }
         });
 
-        function startGame() {
-            totalTime = selectedTime * 60 * 1000; // Chuyển sang ms
-            startTime = Date.now();
-            alertShown = false; // Reset alert flag
-            document.getElementById('startBtn').style.display = 'none';
-            document.getElementById('stopBtn').style.display = 'inline-block';
+        function prepareForSelection() {
+            document.body.classList.remove('garden-complete', 'garden-withered', 'garden-paused');
             document.getElementById('reward').style.display = 'none';
-            document.getElementById('status').textContent = '🌱 Bắt đầu trồng cây!';
-            updateDisplay(0);
-            timerInterval = setInterval(updateTimer, 1000);
+            document.getElementById('progressBar').style.width = '0%';
+            document.getElementById('timer').textContent = '--:--';
         }
 
-        function stopGame(isAbandon = false) {
-            clearInterval(timerInterval);
-            document.getElementById('startBtn').style.display = 'inline-block';
-            document.getElementById('stopBtn').style.display = 'none';
-            if (isAbandon) {
-                document.getElementById('treeImg').src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🥀</text></svg>';
-                document.getElementById('status').textContent = 'Cây đã héo! Hãy thử lại.';
+        function updateGameControls() {
+            const isRunning = gameSession && gameSession.status === 'running';
+            const isPaused = gameSession && gameSession.status === 'paused';
+            document.getElementById('startBtn').style.display = gameSession ? 'none' : 'inline-block';
+            document.getElementById('pauseBtn').style.display = isRunning ? 'inline-block' : 'none';
+            document.getElementById('resumeBtn').style.display = isPaused ? 'inline-block' : 'none';
+            document.getElementById('stopBtn').style.display = gameSession ? 'inline-block' : 'none';
+        }
+
+        function renderPlant(seedKey, stage) {
+            const seed = seeds[seedKey];
+            if (!seed || !seed.images[stage]) return;
+            const treeImage = document.getElementById('treeImg');
+            const renderVersion = ++plantRenderVersion;
+            const stageLabels = {
+                seedling: 'mầm non',
+                growing: 'đang phát triển',
+                mature: 'trưởng thành',
+                withered: 'đã héo'
+            };
+            treeImage.classList.remove('stage-enter');
+            treeImage.src = seed.images[stage];
+            treeImage.alt = `${seed.name} - ${stageLabels[stage]}`;
+            treeImage.dataset.stage = stage;
+            lastRenderedStage = stage;
+            requestAnimationFrame(() => {
+                if (renderVersion === plantRenderVersion) {
+                    treeImage.classList.add('stage-enter');
+                }
+            });
+        }
+
+        function renderGrowth(percent) {
+            const progress = Math.max(0, Math.min(100, percent));
+            const stage = progress >= 100 ? 'mature' : progress >= 25 ? 'growing' : 'seedling';
+            document.getElementById('progressBar').style.width = `${progress}%`;
+            if (stage !== lastRenderedStage) {
+                renderPlant(gameSession.seed, stage);
+            }
+            const statusTexts = {
+                seedling: 'Hạt mầm đang nảy!',
+                growing: 'Cây non đang lớn!',
+                mature: 'Cây trưởng thành rồi!'
+            };
+            document.getElementById('status').textContent = statusTexts[stage];
+        }
+
+        function renderRemainingTime(remainingMs) {
+            const totalSeconds = Math.ceil(remainingMs / 1000);
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            document.getElementById('timer').textContent =
+                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        function getRemainingTime(session) {
+            if (session.status !== 'running') return session.remainingMs;
+            return Math.max(0, session.remainingMs - (Date.now() - session.startedAt));
+        }
+
+        function clearGameTimer() {
+            if (timerInterval !== null) {
+                clearInterval(timerInterval);
+                timerInterval = null;
             }
         }
 
-        function updateTimer() {
-            const elapsed = Date.now() - startTime;
-            const remaining = totalTime - elapsed;
-            if (remaining <= 0) {
-                completeGame();
+        function startGameTimer(sessionId) {
+            clearGameTimer();
+            timerInterval = setInterval(() => tickGame(sessionId), 1000);
+        }
+
+        function startGame() {
+            if (gameSession) return;
+            const durationMs = selectedTime * 60 * 1000;
+            gameSession = {
+                id: ++sessionSequence,
+                seed: selectedSeed,
+                timeMinutes: selectedTime,
+                durationMs: durationMs,
+                remainingMs: durationMs,
+                startedAt: Date.now(),
+                status: 'running',
+                alertShown: false
+            };
+            document.getElementById('reward').style.display = 'none';
+            document.body.classList.remove('garden-complete', 'garden-withered', 'garden-paused');
+            document.body.classList.add('garden-growing');
+            updateGameControls();
+            renderGrowth(0);
+            renderRemainingTime(durationMs);
+            startGameTimer(gameSession.id);
+        }
+
+        function pauseGame() {
+            if (!gameSession || gameSession.status !== 'running') return;
+            const remainingMs = getRemainingTime(gameSession);
+            if (remainingMs <= 0) {
+                completeGame(gameSession.id);
                 return;
             }
-            const percent = (elapsed / totalTime) * 100;
-            updateDisplay(percent);
-            const minutes = Math.floor(remaining / 60000);
-            const seconds = Math.floor((remaining % 60000) / 1000);
-            const displayMinutes = minutes.toString().padStart(2, '0');
-            const displaySeconds = seconds.toString().padStart(2, '0');
-            document.getElementById('timer').textContent = `${displayMinutes}:${displaySeconds}`;
-            
-            // Show alert only once when 5 minutes remaining
-            if (remaining <= 5 * 60 * 1000 && remaining > 4.9 * 60 * 1000 && !alertShown) {
-                alertShown = true;
+            gameSession.remainingMs = remainingMs;
+            gameSession.status = 'paused';
+            clearGameTimer();
+            renderGrowth(((gameSession.durationMs - remainingMs) / gameSession.durationMs) * 100);
+            renderRemainingTime(gameSession.remainingMs);
+            document.body.classList.add('garden-paused');
+            document.getElementById('status').textContent = 'Đã tạm dừng. Tiến trình được giữ nguyên.';
+            updateGameControls();
+        }
+
+        function resumeGame() {
+            if (!gameSession || gameSession.status !== 'paused') return;
+            gameSession.startedAt = Date.now();
+            gameSession.status = 'running';
+            document.body.classList.remove('garden-paused');
+            updateGameControls();
+            startGameTimer(gameSession.id);
+        }
+
+        function stopGame() {
+            if (!gameSession) return;
+            const abandonedSeed = gameSession.seed;
+            clearGameTimer();
+            gameSession = null;
+            selectedSeed = null;
+            selectedTime = null;
+            lastRenderedStage = null;
+            document.querySelectorAll('.seed, .time').forEach(option => option.classList.remove('selected'));
+            document.getElementById('progressBar').style.width = '0%';
+            document.getElementById('timer').textContent = '--:--';
+            document.getElementById('reward').style.display = 'none';
+            document.body.classList.remove('garden-growing', 'garden-paused', 'garden-complete');
+            document.body.classList.add('garden-withered');
+            renderPlant(abandonedSeed, 'withered');
+            document.getElementById('status').textContent = 'Cây đã héo! Hãy chọn cây và thời gian để thử lại.';
+            updateGameControls();
+        }
+
+        function tickGame(sessionId) {
+            if (!gameSession || gameSession.id !== sessionId || gameSession.status !== 'running') return;
+            const remaining = getRemainingTime(gameSession);
+            if (remaining <= 0) {
+                completeGame(sessionId);
+                return;
+            }
+            renderGrowth(((gameSession.durationMs - remaining) / gameSession.durationMs) * 100);
+            renderRemainingTime(remaining);
+            if (gameSession.durationMs > 5 * 60 * 1000 && remaining <= 5 * 60 * 1000 && !gameSession.alertShown) {
+                gameSession.alertShown = true;
                 alert('🌱 Sắp xong rồi, hoa sắp nở rồi, cố lên nhé!');
             }
         }
 
-        function updateDisplay(percent) {
-            document.getElementById('progressBar').style.width = `${percent}%`;
-            let stage = 0;
-            if (percent >= 100) stage = 100;
-            else if (percent >= 65) stage = 65;
-            else if (percent >= 25) stage = 25;
-            else stage = 0;
-            document.getElementById('treeImg').src = seeds[selectedSeed][stage];
-            const statusTexts = {
-                0: 'Hạt mầm đang nảy!',
-                25: 'Cây non đang lớn!',
-                65: 'Cây trưởng thành rồi!',
-                100: 'Hoa nở rộ!'
-            };
-            document.getElementById('status').textContent = statusTexts[stage] || 'Đang phát triển...';
-        }
-
-        function completeGame() {
-            clearInterval(timerInterval);
+        function completeGame(sessionId) {
+            if (!gameSession || gameSession.id !== sessionId) return;
+            const completedSession = gameSession;
+            clearGameTimer();
+            gameSession = null;
             document.getElementById('timer').textContent = '00:00';
             document.getElementById('progressBar').style.width = '100%';
-            
+            document.body.classList.remove('garden-growing', 'garden-paused', 'garden-withered');
+            document.body.classList.add('garden-complete');
+            renderPlant(completedSession.seed, 'mature');
+            document.getElementById('status').textContent = `${seeds[completedSession.seed].name} đã trưởng thành!`;
+
             // Calculate tokens: minutes × multiplier, min 0, max 1000000
             const MIN_TOKEN = 0;
             const MAX_TOKEN = 1000000;
             const TOKEN_MULTIPLIER = 5; // 1 phút = 5 tokens
-            const calculatedTokens = selectedTime * TOKEN_MULTIPLIER;
+            const calculatedTokens = completedSession.timeMinutes * TOKEN_MULTIPLIER;
             rewardTokens = Math.max(MIN_TOKEN, Math.min(calculatedTokens, MAX_TOKEN)); // Min 0, max 1000000
             
             // Update reward message with detailed info
             document.getElementById('tokenReward').innerHTML = `Bạn nhận được <strong>${rewardTokens} tokens</strong>! 🎉`;
-            document.getElementById('timeSpent').textContent = selectedTime;
+            document.getElementById('timeSpent').textContent = completedSession.timeMinutes;
             document.getElementById('reward').style.display = 'block';
-            document.getElementById('startBtn').style.display = 'inline-block';
-            document.getElementById('stopBtn').style.display = 'none';
+            updateGameControls();
             
             // Add tokens to user account
             const currentUser = localStorage.getItem('currentUser');
@@ -1039,8 +1159,8 @@
             // Save to garden history
             const history = JSON.parse(localStorage.getItem('gardenHistory') || '[]');
             history.push({ 
-                seed: selectedSeed, 
-                time: selectedTime, 
+                seed: completedSession.seed,
+                time: completedSession.timeMinutes,
                 tokens: rewardTokens,
                 date: new Date().toISOString() 
             });

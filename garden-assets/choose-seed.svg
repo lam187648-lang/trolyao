@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 420">
+  <defs>
+    <linearGradient id="soil" x2="0" y2="1">
+      <stop stop-color="#b77b4b"/>
+      <stop offset="1" stop-color="#70452f"/>
+    </linearGradient>
+    <radialGradient id="glow">
+      <stop stop-color="#fff5c9" stop-opacity=".85"/>
+      <stop offset="1" stop-color="#fff5c9" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <circle cx="200" cy="210" r="155" fill="url(#glow)"/>
+  <ellipse cx="200" cy="374" rx="105" ry="22" fill="#527b4e" opacity=".22"/>
+  <path d="M105 353 Q200 306 295 353 L278 383 Q200 407 122 383Z" fill="url(#soil)"/>
+  <path d="M148 354 Q200 329 252 354" fill="none" stroke="#d7a36c" stroke-width="7" stroke-linecap="round"/>
+  <path d="M200 333 C174 313 184 285 200 271 C216 285 226 313 200 333Z" fill="#8a512f"/>
+  <path d="M200 323 C193 304 196 292 200 282" fill="none" stroke="#c38a51" stroke-width="4" stroke-linecap="round"/>
+  <path d="M200 278 C174 265 160 273 158 291 C178 295 192 290 200 278Z" fill="#77b96c"/>
+  <path d="M201 278 C226 259 245 268 246 286 C227 293 211 289 201 278Z" fill="#4d995e"/>
+  <path d="M200 277 C198 255 205 243 218 237" fill="none" stroke="#41814d" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="126" cy="226" r="5" fill="#e1b45e"/>
+  <circle cx="279" cy="201" r="4" fill="#e1b45e"/>
+  <circle cx="264" cy="263" r="3" fill="#e1b45e"/>
+</svg>

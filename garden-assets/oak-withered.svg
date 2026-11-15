@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 420">
+  <defs>
+    <linearGradient id="dryTrunk" x2="1">
+      <stop stop-color="#5a4538"/>
+      <stop offset=".55" stop-color="#967253"/>
+      <stop offset="1" stop-color="#594538"/>
+    </linearGradient>
+  </defs>
+  <ellipse cx="200" cy="380" rx="112" ry="20" fill="#77715b" opacity=".2"/>
+  <path d="M112 360 Q200 331 288 360 L271 385 Q200 404 129 385Z" fill="#806047"/>
+  <path d="M181 359 Q193 284 184 214 L220 214 Q208 293 223 359Z" fill="url(#dryTrunk)"/>
+  <path d="M197 275 Q150 245 135 205 M204 257 Q250 227 269 188 M195 234 Q184 199 168 174" fill="none" stroke="#71543e" stroke-width="12" stroke-linecap="round"/>
+  <g fill="#a88349">
+    <path d="M116 192 Q128 166 144 190 Q148 215 127 218Z"/>
+    <path d="M263 178 Q278 156 291 181 Q289 202 269 204Z"/>
+    <path d="M163 158 Q174 137 188 160 Q187 179 169 181Z"/>
+    <path d="M231 224 Q244 206 255 224 Q252 241 237 243Z"/>
+  </g>
+  <path d="M130 360 Q200 348 270 360" fill="none" stroke="#b49a74" stroke-width="5" stroke-linecap="round"/>
+  <path d="M110 290 l-12 9 M282 280 l13 7 M151 257 l-10 10" stroke="#a88a64" stroke-width="4" stroke-linecap="round"/>
+</svg>

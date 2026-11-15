@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 420">
+  <defs>
+    <linearGradient id="dryNeedles" x2="1">
+      <stop stop-color="#806444"/>
+      <stop offset=".5" stop-color="#a58a5d"/>
+      <stop offset="1" stop-color="#67543d"/>
+    </linearGradient>
+  </defs>
+  <ellipse cx="200" cy="380" rx="110" ry="20" fill="#77715b" opacity=".2"/>
+  <path d="M108 359 Q200 330 292 359 L276 385 Q200 404 124 385Z" fill="#806047"/>
+  <path d="M188 360 L212 360 L206 149 L194 149Z" fill="#70513a"/>
+  <path d="M200 76 L169 144 L188 139 L158 183 L188 176 L143 225 L190 213 L190 265 L210 265 L210 213 L257 225 L212 176 L242 183 L212 139 L231 144Z" fill="url(#dryNeedles)"/>
+  <path d="M200 91 L200 347" stroke="#c1a06a" stroke-width="4" opacity=".7"/>
+  <path d="M170 145 L185 152 M214 194 L232 201 M164 228 L185 232" stroke="#c0a36f" stroke-width="4" stroke-linecap="round"/>
+  <path d="M110 360 Q200 347 290 360" fill="none" stroke="#b49a74" stroke-width="5" stroke-linecap="round"/>
+</svg>

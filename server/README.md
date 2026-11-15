@@ -70,12 +70,45 @@ server/
 1. Tạo PostgreSQL trên Render và sao lưu database hiện có (nếu có) trước khi thay đổi schema.
 2. Thêm `DATABASE_URL` vào Environment của Web Service backend; không đặt biến này ở frontend/GitHub Pages.
 3. Trong thư mục `server`, cài dependency bằng `npm install`, sau đó chỉ chạy migration có chủ đích bằng `npm run db:migrate`.
-4. Đăng ký tài khoản Admin trước. Đặt tạm `ADMIN_BOOTSTRAP_USERNAME` và `ADMIN_BOOTSTRAP_PASSWORD` trong môi trường shell an toàn (không commit hoặc gửi qua chat), chạy `npm run admin:promote`, rồi xóa hai biến tạm.
+4. Chỉ sau khi đã truy vấn read-only và xác minh UUID của đúng tài khoản `lam`, mới cân nhắc chạy script cấp quyền riêng. Script chỉ cập nhật `role`, không tạo tài khoản và không thay đổi mật khẩu.
 5. Triển khai backend trước frontend. `/health` báo `database: "not_configured"` khi thiếu `DATABASE_URL`; không có dữ liệu giả hoặc migration tự chạy lúc khởi động.
 
 Khi backend khởi động với `DATABASE_URL`, server chạy `SELECT NOW()` để kiểm tra kết nối. Log thành công xác nhận database đã kết nối; nếu kiểm tra thất bại, lỗi được ghi bằng mã lỗi không kèm thông tin xác thực và backend vẫn tiếp tục chạy. SSL được bật trong môi trường production với `rejectUnauthorized: false` để tương thích kết nối PostgreSQL của Render.
 
 Migration `001_initial_schema` chỉ tạo bảng và index; runner dùng transaction và ghi nhận migration đã áp dụng. Không chạy trước khi database và backup sẵn sàng.
+
+### Trang quản trị và cấp quyền Admin
+
+Trang `/admin/` trên GitHub Pages chuyển tới `admin-panel.html`. Dashboard luôn xác thực session với backend và chỉ hiển thị dữ liệu khi `/auth/me` xác nhận `role: "admin"`; không dùng vai trò từ LocalStorage hoặc frontend làm căn cứ phân quyền. Lệnh `/admin` và liên kết Quản trị mở cùng trang có bảo vệ này.
+
+#### Xác minh UUID (chỉ đọc)
+
+Script `scripts/identify-admin-target.js` chạy duy nhất câu `SELECT id, username FROM users WHERE username = $1` với `lam` chính xác. Script dừng lỗi nếu không có bản ghi hoặc có nhiều hơn một bản ghi, và chỉ in `id` cùng `username`; không đọc password hash, mật khẩu hay session token.
+
+Trên Windows PowerShell, trong terminal quản trị tin cậy đã được cấu hình `DATABASE_URL`:
+
+```powershell
+Set-Location 'C:\path\to\trolyao-master\server'
+if ([string]::IsNullOrWhiteSpace($env:DATABASE_URL)) {
+  throw 'Set DATABASE_URL in this trusted shell before running the read-only lookup.'
+}
+npm run admin:identify
+```
+
+Kết quả thành công chỉ có dạng `{"id":"<UUID>","username":"lam"}`. Không ghi `DATABASE_URL` vào mã nguồn hoặc gửi qua chat. Lệnh này chỉ đọc và không thay đổi production.
+
+#### Cấp quyền Admin riêng (chưa chạy)
+
+Không chạy bước này cho tới khi UUID phía trên đã được xác minh. Khi có quyết định cấp quyền, trong môi trường quản trị tin cậy dùng đúng UUID đó:
+
+```powershell
+Set-Location 'C:\path\to\trolyao-master\server'
+$env:ADMIN_PROMOTION_USER_ID = '<UUID just verified by admin:identify>'
+npm run admin:promote
+Remove-Item Env:ADMIN_PROMOTION_USER_ID
+```
+
+Script mở transaction, khóa đúng hàng theo UUID và kiểm tra username `lam` trước khi cập nhật duy nhất cột `role`. Nếu tài khoản đã là Admin, script không ghi dữ liệu. Không thêm biến cấp quyền vào Render Environment lâu dài hoặc commit chúng vào Git. **Không chạy lệnh cấp quyền trong lần xác minh read-only này; tài khoản chưa được cấp quyền bởi thay đổi này.**
 
 Nếu `/auth/status` trả `databaseConfigured: true` nhưng `migrationApplied: false`, điều đó chỉ xác nhận migration chưa được ghi nhận; **không chạy ngay** nếu database đã có bảng `users`, `sessions` hoặc `schema_migrations` nhưng chưa có marker tương ứng. Sao lưu database trước, kiểm tra schema hiện có và nhật ký Render. Khi xác nhận migration chưa từng chạy và không có bảng xung đột, mở Shell của đúng Web Service (Root Directory `server`) và chạy:
 

@@ -1107,8 +1107,11 @@ function processCommand(text) {
     return isDeepAnalysisMode ? "đã kích hoạt chế độ phân tích sâu 143!" : "đã tắt chế độ phân tích sâu 143!";
   } else if (command === '/tambietlop9') {
     return "🔗 Link đặc biệt: https://example.com/special-link";
+  } else if (command === '/admin') {
+    window.location.href = 'admin/';
+    return '🔐 Đang mở trang quản trị. Hệ thống sẽ yêu cầu đăng nhập và kiểm tra quyền Admin.';
   } else if (command.startsWith('/admin')) {
-    return "🔒 Trang quản trị đang tạm khóa. Cần hoàn tất xác thực và phân quyền phía máy chủ trước khi mở lại.";
+    return "🔒 Lệnh quản trị không hợp lệ. Dùng /admin để mở trang quản trị có xác thực.";
   } else if (command.startsWith('/token')) {
     window.location.href = 'token-shop-new.html';
     return '🎨 Đang chuyển đến Cửa Hàng Token...';

@@ -59,7 +59,8 @@ troly/
 ├── 📄 auth.html           # Đăng nhập/Đăng ký
 ├── 📄 token-shop-new.html # Cửa hàng token
 ├── 📄 study-room.html     # Phòng học nhóm
-├── 📄 admin-simple.html   # Admin panel
+├── 📄 admin-panel.html    # Dashboard quản trị có xác thực server
+├── 📁 admin/              # Điểm vào /admin trên GitHub Pages
 ├── 📄 app.js              # Logic chính
 ├── 📄 style.css           # Styles
 ├── 📄 device-manager.js   # Quản lý thiết bị
@@ -78,7 +79,7 @@ troly/
 | 🪙 Token Shop | Mua/mở khóa màu đặc biệt |
 | 🎁 Gifting | Tạm khóa cho đến khi có phân quyền phía máy chủ |
 | 📚 Study Room | Phòng học nhóm real-time |
-| 👑 Admin Panel | Tạm khóa để tránh quản trị trái phép từ trình duyệt |
+| 👑 Admin Panel | Dashboard dùng PostgreSQL; backend kiểm tra session và quyền Admin |
 | ⏱️ Token Rewards | 20 tokens/10 phút học tập |
 
 ## 🔌 Kết nối Backend

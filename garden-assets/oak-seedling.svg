@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 420">
+  <defs>
+    <linearGradient id="leaf" x2="1" y2="1">
+      <stop stop-color="#a8d977"/>
+      <stop offset="1" stop-color="#4f9b58"/>
+    </linearGradient>
+  </defs>
+  <ellipse cx="200" cy="376" rx="90" ry="20" fill="#567f4f" opacity=".22"/>
+  <path d="M108 357 Q200 328 292 357 L276 382 Q200 403 124 382Z" fill="#98613c"/>
+  <path d="M200 356 C194 332 196 298 202 268" fill="none" stroke="#52934f" stroke-width="10" stroke-linecap="round"/>
+  <path d="M201 303 C170 278 148 285 145 307 C166 322 187 319 201 303Z" fill="url(#leaf)"/>
+  <path d="M201 294 C224 267 249 270 257 290 C241 311 219 313 201 294Z" fill="#69ad5e"/>
+  <path d="M178 359 C166 334 177 320 199 321 C216 341 207 357 178 359Z" fill="#9d6336"/>
+  <path d="M178 358 Q199 350 218 359" fill="none" stroke="#e1b27b" stroke-width="5" stroke-linecap="round"/>
+  <path d="M169 304 Q184 302 197 306 M209 294 Q230 284 246 289" fill="none" stroke="#c7e89d" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="123" cy="257" r="4" fill="#e9c775"/>
+  <circle cx="278" cy="239" r="5" fill="#e9c775"/>
+</svg>
