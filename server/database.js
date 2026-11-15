@@ -1,6 +1,6 @@
 const { Pool } = require("pg");
 
-const databaseUrl = process.env.DATABASE_URL;
+const databaseUrl = process.env.DATABASE_URL?.trim();
 const pool = databaseUrl
   ? new Pool({
       connectionString: databaseUrl,
@@ -11,10 +11,30 @@ const pool = databaseUrl
     })
   : null;
 
+function getSafeErrorCode(error) {
+  const code = error && error.code;
+  return typeof code === "string" && /^[A-Z0-9_]+$/.test(code) ? code : "UNKNOWN";
+}
+
 if (pool) {
   pool.on("error", (error) => {
-    console.error("Unexpected PostgreSQL pool error:", error.message);
+    console.error("Unexpected PostgreSQL pool error:", getSafeErrorCode(error));
   });
+}
+
+async function checkDatabaseConnection() {
+  if (!pool) return false;
+
+  try {
+    await pool.query("SELECT NOW()");
+    console.log("✅ PostgreSQL connected successfully");
+    return true;
+  } catch (error) {
+    console.error(
+      `❌ PostgreSQL connection failed (${getSafeErrorCode(error)}). Check DATABASE_URL, network access, and PostgreSQL availability. Backend will continue running.`
+    );
+    return false;
+  }
 }
 
 function requireDatabase(_req, res, next) {
@@ -52,4 +72,4 @@ async function closeDatabase() {
   if (pool) await pool.end();
 }
 
-module.exports = { pool, requireDatabase, withTransaction, closeDatabase };
+module.exports = { pool, requireDatabase, withTransaction, closeDatabase, checkDatabaseConnection };

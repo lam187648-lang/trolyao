@@ -3,7 +3,7 @@ const cors = require("cors");
 const http = require("http");
 const { Server } = require("socket.io");
 const Pusher = require("pusher");
-const { pool, closeDatabase } = require("./database");
+const { pool, closeDatabase, checkDatabaseConnection } = require("./database");
 const authRoutes = require("./auth-routes");
 const adminRoutes = require("./admin-routes");
 const tokenRoutes = require("./token-routes");
@@ -301,6 +301,7 @@ server.listen(PORT, () => {
   console.log("📡 Socket.IO ready for connections");
   console.log("🤖 AI Chat endpoint: /chat");
   console.log(pool ? "🗄️ PostgreSQL is configured" : "⚠️ DATABASE_URL is missing; account and admin APIs return 503");
+  void checkDatabaseConnection();
 });
 
 let shuttingDown = false;
@@ -320,7 +321,10 @@ async function shutdown(signal) {
       clearTimeout(timeout);
       console.log("Server resources closed.");
     } catch (error) {
-      console.error("Failed to close PostgreSQL pool:", error.message);
+      const errorCode = error && typeof error.code === "string" && /^[A-Z0-9_]+$/.test(error.code)
+        ? error.code
+        : "UNKNOWN";
+      console.error("Failed to close PostgreSQL pool:", errorCode);
       process.exitCode = 1;
     }
   });

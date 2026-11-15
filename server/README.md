@@ -56,6 +56,8 @@ server/
 4. Đăng ký tài khoản Admin trước. Đặt tạm `ADMIN_BOOTSTRAP_USERNAME` và `ADMIN_BOOTSTRAP_PASSWORD` trong môi trường shell an toàn (không commit hoặc gửi qua chat), chạy `npm run admin:promote`, rồi xóa hai biến tạm.
 5. Triển khai backend trước frontend. `/health` báo `database: "not_configured"` khi thiếu `DATABASE_URL`; không có dữ liệu giả hoặc migration tự chạy lúc khởi động.
 
+Khi backend khởi động với `DATABASE_URL`, server chạy `SELECT NOW()` để kiểm tra kết nối. Log thành công xác nhận database đã kết nối; nếu kiểm tra thất bại, lỗi được ghi bằng mã lỗi không kèm thông tin xác thực và backend vẫn tiếp tục chạy. SSL được bật trong môi trường production với `rejectUnauthorized: false` để tương thích kết nối PostgreSQL của Render.
+
 Migration `001_initial_schema` chỉ tạo bảng và index; runner dùng transaction và ghi nhận migration đã áp dụng. Không chạy trước khi database và backup sẵn sàng.
 
 ### Dữ liệu LocalStorage cũ
