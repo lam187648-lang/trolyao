@@ -61,6 +61,14 @@ Khi backend khởi động với `DATABASE_URL`, server chạy `SELECT NOW()` đ
 
 Migration `001_initial_schema` chỉ tạo bảng và index; runner dùng transaction và ghi nhận migration đã áp dụng. Không chạy trước khi database và backup sẵn sàng.
 
+Nếu `/auth/status` trả `databaseConfigured: true` nhưng `migrationApplied: false`, điều đó chỉ xác nhận migration chưa được ghi nhận; **không chạy ngay** nếu database đã có bảng `users`, `sessions` hoặc `schema_migrations` nhưng chưa có marker tương ứng. Sao lưu database trước, kiểm tra schema hiện có và nhật ký Render. Khi xác nhận migration chưa từng chạy và không có bảng xung đột, mở Shell của đúng Web Service (Root Directory `server`) và chạy:
+
+```sh
+npm run db:migrate
+```
+
+Runner dùng transaction và advisory lock; nếu migration đã được ghi nhận, lệnh không chạy lại. Sau đó kiểm tra log `Applied migration 001_initial_schema.` hoặc `Migration 001_initial_schema is already applied.` và gọi lại `/auth/status`. Lệnh không xóa dữ liệu; nếu gặp lỗi bảng đã tồn tại, dừng lại để đối chiếu schema, không xóa bảng để chạy tiếp.
+
 ### Dữ liệu LocalStorage cũ
 
 Không có dữ liệu trình duyệt nào bị xóa hoặc tự gửi lên server. Trước khi chuyển sang tài khoản server, hãy sao lưu dữ liệu trình duyệt trên từng thiết bị. Mật khẩu cũ được lưu dạng hash/Base64 không thể chuyển thành hash bcrypt đáng tin cậy; người dùng cần đăng ký tài khoản server mới và đặt mật khẩu mới. Số dư Token/màu ở LocalStorage có thể bị sửa từ trình duyệt nên không tự nhập thành số dư server đã xác thực; Admin chỉ nên cấp lại các khoản đã kiểm chứng. Dữ liệu cũ được giữ tại trình duyệt để đối chiếu thủ công.
@@ -72,7 +80,7 @@ Không có dữ liệu trình duyệt nào bị xóa hoặc tự gửi lên serv
 | `/` | GET | Health check |
 | `/health` | GET | Server status |
 | `/chat` | POST | AI chat with OpenRouter |
-| `/auth/status` | GET | Trạng thái cấu hình PostgreSQL |
+| `/auth/status` | GET | Trạng thái PostgreSQL và migration `001_initial_schema` |
 | `/auth/register`, `/auth/login` | POST | Đăng ký/đăng nhập, bcrypt và session token |
 | `/auth/me`, `/auth/logout` | GET/POST | Kiểm tra hoặc thu hồi session |
 | `/api/balance`, `/api/transactions` | GET | Token cá nhân |

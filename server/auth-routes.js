@@ -1,7 +1,7 @@
 const crypto = require("node:crypto");
 const express = require("express");
 const bcrypt = require("bcryptjs");
-const { pool, requireDatabase, withTransaction } = require("./database");
+const { pool, requireDatabase, withTransaction, checkInitialSchemaMigration } = require("./database");
 const { authenticate, hashSessionToken } = require("./auth-middleware");
 
 const router = express.Router();
@@ -61,9 +61,13 @@ async function createSession(client, userId) {
   return token;
 }
 
-router.get("/status", (_req, res) => {
-  res.json({ databaseConfigured: Boolean(pool) });
-});
+router.get("/status", asyncRoute(async (_req, res) => {
+  const databaseConfigured = Boolean(pool);
+  const migrationApplied = databaseConfigured
+    ? await checkInitialSchemaMigration()
+    : false;
+  res.json({ databaseConfigured, migrationApplied });
+}));
 
 router.use(requireDatabase);
 
@@ -104,8 +108,11 @@ router.post("/register", authRateLimit, asyncRoute(async (req, res) => {
 
 router.post("/login", authRateLimit, asyncRoute(async (req, res) => {
   const { username, password } = req.body || {};
-  if (typeof username !== "string" || username.length > 254 ||
-      typeof password !== "string" || password.length > 128) {
+  const identifier = typeof username === "string" ? username.trim() : "";
+  const validIdentifier = validUsername(identifier) ||
+    (identifier.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier));
+  if (!validIdentifier ||
+      typeof password !== "string" || password.length === 0 || password.length > 128) {
     return res.status(400).json({ error: "Tên đăng nhập hoặc mật khẩu không hợp lệ." });
   }
 
@@ -114,7 +121,7 @@ router.post("/login", authRateLimit, asyncRoute(async (req, res) => {
             selected_theme_id, created_at, last_login_at, status
      FROM users WHERE lower(username) = lower($1) OR lower(email) = lower($1)
      LIMIT 1`,
-    [username]
+    [identifier]
   );
   const user = rows[0];
   if (!user || !(await bcrypt.compare(password, user.password_hash))) {

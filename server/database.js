@@ -41,6 +41,28 @@ async function checkDatabaseConnection() {
   }
 }
 
+async function checkInitialSchemaMigration() {
+  if (!pool) return false;
+
+  const { rows: trackingRows } = await pool.query(
+    `SELECT EXISTS (
+       SELECT 1 FROM information_schema.tables
+       WHERE table_schema = current_schema()
+         AND table_name = 'schema_migrations'
+     ) AS tracking_table_exists`
+  );
+  if (!trackingRows[0]?.tracking_table_exists) return false;
+
+  const { rows } = await pool.query(
+    `SELECT EXISTS (
+       SELECT 1 FROM schema_migrations
+       WHERE migration_id = $1
+     ) AS applied`,
+    ["001_initial_schema"]
+  );
+  return rows[0].applied;
+}
+
 function requireDatabase(_req, res, next) {
   if (!pool) {
     return res.status(503).json({
@@ -65,7 +87,11 @@ async function withTransaction(work) {
     await client.query("COMMIT");
     return result;
   } catch (error) {
-    await client.query("ROLLBACK");
+    try {
+      await client.query("ROLLBACK");
+    } catch (rollbackError) {
+      console.error("PostgreSQL rollback failed:", getSafeErrorCode(rollbackError));
+    }
     throw error;
   } finally {
     client.release();
@@ -76,4 +102,11 @@ async function closeDatabase() {
   if (pool) await pool.end();
 }
 
-module.exports = { pool, requireDatabase, withTransaction, closeDatabase, checkDatabaseConnection };
+module.exports = {
+  pool,
+  requireDatabase,
+  withTransaction,
+  closeDatabase,
+  checkDatabaseConnection,
+  checkInitialSchemaMigration
+};

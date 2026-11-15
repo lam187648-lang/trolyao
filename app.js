@@ -1,5 +1,5 @@
 // Backend server configuration
-const RENDER_SERVER_URL = "https://trolyao-51sj.onrender.com";
+const RENDER_SERVER_URL = "https://trolyao-1.onrender.com";
 const LOCAL_SERVER_URL = "http://localhost:4000";
 
 // Determine server URL based on environment

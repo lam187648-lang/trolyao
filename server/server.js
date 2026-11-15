@@ -270,7 +270,7 @@ app.all(["/pusher/kick", "/pusher/gift-color", "/pusher/users"], (_req, res) => 
   res.status(403).json({ success: false, error: "Administrative access is not enabled until secure server-side authentication is configured." });
 });
 
-app.use((error, _req, res, next) => {
+app.use((error, req, res, next) => {
   if (res.headersSent) return next(error);
   if (error.type === "entity.parse.failed") {
     return res.status(400).json({ error: "JSON request body không hợp lệ." });
@@ -283,13 +283,23 @@ app.use((error, _req, res, next) => {
   }
   if (["ECONNREFUSED", "ENOTFOUND", "ETIMEDOUT"].includes(error.code) ||
       (typeof error.code === "string" && error.code.startsWith("08"))) {
-    console.error("PostgreSQL is unavailable:", error.code);
+    console.error(`PostgreSQL is unavailable for ${req.method} ${req.path}:`, error.code);
     return res.status(503).json({
       error: "Không thể kết nối PostgreSQL. Hãy kiểm tra cấu hình và trạng thái database.",
       code: "DATABASE_UNAVAILABLE"
     });
   }
-  console.error("Request failed:", error.code || error.name || "Error");
+  if (["42P01", "42703"].includes(error.code)) {
+    console.error(`PostgreSQL schema error for ${req.method} ${req.path}:`, error.code);
+    return res.status(503).json({
+      error: "Schema PostgreSQL chưa sẵn sàng. Hãy kiểm tra migration 001_initial_schema.",
+      code: "DATABASE_SCHEMA_NOT_READY"
+    });
+  }
+  const errorCode = typeof error.code === "string" && /^[A-Z0-9_]+$/.test(error.code)
+    ? error.code
+    : "UNKNOWN";
+  console.error(`Request failed for ${req.method} ${req.path}: ${error.name || "Error"} (${errorCode})`);
   res.status(500).json({ error: "Máy chủ gặp lỗi khi xử lý yêu cầu." });
 });
 

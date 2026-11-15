@@ -1,5 +1,5 @@
 (() => {
-  const RENDER_SERVER_URL = "https://trolyao-51sj.onrender.com";
+  const RENDER_SERVER_URL = "https://trolyao-1.onrender.com";
   const LOCAL_SERVER_URL = "http://localhost:4000";
   const SERVER_URL = ["localhost", "127.0.0.1"].includes(location.hostname)
     ? LOCAL_SERVER_URL

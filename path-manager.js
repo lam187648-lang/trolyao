@@ -26,8 +26,8 @@ class PathManager {
             adminPanel: "admin-panel.html"
           },
           api: {
-            chat: "http://localhost:3000/chat",
-            render: "https://trolyao-51sj.onrender.com/chat"
+            chat: "http://localhost:4000/chat",
+            render: "https://trolyao-1.onrender.com/chat"
           },
           paths: {
             base: "./",
@@ -62,7 +62,7 @@ class PathManager {
         token: "token-page.html"
       },
       api: {
-        chat: "http://localhost:3000/chat"
+        chat: "http://localhost:4000/chat"
       },
       paths: {
         base: "./"
