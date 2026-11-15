@@ -98,6 +98,40 @@ const tokenCount = document.getElementById("token-count");
 const themeToggleMenu = document.getElementById("theme-toggle-menu");
 const logoutBtn = document.getElementById("logout-btn");
 
+function updateOnlineUsersDisplay(users) {
+  if (onlineUsersSpan) onlineUsersSpan.textContent = String(users.length);
+  if (!activeUsersList) return;
+
+  activeUsersList.replaceChildren();
+  users.forEach((user) => {
+    const userItem = document.createElement("div");
+    userItem.className = "user-item";
+
+    const userInfo = document.createElement("div");
+    userInfo.className = "user-info";
+
+    const avatar = document.createElement("div");
+    avatar.className = "user-avatar-small";
+    avatar.textContent = user.username.charAt(0).toUpperCase();
+
+    const details = document.createElement("div");
+    details.className = "user-details";
+
+    const name = document.createElement("div");
+    name.className = "user-name-small";
+    name.textContent = user.username;
+
+    const status = document.createElement("div");
+    status.className = "user-status";
+    status.textContent = user.isAdmin ? "👑 Admin" : "👤 User";
+
+    details.append(name, status);
+    userInfo.append(avatar, details);
+    userItem.append(userInfo);
+    activeUsersList.append(userItem);
+  });
+}
+
 // Background color themes data
 const colorThemes = [
   // Regular colors - FREE (price: 0)
