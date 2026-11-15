@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Sao lưu dữ liệu — Trợ Lý Ảo</title>
+  <link rel="stylesheet" href="futuristic.css">
+  <style>
+    body { min-height: 100dvh; overflow: auto; padding: 28px 16px; }
+    main { width: min(100%, 680px); margin: 0 auto; padding: 28px; border: 1px solid rgba(148,163,184,.16); border-radius: 18px; background: #0b1220; }
+    h1 { margin: 0 0 8px; font-size: 24px; }
+    p { color: #94a3b8; font-size: 14px; line-height: 1.65; }
+    .warning { padding: 14px; border: 1px solid rgba(245,158,11,.25); border-radius: 12px; background: rgba(245,158,11,.07); color: #fcd34d; }
+    .inventory { display: grid; gap: 8px; margin: 20px 0; }
+    .storage-row { display: flex; justify-content: space-between; gap: 12px; padding: 10px 12px; border: 1px solid rgba(148,163,184,.12); border-radius: 9px; color: #cbd5e1; font-size: 13px; }
+    .actions { display: flex; flex-wrap: wrap; gap: 10px; margin: 18px 0; }
+    .actions button, .back-link { padding: 10px 14px; border: 1px solid rgba(148,163,184,.18); border-radius: 10px; background: #111b2d; color: #e2e8f0; text-decoration: none; font-size: 13px; cursor: pointer; }
+    .actions button.primary { border-color: transparent; background: linear-gradient(110deg,#2563eb,#0891b2); color: #fff; }
+    #backup-status { min-height: 22px; color: #67e8f9; }
+    @media (max-width: 520px) { main { padding: 20px 16px; } h1 { font-size: 21px; } }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Sao lưu dữ liệu trên thiết bị</h1>
+    <p>Công cụ này chỉ tạo hoặc khôi phục tệp trên trình duyệt hiện tại. Nó không gửi dữ liệu tới máy chủ.</p>
+    <p class="warning"><strong>Lưu ý:</strong> bản sao lưu có thể chứa thông tin tài khoản và hash mật khẩu cũ. Hãy lưu tệp ở nơi riêng tư, không gửi qua chat và không đưa vào Git.</p>
+    <div class="inventory" id="storage-inventory" aria-live="polite"></div>
+    <div class="actions">
+      <button class="primary" id="download-backup" type="button">Tải bản sao lưu</button>
+      <button id="choose-restore" type="button">Khôi phục khóa còn thiếu</button>
+      <input id="backup-file" type="file" accept="application/json,.json" hidden>
+    </div>
+    <p id="backup-status" role="status" aria-live="polite"></p>
+    <p>Khôi phục chỉ thêm khóa chưa tồn tại; dữ liệu hiện có không bị ghi đè hoặc xóa. Công cụ này sao lưu localStorage và sessionStorage của origin hiện tại; mã nguồn hiện không dùng IndexedDB.</p>
+    <a class="back-link" href="index.html">Quay lại Trợ Lý Ảo</a>
+  </main>
+  <script src="data-backup.js"></script>
+</body>
+</html>

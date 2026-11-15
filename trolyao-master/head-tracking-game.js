@@ -1,0 +1,451 @@
+const mathQuestions = [
+  { question: "Giải phương trình: 2x + 5 = 15", correct: "x = 5", incorrect: "x = 10" },
+  { question: "Tính giá trị của √64", correct: "8", incorrect: "6" },
+  { question: "Đạo hàm của f(x) = x² là gì?", correct: "2x", incorrect: "x²" },
+  { question: "Tính diện tích hình vuông có cạnh bằng 5cm", correct: "25cm²", incorrect: "20cm²" },
+  { question: "Giải phương trình: x² - 9 = 0", correct: "x = ±3", incorrect: "x = 3" },
+  { question: "Tính chu vi hình tròn có bán kính 7cm (π ≈ 22/7)", correct: "44cm", incorrect: "42cm" },
+  { question: "Tính giá trị của log₁₀(100)", correct: "2", incorrect: "1" },
+  { question: "Đạo hàm của f(x) = 3x³ là gì?", correct: "9x²", incorrect: "3x²" },
+  { question: "Tính thể tích hình cầu có bán kính 3cm", correct: "36π cm³", incorrect: "27π cm³" },
+  { question: "Giải phương trình: 3x - 7 = 14", correct: "x = 7", incorrect: "x = 5" },
+  { question: "Tính giá trị của sin(90°)", correct: "1", incorrect: "0" },
+  { question: "Tính giá trị của cos(0°)", correct: "1", incorrect: "0" },
+  { question: "Đạo hàm của f(x) = sin(x) là gì?", correct: "cos(x)", incorrect: "-cos(x)" },
+  { question: "Tính diện tích tam giác vuông có cạnh góc vuông 6cm và 8cm", correct: "24cm²", incorrect: "48cm²" },
+  { question: "Giải phương trình: x/2 + 3 = 7", correct: "x = 8", incorrect: "x = 4" },
+  { question: "Tính giá trị của 2⁵", correct: "32", incorrect: "16" },
+  { question: "Tính giá trị của log₂(8)", correct: "3", incorrect: "4" },
+  { question: "Đạo hàm của f(x) = eˣ là gì?", correct: "eˣ", incorrect: "xeˣ⁻¹" },
+  { question: "Tính chu vi hình chữ nhật có chiều dài 10cm và chiều rộng 6cm", correct: "32cm", incorrect: "60cm" },
+  { question: "Giải phương trình: 5x + 10 = 25", correct: "x = 3", incorrect: "x = 5" }
+];
+
+let gameState = {
+  currentQuestionIndex: 0,
+  score: 0,
+  correctAnswers: 0,
+  questions: [],
+  isDetecting: false,
+  answerCooldown: false
+};
+
+let playerStats = {
+  totalGames: 0,
+  totalWins: 0,
+  totalCorrect: 0,
+  totalWrong: 0
+};
+
+function loadPlayerStats() {
+  const saved = localStorage.getItem('headTrackingGameStats');
+  if (saved) {
+    playerStats = JSON.parse(saved);
+  }
+  updateStatsDisplay();
+}
+
+function savePlayerStats() {
+  localStorage.setItem('headTrackingGameStats', JSON.stringify(playerStats));
+  updateStatsDisplay();
+}
+
+function updateStatsDisplay() {
+  const statsDiv = document.getElementById('player-stats');
+  if (statsDiv) {
+    statsDiv.innerHTML = `
+      <p>📊 <strong>Thống kê của bạn:</strong></p>
+      <p>• Số lượt chơi: ${playerStats.totalGames}</p>
+      <p>• Số lần thắng: ${playerStats.totalWins}</p>
+      <p>• Tổng câu đúng: ${playerStats.totalCorrect}</p>
+      <p>• Tổng câu sai: ${playerStats.totalWrong}</p>
+    `;
+  }
+}
+
+const screens = {
+  start: document.getElementById('start-screen'),
+  loading: document.getElementById('loading-screen'),
+  cameraPermission: document.getElementById('camera-permission-screen'),
+  game: document.getElementById('game-screen'),
+  result: document.getElementById('result-screen')
+};
+
+const video = document.getElementById('video');
+const overlay = document.getElementById('overlay');
+const ctx = overlay.getContext('2d');
+let faceMesh;
+let cameraStream = null;
+let frameRequestId = null;
+let lastFrameTime = 0;
+let isProcessingFrame = false;
+let lastFaceDetectedAt = 0;
+
+function init() {
+  console.log('Initializing game...');
+  console.log('FaceMesh available:', typeof FaceMesh !== 'undefined');
+  console.log('Camera available:', typeof Camera !== 'undefined');
+  
+  loadPlayerStats();
+  
+  document.getElementById('start-btn').addEventListener('click', () => {
+    startGame();
+  });
+  document.getElementById('allow-camera-btn').addEventListener('click', requestCamera);
+  document.getElementById('deny-camera-btn').addEventListener('click', goHome);
+  document.getElementById('exit-game-btn').addEventListener('click', goHome);
+  document.getElementById('restart-btn').addEventListener('click', restartGame);
+  document.getElementById('home-btn').addEventListener('click', goHome);
+  
+  console.log('Event listeners added');
+}
+
+function showScreen(screenName) {
+  console.log('showScreen called with:', screenName);
+  console.log('Screens:', screens);
+  Object.values(screens).forEach(screen => screen.classList.remove('active'));
+  screens[screenName].classList.add('active');
+  console.log('Screen switched to:', screenName);
+}
+
+async function startGame() {
+  showScreen('loading');
+  setCameraStatus('initializing', 'Đang khởi tạo camera và bộ nhận diện...');
+  
+  try {
+    document.getElementById('loading-status').textContent = 'Đang tải mô hình Face Mesh...';
+    await initFaceMesh();
+    document.getElementById('loading-status').textContent = 'Đã sẵn sàng. Camera chỉ bật sau khi bạn cho phép.';
+    setCameraStatus('permission', 'Chưa cấp quyền');
+    showScreen('cameraPermission');
+  } catch (error) {
+    console.error('Error:', error);
+    setCameraStatus('error', 'Camera lỗi', 'Không tải được bộ nhận diện khuôn mặt. Kiểm tra kết nối rồi thử lại.');
+    showScreen('cameraPermission');
+  }
+}
+
+async function initFaceMesh() {
+  if (typeof FaceMesh === 'undefined') {
+    throw new Error('FACE_MESH_UNAVAILABLE');
+  }
+  if (faceMesh) {
+    await faceMesh.close();
+    faceMesh = null;
+  }
+  faceMesh = new FaceMesh({locateFile: (file) => {
+    return `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`;
+  }});
+  
+  faceMesh.setOptions({
+    maxNumFaces: 1,
+    refineLandmarks: true,
+    minDetectionConfidence: 0.5,
+    minTrackingConfidence: 0.5
+  });
+  
+  faceMesh.onResults(onFaceResults);
+}
+
+async function requestCamera() {
+  const allowButton = document.getElementById('allow-camera-btn');
+  const errorElement = document.getElementById('camera-error');
+  allowButton.disabled = true;
+  errorElement.hidden = true;
+  setCameraStatus('initializing', 'Đang khởi tạo camera...');
+
+  try {
+    if (!faceMesh) await initFaceMesh();
+    if (!navigator.mediaDevices?.getUserMedia) {
+      throw new Error('CAMERA_UNAVAILABLE');
+    }
+    cameraStream = await navigator.mediaDevices.getUserMedia({ 
+      video: { 
+        width: 640, 
+        height: 480,
+        facingMode: 'user'
+      } 
+    });
+    video.srcObject = cameraStream;
+    await video.play();
+    if (!video.videoWidth || !video.videoHeight) {
+      await new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => reject(new Error('CAMERA_TIMEOUT')), 10000);
+        video.addEventListener('loadedmetadata', () => {
+          clearTimeout(timeout);
+          resolve();
+        }, { once: true });
+      });
+    }
+
+    overlay.width = video.videoWidth;
+    overlay.height = video.videoHeight;
+    lastFaceDetectedAt = 0;
+    setCameraStatus('connected', 'Đã kết nối');
+    showScreen('game');
+    startQuiz();
+    processVideoFrames();
+  } catch (error) {
+    console.error('Error accessing camera:', error);
+    releaseCamera();
+    if (error.name === 'NotAllowedError' || error.name === 'SecurityError') {
+      setCameraStatus('permission', 'Chưa cấp quyền', 'Hãy cấp quyền camera cho trang web rồi thử lại.');
+    } else {
+      setCameraStatus('error', 'Camera lỗi', 'Không thể khởi động camera. Kiểm tra thiết bị hoặc thử lại.');
+    }
+    showScreen('cameraPermission');
+  } finally {
+    allowButton.disabled = false;
+  }
+}
+
+function setCameraStatus(state, label, detail = '') {
+  ['camera-status', 'tracking-status'].forEach((id) => {
+    const element = document.getElementById(id);
+    if (!element) return;
+    element.dataset.state = state;
+    const text = element.querySelector('span:last-child');
+    if (text) text.textContent = label;
+  });
+  const errorElement = document.getElementById('camera-error');
+  if (errorElement) {
+    errorElement.textContent = detail;
+    errorElement.hidden = !detail;
+  }
+}
+
+function processVideoFrames(timestamp = 0) {
+  if (!cameraStream || !video.srcObject) return;
+  if (
+    !isProcessingFrame &&
+    video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA &&
+    timestamp - lastFrameTime >= 1000 / 30
+  ) {
+    isProcessingFrame = true;
+    lastFrameTime = timestamp;
+    faceMesh.send({ image: video })
+      .catch((error) => {
+        console.error('Face tracking failed:', error);
+        releaseCamera();
+        setCameraStatus('error', 'Camera lỗi', 'Bộ nhận diện bị gián đoạn. Hãy thử khởi động lại.');
+        showScreen('cameraPermission');
+      })
+      .finally(() => { isProcessingFrame = false; });
+  }
+  frameRequestId = requestAnimationFrame(processVideoFrames);
+}
+
+function releaseCamera() {
+  if (frameRequestId !== null) {
+    cancelAnimationFrame(frameRequestId);
+    frameRequestId = null;
+  }
+  if (cameraStream) {
+    cameraStream.getTracks().forEach((track) => track.stop());
+    cameraStream = null;
+  }
+  if (video.srcObject) video.srcObject = null;
+  if (ctx && overlay.width && overlay.height) {
+    ctx.clearRect(0, 0, overlay.width, overlay.height);
+  }
+  isProcessingFrame = false;
+  gameState.isDetecting = false;
+}
+
+let lastHeadDirection = 'center';
+let headDirectionHoldTime = 0;
+const HEAD_HOLD_THRESHOLD = 800;
+
+function onFaceResults(results) {
+  ctx.clearRect(0, 0, overlay.width, overlay.height);
+  
+  if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
+    lastFaceDetectedAt = Date.now();
+    gameState.isDetecting = true;
+    setCameraStatus('tracking', 'Đang tracking');
+    const landmarks = results.multiFaceLandmarks[0];
+    
+    // Calculate head direction using nose and eyes
+    const nose = landmarks[1];
+    const leftEye = landmarks[33];
+    const rightEye = landmarks[262];
+    
+    const eyeCenterX = (leftEye.x + rightEye.x) / 2;
+    const headOffset = eyeCenterX - nose.x;
+    
+    let currentDirection = 'center';
+    if (headOffset < -0.02) currentDirection = 'left';
+    else if (headOffset > 0.02) currentDirection = 'right';
+    
+    updateHeadIndicator(currentDirection);
+    
+    if (currentDirection !== lastHeadDirection) {
+      lastHeadDirection = currentDirection;
+      headDirectionHoldTime = Date.now();
+    } else {
+      if (Date.now() - headDirectionHoldTime > HEAD_HOLD_THRESHOLD) {
+        if (currentDirection !== 'center' && !gameState.answerCooldown) {
+          handleAnswer(currentDirection);
+        }
+      }
+    }
+    
+    // Draw face tracking squares
+    drawFaceSquares(landmarks);
+  } else if (Date.now() - lastFaceDetectedAt > 1000) {
+    gameState.isDetecting = false;
+    setCameraStatus('no-face', 'Không tìm thấy khuôn mặt');
+    updateHeadIndicator('center');
+    lastHeadDirection = 'center';
+    headDirectionHoldTime = Date.now();
+  }
+}
+
+function drawFaceSquares(landmarks) {
+  const squareSize = 8;
+  
+  ctx.fillStyle = '#00ff00';
+  ctx.strokeStyle = '#00ff00';
+  ctx.lineWidth = 1;
+  
+  landmarks.forEach(point => {
+    const x = point.x * overlay.width;
+    const y = point.y * overlay.height;
+    ctx.fillRect(x - squareSize/2, y - squareSize/2, squareSize, squareSize);
+  });
+  
+  // Draw larger square on nose
+  const nose = landmarks[1];
+  const noseX = nose.x * overlay.width;
+  const noseY = nose.y * overlay.height;
+  ctx.fillStyle = '#ff0000';
+  ctx.fillRect(noseX - 12, noseY - 12, 24, 24);
+}
+
+function updateHeadIndicator(direction) {
+  const leftOption = document.getElementById('answer-left');
+  const rightOption = document.getElementById('answer-right');
+  
+  leftOption.classList.remove('active');
+  rightOption.classList.remove('active');
+  
+  if (direction === 'left') leftOption.classList.add('active');
+  else if (direction === 'right') rightOption.classList.add('active');
+}
+
+function startQuiz() {
+  gameState.questions = shuffleArray([...mathQuestions]).slice(0, 10);
+  gameState.currentQuestionIndex = 0;
+  gameState.score = 0;
+  gameState.correctAnswers = 0;
+  
+  document.getElementById('total-questions').textContent = gameState.questions.length;
+  loadQuestion();
+}
+
+function loadQuestion() {
+  const question = gameState.questions[gameState.currentQuestionIndex];
+  
+  document.getElementById('current-question').textContent = gameState.currentQuestionIndex + 1;
+  document.getElementById('question-text').textContent = question.question;
+  
+  const isCorrectOnRight = Math.random() > 0.5;
+  
+  if (isCorrectOnRight) {
+    document.getElementById('answer-left-text').textContent = question.incorrect;
+    document.getElementById('answer-right-text').textContent = question.correct;
+    gameState.currentQuestion = { correctDirection: 'right', incorrectDirection: 'left' };
+  } else {
+    document.getElementById('answer-left-text').textContent = question.correct;
+    document.getElementById('answer-right-text').textContent = question.incorrect;
+    gameState.currentQuestion = { correctDirection: 'left', incorrectDirection: 'right' };
+  }
+  
+  document.getElementById('score').textContent = gameState.score;
+}
+
+function handleAnswer(direction) {
+  if (gameState.answerCooldown) return;
+  
+  gameState.answerCooldown = true;
+  
+  if (direction === gameState.currentQuestion.correctDirection) {
+    gameState.score += 10;
+    gameState.correctAnswers++;
+  }
+  
+  setTimeout(() => {
+    gameState.answerCooldown = false;
+    gameState.currentQuestionIndex++;
+    
+    if (gameState.currentQuestionIndex < gameState.questions.length) {
+      loadQuestion();
+    } else {
+      endGame();
+    }
+  }, 800);
+}
+
+function endGame() {
+  gameState.isDetecting = false;
+  releaseCamera();
+  closeFaceMesh();
+  playerStats.totalGames++;
+  
+  const totalQuestions = gameState.questions.length;
+  const percentage = Math.round((gameState.correctAnswers / totalQuestions) * 100);
+  
+  document.getElementById('final-score').textContent = gameState.score;
+  document.getElementById('correct-count').textContent = gameState.correctAnswers;
+  document.getElementById('total-count').textContent = totalQuestions;
+  document.getElementById('percentage').textContent = percentage + '%';
+  
+  // Save player stats
+  playerStats.totalCorrect += gameState.correctAnswers;
+  playerStats.totalWrong += (totalQuestions - gameState.correctAnswers);
+  
+  // Count as win if percentage >= 70%
+  if (percentage >= 70) {
+    playerStats.totalWins++;
+  }
+  
+  savePlayerStats();
+  
+  showScreen('result');
+}
+
+function restartGame() {
+  startGame();
+}
+
+function goHome() {
+  releaseCamera();
+  closeFaceMesh();
+  setCameraStatus('permission', 'Chưa cấp quyền');
+  
+  showScreen('start');
+}
+
+function closeFaceMesh() {
+  if (!faceMesh) return;
+  const activeFaceMesh = faceMesh;
+  faceMesh = null;
+  try {
+    Promise.resolve(activeFaceMesh.close()).catch((error) => {
+      console.error('Could not release face tracking model:', error);
+    });
+  } catch (error) {
+    console.error('Could not release face tracking model:', error);
+  }
+}
+
+function shuffleArray(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
+
+document.addEventListener('DOMContentLoaded', init);
+window.addEventListener('pagehide', releaseCamera);

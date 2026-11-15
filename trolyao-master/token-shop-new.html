@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cửa Hàng Token & Màu Sắc</title>
+<link rel="stylesheet" href="style.css">
+<style>
+.shop-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    background: var(--surface);
+    min-height: 100vh;
+}
+.shop-header {
+    text-align: center;
+    margin-bottom: 30px;
+    padding: 20px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+    color: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+}
+.shop-content {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 30px;
+    margin-bottom: 30px;
+}
+.token-section, .color-section {
+    background: var(--surface-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 25px;
+    box-shadow: var(--shadow-sm);
+}
+.section-title {
+    color: var(--primary);
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.token-info {
+    background: var(--primary-light);
+    padding: 20px;
+    border-radius: var(--radius);
+    border: 1px solid var(--primary);
+    text-align: center;
+    margin-bottom: 20px;
+}
+.token-amount {
+    font-size: 32px;
+    font-weight: bold;
+    color: var(--primary);
+}
+.token-label {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-top: 5px;
+}
+.token-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+.token-input-group {
+    display: flex;
+    gap: 10px;
+}
+.token-input {
+    flex: 1;
+    padding: 12px;
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 16px;
+    background: var(--surface);
+    color: var(--text-primary);
+}
+.token-btn {
+    background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: var(--radius);
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: var(--shadow-md);
+}
+.token-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+.admin-btn {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: var(--radius);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-top: 10px;
+    opacity: 0.7;
+}
+.admin-btn:hover {
+    opacity: 1;
+    transform: scale(1.05);
+}
+.color-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
+}
+.color-item {
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    padding: 15px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+.color-item:hover:not(.locked) {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--primary);
+}
+.color-item.locked {
+    opacity: 0.8;
+    cursor: not-allowed;
+}
+.color-item.purchased {
+    border-color: var(--primary);
+    background: var(--primary-light);
+}
+.color-preview {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    margin: 0 auto 10px;
+    box-shadow: var(--shadow-md);
+    position: relative;
+}
+.color-name {
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 5px;
+}
+.color-price {
+    font-size: 14px;
+    color: var(--primary);
+    font-weight: bold;
+    background: var(--primary-light);
+    padding: 5px 10px;
+    border-radius: var(--radius-sm);
+    display: inline-block;
+}
+.color-owned {
+    font-size: 12px;
+    color: #059669;
+    font-weight: 600;
+    background: rgba(5, 150, 105, 0.1);
+    padding: 5px 10px;
+    border-radius: var(--radius-sm);
+    display: inline-block;
+}
+.lock-icon {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: var(--surface);
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+}
+.back-btn {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-weight: 500;
+    text-decoration: none;
+    display: inline-block;
+    transition: all 0.2s ease;
+}
+.back-btn:hover {
+    background: var(--primary-hover);
+    transform: translateY(-1px);
+}
+.success-message {
+    background: #10b981;
+    color: white;
+    padding: 15px;
+    border-radius: var(--radius);
+    margin-top: 20px;
+    font-weight: 500;
+    animation: slideIn 0.3s ease-out;
+}
+.error-message {
+    background: #ef4444;
+}
+.gift-btn {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    margin-top: 8px;
+    transition: all 0.2s ease;
+}
+.gift-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+}
+.exclusive-badge {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    background: linear-gradient(135deg, #8b5cf6, #ec4899);
+    color: white;
+    padding: 3px 8px;
+    border-radius: var(--radius-sm);
+    font-size: 10px;
+    font-weight: bold;
+}
+
+.success-message {
+    background: #10b981;
+    color: white;
+    padding: 15px;
+    border-radius: var(--radius);
+}
+
+@keyframes slideIn {
+    from { transform: translateY(-20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+/* ========== EXCLUSIVE ICON POP-OUT EFFECTS ========== */
+.color-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 32px;
+  z-index: 100;
+  filter: drop-shadow(0 1px 0 rgba(255,255,255,0.8))
+          drop-shadow(0 2px 0 rgba(255,255,255,0.6))
+          drop-shadow(0 3px 0 rgba(255,255,255,0.4))
+          drop-shadow(0 4px 8px rgba(0,0,0,0.4))
+          drop-shadow(0 8px 16px rgba(0,0,0,0.3))
+          drop-shadow(0 0 20px rgba(255,255,255,0.5));
+  animation: iconFloatPop 2.5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes iconFloatPop {
+  0%, 100% { 
+    transform: translate(-50%, -50%) translateY(0) rotate(0deg) scale(1);
+    filter: drop-shadow(0 1px 0 rgba(255,255,255,0.8))
+            drop-shadow(0 2px 0 rgba(255,255,255,0.6))
+            drop-shadow(0 3px 0 rgba(255,255,255,0.4))
+            drop-shadow(0 4px 8px rgba(0,0,0,0.4))
+            drop-shadow(0 8px 16px rgba(0,0,0,0.3))
+            drop-shadow(0 0 20px rgba(255,255,255,0.5));
+  }
+  25% {
+    transform: translate(-50%, -50%) translateY(-8px) rotate(-3deg) scale(1.05);
+    filter: drop-shadow(0 1px 0 rgba(255,255,255,0.8))
+            drop-shadow(0 2px 0 rgba(255,255,255,0.6))
+            drop-shadow(0 3px 0 rgba(255,255,255,0.4))
+            drop-shadow(0 6px 12px rgba(0,0,0,0.35))
+            drop-shadow(0 12px 24px rgba(0,0,0,0.25))
+            drop-shadow(0 0 30px rgba(255,255,255,0.7));
+  }
+  50% { 
+    transform: translate(-50%, -50%) translateY(-12px) rotate(0deg) scale(1.1);
+    filter: drop-shadow(0 1px 0 rgba(255,255,255,0.8))
+            drop-shadow(0 2px 0 rgba(255,255,255,0.6))
+            drop-shadow(0 3px 0 rgba(255,255,255,0.4))
+            drop-shadow(0 8px 16px rgba(0,0,0,0.3))
+            drop-shadow(0 16px 32px rgba(0,0,0,0.2))
+            drop-shadow(0 0 40px rgba(255,255,255,0.9));
+  }
+  75% {
+    transform: translate(-50%, -50%) translateY(-8px) rotate(3deg) scale(1.05);
+    filter: drop-shadow(0 1px 0 rgba(255,255,255,0.8))
+            drop-shadow(0 2px 0 rgba(255,255,255,0.6))
+            drop-shadow(0 3px 0 rgba(255,255,255,0.4))
+            drop-shadow(0 6px 12px rgba(0,0,0,0.35))
+            drop-shadow(0 12px 24px rgba(0,0,0,0.25))
+            drop-shadow(0 0 30px rgba(255,255,255,0.7));
+  }
+}
+
+/* Hover pop-out effect */
+.color-item:hover .color-icon {
+  animation: iconHoverPop 0.5s ease-out forwards;
+}
+
+@keyframes iconHoverPop {
+  0% { transform: translate(-50%, -50%) scale(1); }
+  50% { transform: translate(-50%, -50%) scale(1.3) translateY(-20px); }
+  100% { 
+    transform: translate(-50%, -50%) scale(1.2) translateY(-15px);
+    filter: drop-shadow(0 1px 0 rgba(255,255,255,0.9))
+            drop-shadow(0 3px 0 rgba(255,255,255,0.7))
+            drop-shadow(0 5px 0 rgba(255,255,255,0.5))
+            drop-shadow(0 8px 20px rgba(0,0,0,0.4))
+            drop-shadow(0 16px 40px rgba(0,0,0,0.3))
+            drop-shadow(0 0 50px rgba(255,255,255,1));
+  }
+}
+
+/* Sparkle effect */
+.color-icon::after {
+  content: "✦";
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  font-size: 12px;
+  animation: sparkle 1.5s ease-in-out infinite;
+  opacity: 0;
+}
+
+@keyframes sparkle {
+  0%, 100% { opacity: 0; transform: scale(0) rotate(0deg); }
+  50% { opacity: 1; transform: scale(1) rotate(180deg); }
+}
+
+/* ========== EXCLUSIVE ICON DROP-IN ANIMATION ========== */
+/* Only for exclusive colors - icon drops from above on page load */
+.color-item[data-tier="exclusive"] .color-icon,
+.color-item[data-tier="premium-exclusive"] .color-icon {
+  animation: iconDropIn 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards,
+             iconFloatPop 2.5s ease-in-out 0.8s infinite;
+}
+
+@keyframes iconDropIn {
+  0% {
+    transform: translate(-50%, -200%) scale(0) rotate(-180deg);
+    opacity: 0;
+    filter: drop-shadow(0 0 0 transparent);
+  }
+  60% {
+    transform: translate(-50%, -60%) scale(1.2) rotate(10deg);
+    opacity: 1;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+  }
+  80% {
+    transform: translate(-50%, -45%) scale(0.9) rotate(-5deg);
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1) rotate(0deg);
+    opacity: 1;
+    filter: drop-shadow(0 1px 0 rgba(255,255,255,0.8))
+            drop-shadow(0 2px 0 rgba(255,255,255,0.6))
+            drop-shadow(0 3px 0 rgba(255,255,255,0.4))
+            drop-shadow(0 4px 8px rgba(0,0,0,0.4))
+            drop-shadow(0 8px 16px rgba(0,0,0,0.3))
+            drop-shadow(0 0 20px rgba(255,255,255,0.5));
+  }
+}
+
+/* Drop shadow effect under icon */
+.color-item[data-tier="exclusive"] .color-preview::after,
+.color-item[data-tier="premium-exclusive"] .color-preview::after {
+  content: "";
+  position: absolute;
+  bottom: 5px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 30px;
+  height: 6px;
+  background: rgba(0,0,0,0.15);
+  border-radius: 50%;
+  animation: dropShadowScale 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+  opacity: 0;
+}
+
+@keyframes dropShadowScale {
+  0% {
+    transform: translateX(-50%) scale(0);
+    opacity: 0;
+  }
+  60% {
+    transform: translateX(-50%) scale(1.5);
+    opacity: 0.3;
+  }
+  100% {
+    transform: translateX(-50%) scale(1);
+    opacity: 0.2;
+  }
+}
+
+@media (max-width: 768px) {
+    .shop-content {
+        grid-template-columns: 1fr;
+    }
+    .color-grid {
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    }
+}
+</style>
+</head>
+<body>
+<div class="shop-container">
+    <div class="shop-header">
+        <h1>🎨 Cửa Hàng Token & Màu Sắc</h1>
+        <p>Nạp token và mua màu sắc đẹp cho chatbot của bạn!</p>
+        <button id="admin-btn" class="admin-btn" onclick="tokenShop.showAdminPanel()">🔐 Admin</button>
+    </div>
+
+    <div class="shop-content">
+        <!-- Token Section -->
+        <div class="token-section">
+            <h2 class="section-title">💰 Nạp Token</h2>
+            
+            <div class="token-info">
+                <div class="token-amount" id="current-tokens">0</div>
+                <div class="token-label">Tokens hiện tại</div>
+            </div>
+
+            <div class="token-form">
+                <div class="token-input-group">
+                    <input type="number" id="token-amount" class="token-input" placeholder="Nhập số token..." min="0">
+                    <button class="token-btn" onclick="addTokens()">Nạp Token</button>
+                </div>
+                <div style="font-size: 12px; color: var(--text-secondary);">
+                    Nhập số token muốn nạp vào tài khoản
+                </div>
+            </div>
+
+            <div id="token-message"></div>
+        </div>
+
+        <!-- Color Section -->
+        <div class="color-section">
+            <h2 class="section-title">🎨 Cửa Hàng Màu Sắc</h2>
+            <div class="color-grid" id="color-grid">
+                <!-- Colors will be loaded dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <div style="text-align: center; margin-top: 30px;">
+        <a href="index.html" class="back-btn">🏠 Quay lại Chatbot</a>
+    </div>
+</div>
+
+<script src="token-shop-new.js"></script>
+</body>
+</html>

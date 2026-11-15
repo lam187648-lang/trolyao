@@ -1,0 +1,263 @@
+:root {
+  --garden-bg: #080d18;
+  --garden-surface: rgba(17, 27, 45, 0.88);
+  --garden-border: rgba(148, 163, 184, 0.14);
+  --garden-text: #f1f5f9;
+  --garden-muted: #94a3b8;
+  --garden-primary: #38bdf8;
+}
+
+body {
+  min-height: 100vh;
+  background:
+    radial-gradient(ellipse at 50% 100%, rgba(6, 182, 212, 0.1), transparent 40%),
+    radial-gradient(ellipse at 15% 0%, rgba(37, 99, 235, 0.13), transparent 35%),
+    var(--garden-bg);
+  color: var(--garden-text);
+  font-family: Inter, "Be Vietnam Pro", system-ui, sans-serif;
+}
+
+header {
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--garden-border);
+  background: rgba(10, 16, 32, 0.92);
+  box-shadow: none;
+  backdrop-filter: blur(16px);
+}
+
+header h1,
+.intro h1 {
+  color: var(--garden-text);
+}
+
+header h1 {
+  font-size: 19px;
+  letter-spacing: -0.02em;
+}
+
+nav a {
+  color: #7dd3fc;
+}
+
+nav a:hover {
+  color: #bae6fd;
+}
+
+#user-info {
+  color: var(--garden-muted);
+}
+
+main {
+  width: min(100% - 24px, 1120px);
+  padding: 30px 12px;
+}
+
+.intro {
+  margin-bottom: 28px;
+}
+
+.intro h1 {
+  font-size: clamp(24px, 4vw, 32px);
+  letter-spacing: -0.04em;
+}
+
+.intro p {
+  max-width: 650px;
+  margin: 0 auto;
+  color: var(--garden-muted);
+  font-size: 14px;
+}
+
+.game-section {
+  gap: 16px;
+}
+
+.setup,
+.garden {
+  min-width: min(100%, 300px);
+  padding: 20px;
+  border: 1px solid var(--garden-border);
+  border-radius: 16px;
+  background: var(--garden-surface);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(16px);
+}
+
+.setup h2,
+.garden h2 {
+  color: #e2e8f0;
+  font-size: 17px;
+}
+
+.seed,
+.time {
+  border: 1px solid var(--garden-border);
+  border-radius: 11px;
+  background: rgba(8, 13, 24, 0.55);
+  color: #cbd5e1;
+  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+}
+
+.seed:hover,
+.time:hover {
+  transform: translateY(-1px);
+  border-color: rgba(56, 189, 248, 0.38);
+}
+
+.seed.selected,
+.time.selected {
+  border-color: rgba(56, 189, 248, 0.58);
+  background: rgba(56, 189, 248, 0.1);
+  color: #e0f2fe;
+}
+
+button#startBtn,
+button#stopBtn {
+  border-radius: 11px;
+}
+
+button#startBtn {
+  background: linear-gradient(110deg, #2563eb, #0891b2);
+}
+
+button#stopBtn {
+  background: #7f1d2d !important;
+}
+
+.garden-display {
+  position: relative;
+  min-height: 320px;
+  padding: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(148, 163, 184, 0.08);
+  border-radius: 14px;
+  background:
+    radial-gradient(ellipse at 50% 38%, rgba(56, 189, 248, 0.11), transparent 48%),
+    rgba(8, 13, 24, 0.5);
+}
+
+.garden-display::before {
+  position: absolute;
+  right: 12%;
+  bottom: 42%;
+  left: 12%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(103, 232, 249, 0.24), transparent);
+  content: "";
+}
+
+.tree-image {
+  position: relative;
+  z-index: 1;
+  width: min(190px, 55vw);
+  height: min(190px, 55vw);
+  object-fit: contain;
+  border-radius: 14px;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.18);
+  filter: drop-shadow(0 0 18px rgba(56, 189, 248, 0.12));
+}
+
+.garden-growing .tree-image.stage-enter,
+.garden-complete .tree-image.stage-enter {
+  animation: treeStageEnter 650ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+@keyframes treeStageEnter {
+  from { opacity: 0.45; transform: translateY(9px) scale(0.94); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.timer {
+  position: relative;
+  z-index: 1;
+  color: #67e8f9;
+  font-size: 30px;
+  font-variant-numeric: tabular-nums;
+}
+
+.progress {
+  height: 9px;
+  margin: 16px 0;
+  background: #17243a;
+}
+
+.progress-bar {
+  border-radius: inherit;
+  background: linear-gradient(90deg, #2563eb, #06b6d4);
+  box-shadow: 0 0 14px rgba(56, 189, 248, 0.25);
+}
+
+#status {
+  position: relative;
+  z-index: 1;
+  color: var(--garden-muted);
+}
+
+.reward {
+  border: 1px solid rgba(34, 197, 94, 0.24);
+  background: rgba(34, 197, 94, 0.07);
+  color: #bbf7d0;
+}
+
+.reward h3 {
+  color: #86efac;
+}
+
+.reward p {
+  color: #bbf7d0;
+}
+
+footer {
+  margin-top: 20px;
+  border-top: 1px solid var(--garden-border);
+  background: rgba(10, 16, 32, 0.72);
+  color: #64748b;
+}
+
+.theme-toggle {
+  border: 1px solid var(--garden-border);
+  background: #111b2d;
+  color: #67e8f9;
+}
+
+.color-theme-panel {
+  border: 1px solid var(--garden-border);
+  background: #0b1220;
+  color: var(--garden-text);
+}
+
+.color-theme-panel .panel-header h3 {
+  color: var(--garden-text);
+}
+
+.color-item {
+  border-color: var(--garden-border);
+  background: #111b2d;
+}
+
+@media (max-width: 680px) {
+  main {
+    width: 100%;
+    padding: 22px 14px;
+  }
+
+  .setup,
+  .garden {
+    min-width: 0;
+    padding: 16px;
+  }
+
+  .time-options {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
