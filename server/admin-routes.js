@@ -1,8 +1,30 @@
+const crypto = require("node:crypto");
 const express = require("express");
 const { pool, requireDatabase, withTransaction } = require("./database");
 const { authenticate, requireAdmin } = require("./auth-middleware");
 
 const router = express.Router();
+const DIAGNOSTIC_TABLES = ["users", "sessions", "schema_migrations"];
+const diagnosticSecret = process.env.DB_DIAGNOSTIC_SECRET?.trim() || "";
+
+function safePostgresErrorCode(error) {
+  const code = error && error.code;
+  return typeof code === "string" && /^[A-Z0-9_]+$/.test(code) ? code : "UNKNOWN";
+}
+
+function authorizeDatabaseDiagnostic(req, res, next) {
+  const suppliedSecret = req.get("x-db-diagnostic-secret") || "";
+  if (diagnosticSecret.length < 32 || suppliedSecret.length > 512) {
+    return res.status(401).json({ authorized: false });
+  }
+
+  const expectedHash = crypto.createHash("sha256").update(diagnosticSecret).digest();
+  const suppliedHash = crypto.createHash("sha256").update(suppliedSecret).digest();
+  if (!crypto.timingSafeEqual(expectedHash, suppliedHash)) {
+    return res.status(401).json({ authorized: false });
+  }
+  next();
+}
 
 function asyncRoute(handler) {
   return (req, res, next) => Promise.resolve(handler(req, res, next)).catch(next);
@@ -20,6 +42,58 @@ function audit(client, actorId, targetId, action, details = {}) {
     [actorId, targetId, action, JSON.stringify(details)]
   );
 }
+
+router.get("/db-diagnostic", authorizeDatabaseDiagnostic, asyncRoute(async (_req, res) => {
+  if (!pool) {
+    return res.status(503).json({
+      databaseReachable: false,
+      postgresErrorCode: null
+    });
+  }
+
+  try {
+    const { rows } = await pool.query(
+      `SELECT table_name
+       FROM information_schema.tables
+       WHERE table_schema = current_schema()
+         AND table_type = 'BASE TABLE'
+         AND table_name = ANY($1::text[])`,
+      [DIAGNOSTIC_TABLES]
+    );
+    const existingTables = new Set(rows.map((row) => row.table_name));
+    const tables = Object.fromEntries(
+      DIAGNOSTIC_TABLES.map((tableName) => [tableName, existingTables.has(tableName)])
+    );
+    const missingTables = DIAGNOSTIC_TABLES.filter((tableName) => !tables[tableName]);
+    let migrationApplied = false;
+
+    if (tables.schema_migrations) {
+      const { rows: migrationRows } = await pool.query(
+        `SELECT EXISTS (
+           SELECT 1 FROM schema_migrations
+           WHERE migration_id = $1
+         ) AS applied`,
+        ["001_initial_schema"]
+      );
+      migrationApplied = migrationRows[0].applied;
+    }
+
+    return res.json({
+      databaseReachable: true,
+      tables,
+      missingTables,
+      migrationApplied,
+      postgresErrorCode: null
+    });
+  } catch (error) {
+    const errorCode = safePostgresErrorCode(error);
+    console.error("PostgreSQL diagnostic query failed:", errorCode);
+    return res.status(503).json({
+      databaseReachable: false,
+      postgresErrorCode: errorCode
+    });
+  }
+}));
 
 router.use(requireDatabase, authenticate, requireAdmin);
 

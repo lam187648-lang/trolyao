@@ -19,6 +19,7 @@ Thêm các biến cần dùng trực tiếp trong Render Dashboard → Environme
 
 - `OPENROUTER_API_KEY` — bắt buộc để dùng chat AI.
 - `DATABASE_URL` — PostgreSQL connection string; tài khoản và API quản trị trả `503 DATABASE_NOT_CONFIGURED` nếu chưa thiết lập.
+- `DB_DIAGNOSTIC_SECRET` — secret ngẫu nhiên tối thiểu 32 ký tự để gọi riêng `GET /admin/db-diagnostic`; endpoint trả `401` nếu biến thiếu hoặc secret sai.
 - `OPENROUTER_MODEL`, `OPENROUTER_SITE_URL` — tùy chọn.
 - `PUSHER_APP_ID`, `PUSHER_KEY`, `PUSHER_SECRET`, `PUSHER_CLUSTER` — chỉ cần nếu bật Pusher.
 
@@ -27,6 +28,21 @@ Mẫu tên biến (không chứa bí mật) ở [`.env.example`](.env.example). 
 **Quan trọng:** Secret Pusher cũ từng xuất hiện trong mã nguồn. Hãy thu hồi/rotate secret đó trong Pusher Dashboard ngay; không tái sử dụng secret cũ và không commit secret mới lên GitHub. Chỉ nhập secret mới trực tiếp vào Render Environment. Nếu chưa cấu hình đủ 4 biến Pusher, tính năng realtime sẽ tự tắt.
 
 Khi chưa có `DATABASE_URL`, `/auth/status` báo rõ database chưa cấu hình và frontend không tạo tài khoản cục bộ mới. Tài khoản LocalStorage cũ vẫn được giữ; nếu đăng nhập theo chế độ cũ, dữ liệu đó chỉ là dữ liệu cục bộ, không có giá trị phân quyền hoặc số dư trên server.
+
+### Chẩn đoán PostgreSQL
+
+1. Tạo secret ngẫu nhiên 32 byte trên máy quản trị, ví dụ `openssl rand -base64 32`. Đặt kết quả vào biến `DB_DIAGNOSTIC_SECRET` trong Render Dashboard → Web Service → Environment, rồi deploy/restart service. Không đưa secret vào Git, query string, ảnh chụp màn hình hoặc chat.
+2. Đặt cùng secret vào biến môi trường của terminal quản trị hoặc secret manager cục bộ, rồi gọi endpoint bằng header (không truyền secret trong URL):
+
+```sh
+curl --fail-with-body --silent --show-error \
+  -H "X-DB-Diagnostic-Secret: ${DB_DIAGNOSTIC_SECRET}" \
+  https://trolyao-1.onrender.com/admin/db-diagnostic
+```
+
+PowerShell có thể dùng `curl.exe -H "X-DB-Diagnostic-Secret: $env:DB_DIAGNOSTIC_SECRET" https://trolyao-1.onrender.com/admin/db-diagnostic`.
+
+Endpoint chỉ đọc `information_schema.tables` và marker `001_initial_schema`; phản hồi chỉ gồm trạng thái kết nối/bảng/migration, danh sách tên bảng thiếu và mã lỗi PostgreSQL. Secret thiếu/sai trả `401`. Endpoint không tạo bảng, chạy migration hay đọc dữ liệu tài khoản. Sau khi chẩn đoán xong, xóa `DB_DIAGNOSTIC_SECRET` khỏi Render Environment và deploy/restart để đóng endpoint.
 
 ### Bước 4: Deploy
 Click "Create Web Service" → Wait for build ✅
@@ -81,6 +97,7 @@ Không có dữ liệu trình duyệt nào bị xóa hoặc tự gửi lên serv
 | `/health` | GET | Server status |
 | `/chat` | POST | AI chat with OpenRouter |
 | `/auth/status` | GET | Trạng thái PostgreSQL và migration `001_initial_schema` |
+| `/admin/db-diagnostic` | GET | Chẩn đoán chỉ đọc; yêu cầu header `X-DB-Diagnostic-Secret` |
 | `/auth/register`, `/auth/login` | POST | Đăng ký/đăng nhập, bcrypt và session token |
 | `/auth/me`, `/auth/logout` | GET/POST | Kiểm tra hoặc thu hồi session |
 | `/api/balance`, `/api/transactions` | GET | Token cá nhân |
