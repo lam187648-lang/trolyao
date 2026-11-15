@@ -1,0 +1,28 @@
+{
+  "routes": {
+    "home": "index.html",
+    "studyRoom": "study-room.html",
+    "admin": "admin-simple.html",
+    "token": "token-page.html",
+    "adminPanel": "admin-panel.html"
+  },
+  "api": {
+    "chat": "http://localhost:3000/chat",
+    "render": "https://trolyao-51sj.onrender.com/chat"
+  },
+  "paths": {
+    "base": "./",
+    "assets": "./assets/",
+    "data": "./data/",
+    "temp": "./temp/"
+  },
+  "features": {
+    "studyRoom": true,
+    "adminPanel": false,
+    "tokenSystem": true,
+    "colorThemes": true,
+    "userManagement": false
+  },
+  "version": "1.0.0",
+  "lastUpdated": "2025-04-11T00:00:00.000Z"
+}

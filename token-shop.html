@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cửa Hàng Token & Màu Sắc</title>
+<link rel="stylesheet" href="style.css">
+<style>
+.shop-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    background: var(--surface);
+    min-height: 100vh;
+}
+.shop-header {
+    text-align: center;
+    margin-bottom: 30px;
+    padding: 20px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+    color: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+}
+.shop-content {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 30px;
+    margin-bottom: 30px;
+}
+.token-section, .color-section {
+    background: var(--surface-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 25px;
+    box-shadow: var(--shadow-sm);
+}
+.section-title {
+    color: var(--primary);
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.token-info {
+    background: var(--primary-light);
+    padding: 20px;
+    border-radius: var(--radius);
+    border: 1px solid var(--primary);
+    text-align: center;
+    margin-bottom: 20px;
+}
+.token-amount {
+    font-size: 32px;
+    font-weight: bold;
+    color: var(--primary);
+}
+.token-label {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-top: 5px;
+}
+.token-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+.token-input-group {
+    display: flex;
+    gap: 10px;
+}
+.token-input {
+    flex: 1;
+    padding: 12px;
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 16px;
+    background: var(--surface);
+    color: var(--text-primary);
+}
+.token-btn {
+    background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: var(--radius);
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: var(--shadow-md);
+}
+.token-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+.color-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
+}
+.color-item {
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    padding: 15px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+.color-item:hover:not(.locked) {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--primary);
+}
+.color-item.locked {
+    opacity: 0.8;
+    cursor: not-allowed;
+}
+.color-item.purchased {
+    border-color: var(--primary);
+    background: var(--primary-light);
+}
+.color-preview {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    margin: 0 auto 10px;
+    box-shadow: var(--shadow-md);
+    position: relative;
+}
+.color-name {
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 5px;
+}
+.color-price {
+    font-size: 14px;
+    color: var(--primary);
+    font-weight: bold;
+    background: var(--primary-light);
+    padding: 5px 10px;
+    border-radius: var(--radius-sm);
+    display: inline-block;
+}
+.color-owned {
+    font-size: 12px;
+    color: #059669;
+    font-weight: 600;
+    background: rgba(5, 150, 105, 0.1);
+    padding: 5px 10px;
+    border-radius: var(--radius-sm);
+    display: inline-block;
+}
+.lock-icon {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: var(--surface);
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+}
+.back-btn {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-weight: 500;
+    text-decoration: none;
+    display: inline-block;
+    transition: all 0.2s ease;
+}
+.back-btn:hover {
+    background: var(--primary-hover);
+    transform: translateY(-1px);
+}
+.success-message {
+    background: #10b981;
+    color: white;
+    padding: 15px;
+    border-radius: var(--radius);
+    margin-top: 20px;
+    font-weight: 500;
+    animation: slideIn 0.3s ease-out;
+}
+.error-message {
+    background: #ef4444;
+    color: white;
+    padding: 15px;
+    border-radius: var(--radius);
+    margin-top: 20px;
+    font-weight: 500;
+    animation: slideIn 0.3s ease-out;
+}
+@keyframes slideIn {
+    from { transform: translateY(-20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+@media (max-width: 768px) {
+    .shop-content {
+        grid-template-columns: 1fr;
+    }
+    .color-grid {
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    }
+}
+</style>
+</head>
+<body>
+<div class="shop-container">
+    <div class="shop-header">
+        <h1>🛍️ Cửa Hàng Token & Màu Sắc</h1>
+        <p>Nạp token và mua màu sắc đẹp cho chatbot của bạn!</p>
+    </div>
+
+    <div class="shop-content">
+        <!-- Token Section -->
+        <div class="token-section">
+            <h2 class="section-title">💰 Nạp Token</h2>
+            
+            <div class="token-info">
+                <div class="token-amount" id="current-tokens">0</div>
+                <div class="token-label">Tokens hiện tại</div>
+            </div>
+
+            <div class="token-form">
+                <div class="token-input-group">
+                    <input type="number" id="token-amount" class="token-input" placeholder="Nhập số token..." min="0">
+                    <button class="token-btn" onclick="addTokens()">Nạp Token</button>
+                </div>
+                <div style="font-size: 12px; color: var(--text-secondary);">
+                    Nhập số token muốn nạp vào tài khoản
+                </div>
+            </div>
+
+            <div id="token-message"></div>
+        </div>
+
+        <!-- Color Section -->
+        <div class="color-section">
+            <h2 class="section-title">🎨 Cửa Hàng Màu Sắc</h2>
+            <div class="color-grid" id="color-grid">
+                <!-- Colors will be loaded dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <div style="text-align: center; margin-top: 30px;">
+        <a href="index.html" class="back-btn">← Quay lại Chatbot</a>
+    </div>
+</div>
+
+<script src="token-shop.js"></script>
+</body>
+</html>

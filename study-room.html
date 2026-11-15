@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Phòng Học Trực Tuyến - Chatbot</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="study-room.css">
+<link rel="stylesheet" href="study-room-auth.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>">
+</head>
+
+<body>
+
+<div class="study-room-container">
+    <!-- Header -->
+    <div class="study-header">
+        <div class="header-left">
+            <button class="back-btn" id="back-btn" onclick="window.location.href='index.html'">
+                <span>←</span> Quay lại Chatbot
+            </button>
+        </div>
+        <div class="header-center">
+            <h1>Phòng Học Trực Tuyến</h1>
+            <div class="room-info">
+                <span class="user-count">
+                    <span id="current-users">0</span>/50 người
+                </span>
+                <span class="room-status status-online">Online</span>
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="timer-display">
+                <span class="timer-icon">⏱</span>
+                <span id="study-timer">00:00:00</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="study-content">
+        <!-- Study Grid -->
+        <div class="study-grid" id="study-grid">
+            <!-- Grid slots will be generated dynamically -->
+        </div>
+
+        <!-- Join Section -->
+        <div class="join-section" id="join-section">
+            <div class="join-card">
+                <div class="join-icon">📖</div>
+                <h2>Tham Gia Phòng Học</h2>
+                <p>Hãy tham gia phòng học để cùng nhau học tập và chia sẻ kiến thức!</p>
+                
+                <div class="join-form">
+                    <div class="avatar-upload-section">
+                        <div class="avatar-preview" id="avatar-preview">
+                            <img src="" alt="Avatar" id="preview-img" style="display: none;">
+                            <div class="avatar-placeholder">👤</div>
+                        </div>
+                        <input type="file" id="avatar-input" accept="image/*" hidden>
+                        <button type="button" class="upload-avatar-btn" id="upload-avatar-btn">
+                            Chọn Avatar
+                        </button>
+                    </div>
+                    
+                    <div class="name-input-section">
+                        <input type="text" id="user-name-input" placeholder="Nhập tên của bạn..." maxlength="20">
+                    </div>
+                    
+                    <button type="button" class="join-room-btn" id="join-room-btn">
+                        Tham Gia Ngay
+                    </button>
+                </div>
+                
+                <div class="room-rules">
+                    <h3>Quy tắc phòng học:</h3>
+                    <ul>
+                        <li>Giữ yên tĩnh, không làm phiền người khác</li>
+                        <li>Tập trung học tập, không làm việc riêng</li>
+                        <li>Tôn trọng và giúp đỡ các thành viên</li>
+                        <li>Giữ học ít nhất 15 phút khi tham gia</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer Stats -->
+    <div class="study-footer">
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="stat-icon">📖</div>
+                <div class="stat-info">
+                    <div class="stat-value" id="total-study-time">0</div>
+                    <div class="stat-label">Phút học</div>
+                </div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-icon">👥</div>
+                <div class="stat-info">
+                    <div class="stat-value" id="active-users">0</div>
+                    <div class="stat-label">Người học</div>
+                </div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-icon">🔥</div>
+                <div class="stat-info">
+                    <div class="stat-value" id="study-streak">0</div>
+                    <div class="stat-label">Ngày liên tiếp</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="study-room.js"></script>
+
+</body>
+</html>
