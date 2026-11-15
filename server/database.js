@@ -23,7 +23,11 @@ if (pool) {
 }
 
 async function checkDatabaseConnection() {
-  if (!pool) return false;
+  console.log("🔎 Checking PostgreSQL connection...");
+  if (!pool) {
+    console.error("⚠️ DATABASE_URL is not configured or is empty; PostgreSQL connection check skipped.");
+    return false;
+  }
 
   try {
     await pool.query("SELECT NOW()");

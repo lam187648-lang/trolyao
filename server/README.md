@@ -12,6 +12,7 @@ Backend server cho ứng dụng Chatbot hỗ trợ học tập.
 ### Bước 2: Cấu hình Build & Start
 - **Build Command**: `npm install`
 - **Start Command**: `npm start`
+- **Root Directory**: `server`
 
 ### Bước 3: Thêm Environment Variables
 Thêm các biến cần dùng trực tiếp trong Render Dashboard → Environment. Không đưa giá trị bí mật vào GitHub:
@@ -104,6 +105,9 @@ Không có dữ liệu trình duyệt nào bị xóa hoặc tự gửi lên serv
 - Token grant/spend dùng transaction và ghi lịch sử; giao dịch quản trị được audit
 
 ## 🐛 Troubleshooting
+
+### Render chỉ hiện `Trợ Lý Ảo backend đang chạy ở port ...`
+Log này được in bởi `server.js` ở thư mục gốc, entrypoint cũ không nạp PostgreSQL. Hãy đặt **Root Directory** của Render thành `server` (không để trống); Build Command `npm install`, Start Command `npm start`. Backend trong thư mục này mới gọi kiểm tra `DATABASE_URL` khi HTTP server đã lắng nghe.
 
 ### Lỗi "Missing OPENROUTER_API_KEY"
 → Thêm ENV variable `OPENROUTER_API_KEY` trong Render Dashboard
