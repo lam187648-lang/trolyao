@@ -215,34 +215,56 @@ async function comparePassword(candidatePassword, storedPassword) {
 }
 
 async function registerUser(username, password) {
-  const users = JSON.parse(localStorage.getItem('users') || '{}');
-
-  if (!/^[\p{L}\p{N}_-]{2,24}$/u.test(username)) {
-    return { success: false, message: 'Tên đăng nhập cần dài 2–24 ký tự, chỉ gồm chữ, số, dấu gạch dưới hoặc gạch ngang.' };
+  let databaseConfigured;
+  try {
+    databaseConfigured = (await window.AuthApi.databaseStatus()).databaseConfigured;
+  } catch (error) {
+    return { success: false, message: `Không kết nối được máy chủ xác thực: ${error.message}` };
   }
-  if (typeof password !== 'string' || password.length < 8 || password.length > 128) {
-    return { success: false, message: 'Mật khẩu cần có từ 8 đến 128 ký tự.' };
+  if (databaseConfigured) {
+    try {
+      const result = await window.AuthApi.register(username, password);
+      await window.AuthApi.storeSession(result);
+      loadUserData(username);
+      return { success: true, message: 'Tạo tài khoản server thành công.' };
+    } catch (error) {
+      return { success: false, message: error.message || 'Không thể tạo tài khoản server.' };
+    }
   }
 
-  if (users[username]) {
-    return { success: false, message: 'Tên này already exists!' };
-  }
-
-  users[username] = {
-    password: await hashPassword(password),
-    avatar: '',
-    tokens: 100,
-    purchasedColors: [],
-    selectedColorTheme: '0',
-    createdAt: new Date().toISOString()
+  return {
+    success: false,
+    message: 'Chưa thể tạo tài khoản mới vì PostgreSQL trên máy chủ chưa được cấu hình. Dữ liệu LocalStorage cũ vẫn được giữ nguyên.'
   };
-
-  localStorage.setItem('users', JSON.stringify(users));
-  return { success: true, message: 'Registration successful!' };
 }
 
 async function loginUser(username, password) {
+  let databaseConfigured;
+  try {
+    databaseConfigured = (await window.AuthApi.databaseStatus()).databaseConfigured;
+  } catch (error) {
+    return { success: false, message: `Không kết nối được máy chủ xác thực: ${error.message}` };
+  }
+  if (databaseConfigured) {
+    try {
+      const result = await window.AuthApi.login(username, password);
+      await window.AuthApi.storeSession(result);
+      socket?.emit("join", { username });
+      loadUserData(username);
+      return { success: true, message: 'Đăng nhập server thành công.' };
+    } catch (error) {
+      return { success: false, message: error.message || 'Không thể đăng nhập.' };
+    }
+  }
+
   const users = JSON.parse(localStorage.getItem('users') || '{}');
+  if (users[username]?.serverAccount) {
+    const legacyUsers = JSON.parse(localStorage.getItem('legacyUsers') || '{}');
+    if (legacyUsers[username]) {
+      users[username] = legacyUsers[username];
+      localStorage.setItem('users', JSON.stringify(users));
+    }
+  }
 
   if (!users[username]) {
     return { success: false, message: 'User not found!' };
@@ -261,30 +283,21 @@ async function loginUser(username, password) {
   localStorage.setItem('currentUser', username);
 
   // Emit join event to server
-  socket?.emit("join", {
-    username,
-    isAdmin: username === "admin"
-  });
+  socket?.emit("join", { username });
 
-  // Check if first time login
-  if (!user.hasReceivedFirstBonus) {
-    user.tokens = (user.tokens || 0) + 100;
-    user.hasReceivedFirstBonus = true;
-    users[username] = user;
-    localStorage.setItem('users', JSON.stringify(users));
-
-    loadUserData(username);
-    return { success: true, message: 'Login successful! 🎉 Bạn nhận được 100 tokens thưởng cho lần đăng nhập đầu tiên!' };
-  } else {
-    loadUserData(username);
-    return { success: true, message: 'Login successful!' };
-  }
+  loadUserData(username);
+  return { success: true, message: 'Đăng nhập cục bộ thành công. Token chỉ thay đổi theo dữ liệu đã lưu.' };
 }
 
 function logoutUser() {
   const currentUser = getCurrentUser();
   if (currentUser) {
     saveUserData(currentUser);
+  }
+  if (window.AuthApi?.hasSession()) {
+    window.AuthApi.logout().catch(error => {
+      console.error("Server logout failed:", error.message);
+    });
   }
   currentChatId = null;
   conversationHistory.length = 0;
@@ -338,9 +351,11 @@ function saveUserData(username) {
 
   if (users[username]) {
     users[username].avatar = localStorage.getItem('userAvatar') || '';
-    users[username].tokens = parseInt(localStorage.getItem('userTokens') || '0');
-    users[username].purchasedColors = JSON.parse(localStorage.getItem('purchasedColors') || '[]');
-    users[username].selectedColorTheme = localStorage.getItem('selectedColorTheme') || '0';
+    if (!users[username].serverAccount) {
+      users[username].tokens = parseInt(localStorage.getItem('userTokens') || '0');
+      users[username].purchasedColors = JSON.parse(localStorage.getItem('purchasedColors') || '[]');
+      users[username].selectedColorTheme = localStorage.getItem('selectedColorTheme') || '0';
+    }
 
     localStorage.setItem('users', JSON.stringify(users));
   }
@@ -355,6 +370,9 @@ function checkAuthStatus() {
   if (savedUser) {
     const users = JSON.parse(localStorage.getItem('users') || '{}');
     if (users[savedUser]) {
+      if (users[savedUser].serverAccount && !window.AuthApi?.hasSession()) {
+        return false;
+      }
       // Check if user is banned
       const banStatus = checkUserBan();
       if (banStatus.isBanned) {
@@ -496,7 +514,7 @@ function initLocalStorage() {
     localStorage.setItem('userAvatar', '');
   }
   if (!localStorage.getItem('userTokens')) {
-    localStorage.setItem('userTokens', '100'); // New users get 100 tokens
+    localStorage.setItem('userTokens', '0');
   }
   if (!localStorage.getItem('userName')) {
     localStorage.setItem('userName', 'Người dùng');
@@ -508,8 +526,6 @@ function initLocalStorage() {
     localStorage.setItem('purchasedColors', JSON.stringify([]));
   }
 
-  // Clean up old schedule data
-  localStorage.removeItem('userSchedule');
 }
 
 // Check if current user is banned
@@ -601,31 +617,49 @@ registerForm.addEventListener('submit', async (e) => {
 });
 
 // Sidebar functionality
+function updateMenuToggle(isOpen) {
+  menuToggle.setAttribute("aria-expanded", String(isOpen));
+  menuToggle.setAttribute("aria-label", isOpen ? "Đóng menu" : "Mở menu");
+  menuToggle.title = isOpen ? "Đóng menu" : "Mở menu";
+}
+
 function openSidebar() {
   if (window.matchMedia("(min-width: 900px)").matches) {
     const collapsed = document.body.classList.toggle("sidebar-collapsed");
-    menuToggle.setAttribute("aria-expanded", String(!collapsed));
+    updateMenuToggle(!collapsed);
     return;
   }
   sidebar.classList.add('open');
   overlay.classList.add('active');
-  menuToggle.setAttribute("aria-expanded", "true");
+  updateMenuToggle(true);
 }
 
 function closeSidebar() {
   if (window.matchMedia("(min-width: 900px)").matches) {
     document.body.classList.add("sidebar-collapsed");
-    menuToggle.setAttribute("aria-expanded", "false");
+    updateMenuToggle(false);
     return;
   }
   sidebar.classList.remove('open');
   overlay.classList.remove('active');
-  menuToggle.setAttribute("aria-expanded", "false");
+  updateMenuToggle(false);
 }
 
 menuToggle.addEventListener('click', openSidebar);
 sidebarClose.addEventListener('click', closeSidebar);
 overlay.addEventListener('click', closeSidebar);
+
+function syncSidebarForViewport() {
+  sidebar.classList.remove('open');
+  overlay.classList.remove('active');
+  updateMenuToggle(
+    window.matchMedia("(min-width: 900px)").matches &&
+    !document.body.classList.contains("sidebar-collapsed")
+  );
+}
+
+window.addEventListener('resize', syncSidebarForViewport);
+syncSidebarForViewport();
 
 // Avatar upload functionality
 changeAvatarBtn.addEventListener('click', () => avatarUpload.click());
@@ -714,7 +748,8 @@ function initColorThemes() {
       themeItem.classList.add('selected');
     }
 
-    const isPurchased = purchasedColors.includes(theme.id);
+    const isPurchased = purchasedColors.includes(theme.id) ||
+      (window.AuthApi?.hasSession() && theme.price === 0 && !theme.unlockRequired);
     const canAfford = currentTokens >= theme.price;
     const isLocked = theme.unlockRequired && !isPurchased;
 
@@ -761,8 +796,36 @@ function initColorThemes() {
   });
 }
 
-function selectColorTheme(theme) {
+async function selectColorTheme(theme) {
   const purchasedColors = JSON.parse(localStorage.getItem('purchasedColors') || '[]');
+
+  if (window.AuthApi?.hasSession()) {
+    const alreadyOwned = purchasedColors.includes(theme.id) ||
+      (theme.price === 0 && !theme.unlockRequired);
+    if (theme.unlockRequired && !purchasedColors.includes(theme.id)) {
+      addMessage(`Màu ${theme.name} chỉ Admin mới có thể cấp.`, "bot");
+      return;
+    }
+    try {
+      if (!alreadyOwned) {
+        await window.AuthApi.request(`/api/themes/${theme.id}/purchase`, { method: "POST" });
+        const user = await window.AuthApi.restoreSession();
+        if (user) currentTokens = Number(user.tokenBalance) || 0;
+        updateTokenDisplay();
+      }
+      await window.AuthApi.request("/api/themes/selected", {
+        method: "PUT",
+        body: { themeId: String(theme.id) }
+      });
+      localStorage.setItem('selectedColorTheme', String(theme.id));
+      applyColorTheme(theme);
+      initColorThemes();
+      addMessage(`Đã áp dụng màu ${theme.name}!`, "bot");
+    } catch (error) {
+      addMessage(error.message || "Không thể cập nhật màu trên máy chủ.", "bot");
+    }
+    return;
+  }
 
   if (!purchasedColors.includes(theme.id)) {
     // Check if it's an exclusive color that needs unlocking in token shop
@@ -818,6 +881,10 @@ function selectColorTheme(theme) {
 }
 
 function applyColorTheme(theme) {
+  window.ThemeManager?.setColorTheme(String(theme.id));
+  document.documentElement.style.setProperty('--ai-primary', theme.primary);
+  document.documentElement.style.setProperty('--ai-primary-hover', theme.secondary);
+  document.documentElement.style.setProperty('--ai-accent', theme.secondary);
   document.documentElement.style.setProperty('--primary', theme.primary);
   document.documentElement.style.setProperty('--primary-hover', theme.secondary);
   document.documentElement.style.setProperty('--primary-light', theme.bg);
@@ -826,10 +893,14 @@ function applyColorTheme(theme) {
 
   // Apply full theme background (for premium themes use full color)
   if (theme.tier === 'premium-exclusive' && theme.bg.includes('gradient')) {
-    document.body.style.background = theme.bg + ' !important';
+    document.body.style.setProperty('background', theme.bg, 'important');
     document.body.style.backgroundAttachment = 'fixed';
   } else {
-    document.body.style.background = `linear-gradient(145deg, ${theme.bg} 0%, ${theme.primary}15 50%, ${theme.bg} 100%)`;
+    document.body.style.setProperty(
+      'background',
+      `linear-gradient(145deg, ${theme.bg} 0%, ${theme.primary}15 50%, ${theme.bg} 100%)`,
+      'important'
+    );
     document.body.style.backgroundAttachment = '';
   }
 
@@ -900,6 +971,9 @@ function updateTokenDisplay() {
 }
 
 function addTokens(amount) {
+  if (window.AuthApi?.hasSession()) {
+    throw new Error("Server-backed tokens must be granted by an authenticated API.");
+  }
   // ✅ FIX: Không âm + giới hạn MAX_TOKEN = 1 triệu
   const MAX_TOKEN = 1000000;
   currentTokens = Math.min(MAX_TOKEN, Math.max(0, currentTokens) + amount);
@@ -949,6 +1023,28 @@ function checkTokenReward() {
 
   // Award 20 tokens every 10 minutes (600000 ms)
   if (timeSinceLastReward >= 10 * 60 * 1000) {
+    if (window.AuthApi?.hasSession()) {
+      lastRewardTime = now;
+      window.AuthApi.request("/api/study-reward", { method: "POST" })
+        .then(async (result) => {
+          currentTokens = Number(result.tokenBalance) || 0;
+          localStorage.setItem('userTokens', String(currentTokens));
+          const user = await window.AuthApi.restoreSession();
+          if (user) currentTokens = Number(user.tokenBalance) || currentTokens;
+          updateTokenDisplay();
+          showTokenRewardNotification(20);
+        })
+        .catch((error) => {
+          if (error.status === 429 && Number.isFinite(error.retryAfterSeconds)) {
+            lastRewardTime = Date.now() - (10 * 60 * 1000 - error.retryAfterSeconds * 1000);
+            return;
+          }
+          console.error("Server study reward failed:", error.message);
+          addMessage("Không thể nhận Token thưởng từ máy chủ. Hãy thử lại sau.", "bot");
+        });
+      return;
+    }
+
     // Add tokens
     addTokens(20);
 
@@ -1105,6 +1201,7 @@ function createMessageWrapper(sender) {
 }
 
 function addMessage(text, sender, isHtml = false) {
+  if (sender === "user") document.body.classList.add("chat-started");
   const wrapper = createMessageWrapper(sender);
 
   const div = document.createElement("div");
@@ -1157,7 +1254,9 @@ function setSendingState(isSending) {
   input.disabled = isSending;
   imageInput.disabled = isSending;
   if (newChatButton) newChatButton.disabled = isSending;
-  sendBtn.textContent = isSending ? "..." : "Gửi >";
+  const sendLabel = document.getElementById("send-label");
+  if (sendLabel) sendLabel.textContent = isSending ? "Đang gửi" : "Gửi";
+  sendBtn.setAttribute("aria-label", isSending ? "Đang gửi tin nhắn" : "Gửi tin nhắn");
 }
 
 function normalizeAssistantContent(content) {
@@ -1211,6 +1310,7 @@ Quy tắc theo loại câu hỏi:
   });
 
   // Welcome message
+  document.body.classList.remove("chat-started");
   addMessage("Chào bạn! Mình là trợ lý AI. Bạn có thể hỏi bài tập, nhờ giải thích khái niệm, hoặc gửi ảnh để phân tích. Hãy thử chọn một chủ đề phía trên nhé!", "bot");
 }
 
@@ -1566,7 +1666,7 @@ async function sendMessage() {
 }
 
 // Initialize everything
-function init() {
+async function init() {
   // Fast initialization - only critical stuff first
   initLocalStorage();
   applyThemeFromStorage();
@@ -1574,9 +1674,36 @@ function init() {
   renderChatHistory();
   updateServerStatus();
 
-  // Check authentication status immediately
-  if (!checkAuthStatus()) {
+  let authenticated = false;
+  let authStatusError = null;
+  try {
+    const { databaseConfigured } = await window.AuthApi.databaseStatus();
+    const securityNote = document.querySelector(".auth-security-note");
+    if (securityNote) {
+      securityNote.textContent = databaseConfigured
+        ? "Tài khoản và Token được xác thực trên máy chủ. Dữ liệu LocalStorage cũ được giữ riêng trên thiết bị."
+        : "PostgreSQL chưa cấu hình; tài khoản chỉ lưu trên thiết bị này. Không dùng mật khẩu quan trọng.";
+    }
+    if (databaseConfigured) {
+      authenticated = Boolean(await window.AuthApi.restoreSession());
+    } else {
+      if (window.AuthApi.hasSession()) window.AuthApi.clearSession();
+      authenticated = checkAuthStatus();
+    }
+  } catch (error) {
+    authStatusError = error;
+  }
+
+  if (!authenticated) {
     showAuthModal();
+    if (authStatusError) {
+      addMessage(`Không kiểm tra được máy chủ xác thực: ${authStatusError.message}`, "bot");
+    } else if (getCurrentUser()) {
+      const users = JSON.parse(localStorage.getItem('users') || '{}');
+      if (users[getCurrentUser()]?.serverAccount) {
+        addMessage("Phiên server không còn hợp lệ. Dữ liệu LocalStorage cũ vẫn được giữ trên thiết bị.", "bot");
+      }
+    }
     // Defer heavy operations until after login
     setTimeout(() => {
       updateAvatarDisplay();
@@ -1659,5 +1786,5 @@ document.addEventListener('DOMContentLoaded', () => {
   safeAddListener(setTimeLimitBtn, 'click', setTimeLimit);
 
   // Initialize the application
-  init();
+  void init();
 });

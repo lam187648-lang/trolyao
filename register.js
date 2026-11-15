@@ -142,7 +142,7 @@ class RegisterPage {
     return true;
   }
 
-  handleRegister() {
+  async handleRegister() {
     const usernameInput = document.getElementById('username');
     const passwordInput = document.getElementById('password');
     const confirmPasswordInput = document.getElementById('confirm-password');
@@ -177,8 +177,8 @@ class RegisterPage {
       return;
     }
     
-    if (password.length < 6) {
-      this.showError(passwordInput, 'Mật khẩu phải có ít nhất 6 ký tự!');
+    if (password.length < 8) {
+      this.showError(passwordInput, 'Mật khẩu cần có ít nhất 8 ký tự!');
       return;
     }
     
@@ -192,65 +192,28 @@ class RegisterPage {
       return;
     }
     
+    if (!window.AuthApi) {
+      this.showMessage('Không tải được API xác thực. Vui lòng tải lại trang.', 'error');
+      return;
+    }
+
     this.setLoading(true);
-    
-    setTimeout(() => {
-      try {
-        const users = JSON.parse(this.getStorageItem('users') || '{}');
-        
-        if (users[username]) {
-          this.setLoading(false);
-          this.showMessage('Tên đăng nhập đã tồn tại! <a href="login.html">Đăng nhập ngay</a>', 'error');
-          return;
-        }
-        
-        // Create new user
-        const newUser = {
-          username: username,
-          password: btoa(password), // Store as base64
-          tokens: 100, // Initial tokens
-          avatar: '',
-          purchasedColors: [],
-          selectedColorTheme: '0',
-          createdAt: Date.now(),
-          lastLogin: Date.now(),
-          hasReceivedFirstBonus: true, // Already got initial tokens
-          studyStats: {
-            totalMinutes: 0,
-            totalDays: 0,
-            sessions: 0,
-            lastStudyDate: null
-          }
-        };
-        
-        users[username] = newUser;
-        this.setStorageItem('users', JSON.stringify(users));
-        
-        // Auto-login after registration
-        this.setStorageItem('currentUser', username);
-        
-        // Set session data
-        const sessionData = {
-          username: username,
-          loginTime: Date.now(),
-          lastActivity: Date.now()
-        };
-        this.setStorageItem('authSession', JSON.stringify(sessionData));
-        
-        this.setLoading(false);
-        this.showMessage('Đăng ký thành công! Nhận 100 tokens và đang chuyển...', 'success');
-        
-        // Redirect to main app
-        setTimeout(() => {
-          this.redirectToMain();
-        }, 2000);
-        
-      } catch (error) {
-        console.log('Registration error:', error);
-        this.setLoading(false);
-        this.showMessage('Đăng ký thất bại! Vui lòng thử lại.', 'error');
+    try {
+      const { databaseConfigured } = await window.AuthApi.databaseStatus();
+      if (!databaseConfigured) {
+        this.showMessage('Chưa thể tạo tài khoản mới vì PostgreSQL trên máy chủ chưa được cấu hình.');
+        return;
       }
-    }, 1500);
+
+      const result = await window.AuthApi.register(username, password);
+      await window.AuthApi.storeSession(result);
+      this.showMessage('Đăng ký thành công! Đang chuyển đến...', 'success');
+      setTimeout(() => this.redirectToMain(), 500);
+    } catch (error) {
+      this.showMessage(error.message || 'Đăng ký thất bại. Vui lòng thử lại.');
+    } finally {
+      this.setLoading(false);
+    }
   }
 
   showError(input, message) {

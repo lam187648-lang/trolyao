@@ -11,7 +11,8 @@ Chatbot thông minh giúp học sinh ôn tập, giải thích kiến thức và 
 │                 │         │                 │
 │ • HTML/CSS/JS   │         │ • Node.js       │
 │ • UI/UX         │         │ • Socket.io     │
-│ • LocalStorage  │         │ • AI API        │
+│ • Theme/cache   │         │ • PostgreSQL    │
+│                 │         │ • AI API        │
 └─────────────────┘         └─────────────────┘
 ```
 
@@ -28,6 +29,7 @@ cd server
 
 **Cần setup ENV:**
 - `OPENROUTER_API_KEY` - Lấy từ https://openrouter.ai/keys
+- `DATABASE_URL` - PostgreSQL connection string; không đặt trên frontend.
 
 ### 2. Frontend (GitHub Pages)
 
@@ -105,14 +107,15 @@ const response = await fetch(`${SERVER_URL}/chat`, {
 - ✅ AI API key chỉ ở Backend (ENV)
 - ✅ Frontend KHÔNG chứa key
 - ✅ CORS giới hạn chỉ GitHub Pages
-- ⚠️ Tài khoản hiện vẫn lưu ở localStorage, mật khẩu Base64; chưa phải xác thực an toàn
-- ⚠️ Token và vật phẩm vẫn do trình duyệt quản lý, chưa chống được sửa dữ liệu
+- ✅ Tài khoản server dùng bcrypt và session token; API tài khoản/quản trị yêu cầu PostgreSQL
+- ✅ Token và màu đặc biệt được xác minh bởi backend khi dùng tài khoản server
+- ⚠️ Tài khoản LocalStorage cũ chỉ còn là dữ liệu cục bộ, không có giá trị phân quyền hoặc số dư server
 - ✅ API chat có giới hạn tốc độ, kiểm tra dữ liệu đầu vào và model do server kiểm soát
 - ✅ Các thao tác quản trị không xác thực đã bị khóa
 
 ## ⚠️ Trạng thái bảo mật hiện tại
 
-Không dùng lại mật khẩu quan trọng trên phiên bản hiện tại. Muốn mở lại tài khoản đa thiết bị, token có giá trị tin cậy và trang quản trị cần cấu hình PostgreSQL (hoặc database bền vững khác), hash mật khẩu ở server và phiên đăng nhập có chữ ký. Secret Pusher cũ từng bị lộ trong lịch sử Git; phải thu hồi/rotate tại Pusher Dashboard, không chỉ xóa khỏi file hiện tại.
+Khi chưa cấu hình `DATABASE_URL`, backend báo rõ trạng thái và không cho tạo tài khoản server mới; dữ liệu LocalStorage cũ không bị xóa. Không dùng lại mật khẩu quan trọng cho tài khoản LocalStorage cũ. Secret Pusher cũ từng bị lộ trong lịch sử Git; phải thu hồi/rotate tại Pusher Dashboard, không chỉ xóa khỏi file hiện tại.
 
 ## 🛠️ Local Development
 

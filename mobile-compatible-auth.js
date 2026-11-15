@@ -134,7 +134,7 @@ class MobileAuthSystem {
     }
   }
 
-  handleLogin() {
+  async handleLogin() {
     const usernameInput = document.getElementById('login-username');
     const passwordInput = document.getElementById('login-password');
     
@@ -150,6 +150,29 @@ class MobileAuthSystem {
       this.showMessage('Please enter all information!');
       return;
     }
+
+    if (!window.AuthApi) {
+      this.showMessage('Authentication API did not load. Please reload this page.');
+      return;
+    }
+
+    this.setLoading('login', true);
+    try {
+      const { databaseConfigured } = await window.AuthApi.databaseStatus();
+      if (databaseConfigured) {
+        const result = await window.AuthApi.login(username, password);
+        await window.AuthApi.storeSession(result);
+        this.setLoading('login', false);
+        this.showMessage('Login successful!', 'success');
+        setTimeout(() => this.redirectToMain(), 500);
+        return;
+      }
+    } catch (error) {
+      this.setLoading('login', false);
+      this.showMessage(error.message || 'Could not authenticate with the server.');
+      return;
+    }
+    this.setLoading('login', false);
     
     this.setLoading('login', true);
     
@@ -217,7 +240,7 @@ class MobileAuthSystem {
     }, 1000);
   }
 
-  handleRegister() {
+  async handleRegister() {
     const usernameInput = document.getElementById('register-username');
     const passwordInput = document.getElementById('register-password');
     const confirmInput = document.getElementById('register-confirm');
@@ -241,70 +264,33 @@ class MobileAuthSystem {
       return;
     }
     
-    if (password.length < 6) {
-      this.showMessage('Password must be at least 6 characters!');
+    if (password.length < 8) {
+      this.showMessage('Password must be at least 8 characters.');
       return;
     }
-    
+
+    if (!window.AuthApi) {
+      this.showMessage('Authentication API did not load. Please reload this page.');
+      return;
+    }
+
     this.setLoading('register', true);
-    
-    setTimeout(() => {
-      try {
-        const users = JSON.parse(this.getStorageItem('users') || '{}');
-        
-        if (users[username]) {
-          this.setLoading('register', false);
-          this.showMessage('Username already exists!');
-          return;
-        }
-        
-        // Create new user
-        const newUser = {
-          username: username,
-          password: btoa(password), // Store as base64
-          tokens: 100, // Initial tokens
-          avatar: '',
-          purchasedColors: [],
-          selectedColorTheme: '0',
-          createdAt: Date.now(),
-          lastLogin: Date.now(),
-          hasReceivedFirstBonus: true, // Already got initial tokens
-          studyStats: {
-            totalMinutes: 0,
-            totalDays: 0,
-            sessions: 0,
-            lastStudyDate: null
-          }
-        };
-        
-        users[username] = newUser;
-        this.setStorageItem('users', JSON.stringify(users));
-        
-        // Auto-login after registration
-        this.setStorageItem('currentUser', username);
-        
-        // Set session data
-        const sessionData = {
-          username: username,
-          loginTime: Date.now(),
-          lastActivity: Date.now()
-        };
-        this.setStorageItem('authSession', JSON.stringify(sessionData));
-        
-        this.setLoading('register', false);
-        this.showMessage('Registration successful! Redirecting...', 'success');
-        
-        // Redirect to main app
-        setTimeout(() => {
-          this.redirectToMain();
-        }, 1500);
-        
-      } catch (error) {
-        console.log('Registration error:', error);
-        this.setLoading('register', false);
-        this.showMessage('Registration failed! Please try again.');
+    try {
+      const { databaseConfigured } = await window.AuthApi.databaseStatus();
+      if (!databaseConfigured) {
+        this.showMessage('New accounts cannot be created until PostgreSQL is configured on the server.');
+        return;
       }
-    }, 1000);
+
+      const result = await window.AuthApi.register(username, password);
+      await window.AuthApi.storeSession(result);
+      this.showMessage('Registration successful! Redirecting...', 'success');
+      setTimeout(() => this.redirectToMain(), 500);
+    } catch (error) {
+      this.showMessage(error.message || 'Registration failed. Please try again.');
+    } finally {
+      this.setLoading('register', false);
+    }
   }
 
   redirectToMain() {

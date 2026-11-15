@@ -1,6 +1,7 @@
 // Enhanced Token Shop Management System with proper text colors
 class TokenShop {
   constructor() {
+    this.serverAccount = false;
     this.colors = [
       // Basic colors - light backgrounds with dark text
       { id: 1, name: "Xanh dáng", price: 100, primary: "#3B82F6", secondary: "#1E40AF", bg: "#EFF6FF", textColor: "#1E3A8A", tier: "basic" },
@@ -53,33 +54,50 @@ class TokenShop {
     this.init();
   }
 
-  init() {
-    if (!this.checkAuth()) return;
+  async init() {
+    if (!(await this.checkAuth())) return;
+    this.serverAccount = window.AuthApi.hasSession();
     this.loadUserData();
     this.renderColors();
     this.updateTokenDisplay();
   }
 
-  checkAuth() {
+  async checkAuth() {
+    try {
+      const { databaseConfigured } = await window.AuthApi.databaseStatus();
+      if (databaseConfigured) {
+        const user = await window.AuthApi.restoreSession();
+        if (user) return true;
+        this.showSignInRequired();
+        return false;
+      }
+    } catch (error) {
+      this.showMessage(`Không kiểm tra được máy chủ xác thực: ${error.message}`, 'error');
+      return false;
+    }
+
     const currentUser = localStorage.getItem('currentUser');
     const users = JSON.parse(localStorage.getItem('users') || '{}');
     
-    if (!currentUser || !users[currentUser]) {
-      document.body.innerHTML = `
+    if (!currentUser || !users[currentUser] || users[currentUser].serverAccount) {
+      this.showSignInRequired();
+      return false;
+    }
+    return true;
+  }
+
+  showSignInRequired() {
+    document.body.innerHTML = `
         <div style="display: flex; justify-content: center; align-items: center; height: 100vh; background: linear-gradient(145deg, #f0f9ff 0%, #e0f2fe 100%); font-family: Inter, sans-serif;">
           <div style="background: white; padding: 40px; border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); text-align: center; max-width: 400px;">
             <div style="font-size: 48px; margin-bottom: 20px;">🔒</div>
             <h2 style="color: #1e40af; margin-bottom: 16px;">Yêu Cầu Đăng Nhập</h2>
             <p style="color: #64748b; margin-bottom: 24px;">Bạn phải đăng nhập để truy cập Cửa Hàng Token!</p>
-            <button onclick="window.location.href='index.html'" style="background: #3b82f6; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 500;">
-              Đăng Nhập Ngay
-            </button>
+            <a href="auth.html" style="background: #3b82f6; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 500; text-decoration:none;">Đăng Nhập Ngay</a>
+            <a href="index.html" style="display:block;margin-top:16px;">Về trang chủ</a>
           </div>
         </div>
       `;
-      return false;
-    }
-    return true;
   }
 
   loadUserData() {
@@ -101,18 +119,27 @@ class TokenShop {
     const colorGrid = document.getElementById('color-grid');
     colorGrid.innerHTML = '';
     
-    this.colors.forEach(color => {
+    const visibleColors = this.serverAccount
+      ? this.colors.filter(color => (color.id >= 1 && color.id <= 16) || (color.id >= 17 && color.id <= 42))
+      : this.colors;
+    visibleColors.forEach(color => {
       const colorItem = document.createElement('div');
       colorItem.className = 'color-item';
       
       const isPurchased = this.purchasedColors.includes(color.id);
-      const canAfford = this.currentTokens >= color.price;
+      const isServerBasic = this.serverAccount && ((color.id >= 1 && color.id <= 13) || color.id === 16);
+      const canServerPurchase = this.serverAccount && [14, 15].includes(color.id);
+      const price = this.serverAccount && canServerPurchase ? 50 : color.price;
+      const canAfford = this.currentTokens >= price;
+      const isServerRestricted = this.serverAccount && !isPurchased && !isServerBasic && !canServerPurchase;
       
       if (isPurchased) {
         colorItem.classList.add('purchased');
       }
       
-      if (!isPurchased && !canAfford) {
+      if (!isPurchased && !isServerBasic && !canServerPurchase) {
+        colorItem.classList.add('locked');
+      } else if (!isPurchased && !isServerBasic && !canAfford) {
         colorItem.classList.add('locked');
       }
       
@@ -120,7 +147,13 @@ class TokenShop {
       let actionDisplay;
       if (isPurchased) {
         actionDisplay = `<div class="color-owned">✅ Đã sở hữu</div>
-             <button class="gift-btn" data-color-id="${color.id}" onclick="event.stopPropagation(); tokenShop.giftColor(${color.id})">🎁 Tặng</button>`;
+             ${this.serverAccount ? '' : `<button class="gift-btn" data-color-id="${color.id}" onclick="event.stopPropagation(); tokenShop.giftColor(${color.id})">🎁 Tặng</button>`}`;
+      } else if (isServerBasic) {
+        actionDisplay = `<div class="color-price free">🆓 Miễn phí</div>`;
+      } else if (this.serverAccount && !canServerPurchase) {
+        actionDisplay = `<div class="color-price">🔒 Chỉ Admin cấp</div>`;
+      } else if (this.serverAccount && canServerPurchase) {
+        actionDisplay = `<div class="color-price">${price} tokens</div>`;
       } else if (color.unlockRequired) {
         actionDisplay = `<div class="color-price unlock-free">🔓 Nhấn để mở khóa miễn phí</div>`;
       } else if (color.price === 0) {
@@ -138,17 +171,40 @@ class TokenShop {
         </div>
         <div class="color-name">${color.name}</div>
         ${actionDisplay}
-        ${!isPurchased && !canAfford && !color.unlockRequired ? '<div class="lock-icon">🔒</div>' : ''}
+        ${isServerRestricted || (!isPurchased && !isServerBasic && !canAfford && !color.unlockRequired) ? '<div class="lock-icon">🔒</div>' : ''}
         ${color.exclusive || color.unlockRequired ? '<div class="exclusive-badge">⭐ Đặc biệt</div>' : ''}
       `;
       
-      colorItem.addEventListener('click', () => this.selectColor(color));
+      colorItem.addEventListener('click', () => {
+        void this.selectColor(color);
+      });
       colorGrid.appendChild(colorItem);
     });
   }
 
-  selectColor(color) {
+  async selectColor(color) {
     const isPurchased = this.purchasedColors.includes(color.id);
+
+    if (this.serverAccount) {
+      const isBasic = (color.id >= 1 && color.id <= 13) || color.id === 16;
+      if (isPurchased || isBasic) {
+        await this.applyColor(color);
+        return;
+      }
+      if (![14, 15].includes(color.id)) {
+        this.showMessage('Màu đặc biệt chỉ có thể được Admin cấp.', 'error');
+        return;
+      }
+      const price = 50;
+      if (this.currentTokens < price) {
+        this.showMessage(`Bạn cần ${price} tokens để mở khóa màu này.`, 'error');
+        return;
+      }
+      if (confirm(`Mua màu "${color.name}" với ${price} tokens?`)) {
+        await this.purchaseColor(color);
+      }
+      return;
+    }
     
     if (!isPurchased) {
       // Handle unlockRequired colors (free but need to unlock first)
@@ -175,7 +231,21 @@ Màu này sẽ được thêm vào bộ sưu tập của bạn và có thể s�
     }
   }
 
-  purchaseColor(color) {
+  async purchaseColor(color) {
+    if (this.serverAccount) {
+      try {
+        await window.AuthApi.request(`/api/themes/${color.id}/purchase`, { method: 'POST' });
+        await window.AuthApi.restoreSession();
+        this.loadUserData();
+        this.renderColors();
+        this.updateTokenDisplay();
+        this.showMessage(`Đã mua màu "${color.name}"!`, 'success');
+      } catch (error) {
+        this.showMessage(error.message || 'Không thể mua màu này.', 'error');
+      }
+      return;
+    }
+
     this.currentTokens -= color.price;
     this.purchasedColors.push(color.id);
     
@@ -187,48 +257,21 @@ Màu này sẽ được thêm vào bộ sưu tập của bạn và có thể s�
   }
 
   giftColor(colorId) {
-    const color = this.colors.find(c => c.id === colorId);
-    if (!color) return;
-
-    // Check if user owns this color
-    if (!this.purchasedColors.includes(colorId)) {
-      this.showMessage('❌ Bạn cần sở hữu màu này trước khi tặng!', 'error');
-      return;
-    }
-
-    // Prompt for recipient username
-    const recipient = prompt(`🎁 Tặng màu "${color.name}" cho ai?\nNhập tên người dùng:`);
-    if (!recipient) return;
-
-    const users = JSON.parse(localStorage.getItem('users') || '{}');
-    
-    // Check if recipient exists
-    if (!users[recipient]) {
-      this.showMessage(`❌ Người dùng "${recipient}" không tồn tại!`, 'error');
-      return;
-    }
-
-    // Check if recipient already has this color
-    if (!users[recipient].purchasedColors) {
-      users[recipient].purchasedColors = [];
-    }
-    
-    if (users[recipient].purchasedColors.includes(colorId)) {
-      this.showMessage(`❌ ${recipient} đã có màu này rồi!`, 'error');
-      return;
-    }
-
-    // Gift the color
-    users[recipient].purchasedColors.push(colorId);
-    localStorage.setItem('users', JSON.stringify(users));
-    
-    this.showMessage(`✅ Đã tặng màu "${color.name}" cho ${recipient}!`, 'success');
-    
-    // Log for debugging
-    console.log(`Gift: ${color.name} from ${localStorage.getItem('currentUser')} to ${recipient}`);
+    this.showMessage('Chỉ Admin mới có thể cấp màu cho tài khoản khác.', 'error');
   }
 
-  applyColor(color) {
+  async applyColor(color) {
+    if (this.serverAccount) {
+      try {
+        await window.AuthApi.request('/api/themes/selected', {
+          method: 'PUT',
+          body: { themeId: String(color.id) }
+        });
+      } catch (error) {
+        this.showMessage(error.message || 'Bạn chưa có quyền sử dụng màu này.', 'error');
+        return;
+      }
+    }
     this.selectedTheme = color.id.toString();
     this.updateUserData();
     this.renderColors();
@@ -269,6 +312,10 @@ Màu này sẽ được thêm vào bộ sưu tập của bạn và có thể s�
     const users = JSON.parse(localStorage.getItem('users') || '{}');
     
     if (currentUser && users[currentUser]) {
+      if (users[currentUser].serverAccount) {
+        localStorage.setItem('selectedColorTheme', this.selectedTheme);
+        return;
+      }
       users[currentUser].tokens = this.currentTokens;
       users[currentUser].purchasedColors = this.purchasedColors;
       users[currentUser].selectedColorTheme = this.selectedTheme;
@@ -290,25 +337,7 @@ Màu này sẽ được thêm vào bộ sưu tập của bạn và có thể s�
   }
 
   addTokens() {
-    const amount = parseInt(document.getElementById('token-amount').value);
-    
-    if (isNaN(amount) || amount < 0) {
-      this.showMessage('❌ Vui lòng nhập số token hợp lệ!', 'error');
-      return;
-    }
-    
-    if (amount > 1000000) {
-      this.showMessage('⚠️ Số token quá lớn! Vui lòng nhập số nhỏ hơn.', 'warning');
-      return;
-    }
-    
-    this.currentTokens += amount;
-    this.updateUserData();
-    this.updateTokenDisplay();
-    this.renderColors();
-    
-    document.getElementById('token-amount').value = '';
-    this.showMessage(`✅ Đã nạp ${amount.toLocaleString()} tokens! Tổng: ${this.currentTokens.toLocaleString()} tokens`, 'success');
+    this.showMessage('Chỉ Admin mới có thể cộng Token. Hãy nhận thưởng học tập hoặc liên hệ Admin.', 'error');
   }
 
   showMessage(message, type = 'info') {
@@ -328,7 +357,7 @@ Màu này sẽ được thêm vào bộ sưu tập của bạn và có thể s�
   }
 
   showAdminPanel() {
-    this.showMessage("Chức năng quản trị đang tạm khóa cho đến khi có xác thực phía máy chủ.", "error");
+    window.location.href = "admin-panel.html";
   }
 
   giveTokens() {

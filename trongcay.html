@@ -680,13 +680,14 @@
             50% { transform: translateX(33%); opacity: 0.6; }
         }
     </style>
-<link rel="stylesheet" href="light-ai-theme.css?v=20261115">
+<link rel="stylesheet" href="light-ai-theme.css?v=20261115b">
 </head>
 <body class="garden-page">
     <header>
         <h1>Khu Vườn Kiên Nhẫn</h1>
-        <nav>
-            <a href="index.html">🏠 Quay lại Chatbot</a>
+        <nav class="page-controls" aria-label="Điều hướng khu vườn">
+            <button type="button" data-page-back data-fallback="index.html">← Quay lại</button>
+            <a href="index.html">⌂ Trang chủ</a>
         </nav>
         <div id="user-info" style="margin-top: 15px; font-size: 14px;">
             <span id="current-user">Chưa đăng nhập</span> | 
@@ -1240,6 +1241,7 @@
         </div>
         <div id="color-grid" class="color-grid"></div>
     </div>
-<script src="theme-manager.js?v=20261115"></script>
+<script src="theme-manager.js?v=20261115b"></script>
+<script src="page-navigation.js"></script>
 </body>
 </html>

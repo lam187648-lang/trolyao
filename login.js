@@ -76,7 +76,7 @@ class LoginPage {
     }
   }
 
-  handleLogin() {
+  async handleLogin() {
     const usernameInput = document.getElementById('username');
     const passwordInput = document.getElementById('password');
     
@@ -90,29 +90,51 @@ class LoginPage {
     
     // Validation
     if (!username) {
-      this.showError(usernameInput, 'Vui lòng nh?p tên ??ng nh?p!');
+      this.showError(usernameInput, 'Vui lòng nhập tên đăng nhập!');
       return;
     }
     
     if (!password) {
-      this.showError(passwordInput, 'Vui lòng nh?p m?t kh?u!');
+      this.showError(passwordInput, 'Vui lòng nhập mật khẩu!');
       return;
     }
     
     if (username.length < 3) {
-      this.showError(usernameInput, 'Tên ??ng nh?p ph?i có ít nh?t 3 ký t?!');
+      this.showError(usernameInput, 'Tên đăng nhập cần có ít nhất 3 ký tự!');
       return;
     }
     
+    if (!window.AuthApi) {
+      this.showMessage('Không tải được API xác thực. Vui lòng tải lại trang.', 'error');
+      return;
+    }
+
     this.setLoading(true);
-    
+    try {
+      const { databaseConfigured } = await window.AuthApi.databaseStatus();
+      if (databaseConfigured) {
+        const result = await window.AuthApi.login(username, password);
+        await window.AuthApi.storeSession(result);
+        this.setLoading(false);
+        this.showMessage('Đăng nhập thành công! Đang chuyển...', 'success');
+        setTimeout(() => this.redirectToMain(), 500);
+        return;
+      }
+    } catch (error) {
+      this.setLoading(false);
+      this.showMessage(error.message || 'Không thể xác thực với máy chủ.', 'error');
+      return;
+    }
+    this.setLoading(false);
+
+    this.setLoading(true);
     setTimeout(() => {
       try {
         const users = JSON.parse(this.getStorageItem('users') || '{}');
         
         if (!users[username]) {
           this.setLoading(false);
-          this.showMessage('Tên ??ng nh?p không t?n t?i! <a href="register.html">??ng ký ngay</a>', 'error');
+          this.showMessage('Tên đăng nhập không tồn tại. Hãy đăng ký tài khoản server mới.', 'error');
           return;
         }
         
@@ -124,7 +146,7 @@ class LoginPage {
         
         if (storedPassword !== inputPassword) {
           this.setLoading(false);
-          this.showMessage('M?t kh?u sai! Vui lòng th? l?i.', 'error');
+          this.showMessage('Mật khẩu không đúng. Vui lòng thử lại.', 'error');
           return;
         }
         
@@ -134,7 +156,7 @@ class LoginPage {
         if (banInfo && banInfo.until > Date.now()) {
           const remainingTime = Math.ceil((banInfo.until - Date.now()) / 60000);
           this.setLoading(false);
-          this.showMessage(`Tài kho?n b? khóa! Vui lòng quay l?i sau ${remainingTime} phút.`, 'error');
+          this.showMessage(`Tài khoản bị khóa. Vui lòng thử lại sau ${remainingTime} phút.`, 'error');
           return;
         }
         
@@ -155,7 +177,7 @@ class LoginPage {
         this.setStorageItem('users', JSON.stringify(users));
         
         this.setLoading(false);
-        this.showMessage('??ng nh?p thành công! ??ang chuy?n...', 'success');
+        this.showMessage('Đăng nhập thành công! Đang chuyển...', 'success');
         
         // Redirect to main app
         setTimeout(() => {
@@ -165,7 +187,7 @@ class LoginPage {
       } catch (error) {
         console.log('Login error:', error);
         this.setLoading(false);
-        this.showMessage('??ng nh?p th?t b?i! Vui lòng th? l?i.', 'error');
+        this.showMessage('Đăng nhập thất bại. Vui lòng thử lại.', 'error');
       }
     }, 1000);
   }
@@ -206,10 +228,10 @@ class LoginPage {
     
     if (loading) {
       btn.disabled = true;
-      text.innerHTML = '<span class="loading"></span> ??ang x? lý...';
+      text.innerHTML = '<span class="loading"></span> Đang xử lý...';
     } else {
       btn.disabled = false;
-      text.textContent = '??ng Nh?p';
+      text.textContent = 'Đăng nhập';
     }
   }
 
@@ -220,11 +242,7 @@ class LoginPage {
     const messageDiv = document.createElement('div');
     messageDiv.className = `${type}-message`;
     
-    if (type === 'error') {
-      messageDiv.innerHTML = `<span>??</span> ${message}`;
-    } else if (type === 'success') {
-      messageDiv.innerHTML = `<span>??</span> ${message}`;
-    }
+    messageDiv.textContent = message;
     
     container.innerHTML = '';
     container.appendChild(messageDiv);

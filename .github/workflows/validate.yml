@@ -20,7 +20,24 @@ jobs:
         run: |
           node --check server.js
           node --check app.js
+          node --check auth.js
+          node --check auth-api.js
+          node --check login.js
+          node --check register.js
+          node --check mobile-compatible-auth.js
+          node --check theme-manager.js
+          node --check theme-settings.js
+          node --check games.js
+          node --check page-navigation.js
+          node --check head-tracking-game.js
           node --check server/server.js
+          node --check server/database.js
+          node --check server/auth-middleware.js
+          node --check server/auth-routes.js
+          node --check server/admin-routes.js
+          node --check server/token-routes.js
+          node --check server/scripts/migrate.js
+          node --check server/scripts/promote-admin.js
           node --check token-shop-new.js
           node --check token-shop.js
           node --check token-page.js

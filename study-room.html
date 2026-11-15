@@ -8,8 +8,8 @@
 <link rel="stylesheet" href="study-room.css">
 <link rel="stylesheet" href="study-room-auth.css">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>">
-<link rel="stylesheet" href="light-ai-theme.css?v=20261115">
-<script src="theme-manager.js?v=20261115" defer></script>
+<link rel="stylesheet" href="light-ai-theme.css?v=20261115b">
+<script src="theme-manager.js?v=20261115b" defer></script>
 </head>
 
 <body>
@@ -18,9 +18,10 @@
     <!-- Header -->
     <div class="study-header">
         <div class="header-left">
-            <button class="back-btn" id="back-btn" onclick="window.location.href='index.html'">
-                <span>←</span> Quay lại Chatbot
-            </button>
+            <nav class="page-controls" aria-label="Điều hướng phòng học">
+                <button class="back-btn" id="back-btn" data-page-back data-fallback="index.html" type="button">← Quay lại</button>
+                <a href="index.html">⌂ Trang chủ</a>
+            </nav>
         </div>
         <div class="header-center">
             <h1>Phòng Học Trực Tuyến</h1>
@@ -116,5 +117,6 @@
 </div>
 
 <script src="study-room.js"></script>
+<script src="page-navigation.js"></script>
 </body>
 </html>

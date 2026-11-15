@@ -132,64 +132,81 @@
     border-top-color: transparent;
     animation: spin 0.8s linear infinite;
 }
+.auth-mode-notice {
+    background: #eff6ff;
+    color: #1e3a8a;
+    padding: 10px 12px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    font-size: 13px;
+}
 @keyframes spin {
     to { transform: rotate(360deg); }
 }
 </style>
-<link rel="stylesheet" href="light-ai-theme.css?v=20261115">
+<link rel="stylesheet" href="light-ai-theme.css?v=20261115b">
 </head>
 <body>
+<nav class="page-controls auth-page-controls" aria-label="Điều hướng trang xác thực">
+    <button type="button" data-page-back data-fallback="index.html">← Quay lại</button>
+    <a href="index.html">⌂ Trang chủ</a>
+</nav>
 <div class="auth-container">
     <div class="auth-card">
         <div class="auth-header">
-            <h1>?? Chatbot</h1>
-            <p>??ng nh?p ho?c ??ng ký ?? b?t ??u</p>
+            <h1>Trợ Lý Ảo</h1>
+            <p>Đăng nhập hoặc đăng ký để bắt đầu</p>
         </div>
 
         <div class="auth-tabs">
-            <button class="auth-tab active" onclick="switchTab('login')">??ng Nh?p</button>
-            <button class="auth-tab" onclick="switchTab('register')">??ng Ký</button>
+            <button class="auth-tab active" onclick="switchTab('login')">Đăng nhập</button>
+            <button class="auth-tab" onclick="switchTab('register')">Đăng ký</button>
         </div>
 
         <div id="message-container"></div>
+        <div class="auth-mode-notice" id="auth-mode-notice" role="status" aria-live="polite">
+            Đang kiểm tra trạng thái máy chủ...
+        </div>
 
         <!-- Login Form -->
         <form id="login-form" class="auth-form active">
             <div class="form-group">
-                <label class="form-label">Tên ??ng nh?p</label>
+                <label class="form-label">Tên đăng nhập</label>
                 <input type="text" id="login-username" class="form-input" required>
             </div>
             <div class="form-group">
-                <label class="form-label">M?t kh?u</label>
+                <label class="form-label">Mật khẩu</label>
                 <input type="password" id="login-password" class="form-input" required>
             </div>
             <button type="submit" class="auth-btn" id="login-btn">
-                <span id="login-text">??ng Nh?p</span>
+                <span id="login-text">Đăng nhập</span>
             </button>
         </form>
 
         <!-- Register Form -->
         <form id="register-form" class="auth-form">
             <div class="form-group">
-                <label class="form-label">Tên ??ng nh?p</label>
+                <label class="form-label">Tên đăng nhập</label>
                 <input type="text" id="register-username" class="form-input" required>
             </div>
             <div class="form-group">
-                <label class="form-label">M?t kh?u</label>
+                <label class="form-label">Mật khẩu</label>
                 <input type="password" id="register-password" class="form-input" required>
             </div>
             <div class="form-group">
-                <label class="form-label">Xác nh?n m?t kh?u</label>
-                <input type="password" id="register-confirm" class="form-input" required>
+                <label class="form-label">Xác nhận mật khẩu</label>
+                <input type="password" id="register-confirm-password" class="form-input" required>
             </div>
             <button type="submit" class="auth-btn" id="register-btn">
-                <span id="register-text">??ng Ký</span>
+                <span id="register-text">Đăng ký</span>
             </button>
         </form>
     </div>
 </div>
 
-<script src="auth.js"></script>
-<script src="theme-manager.js?v=20261115"></script>
+<script src="auth-api.js?v=20261115c"></script>
+<script src="auth.js?v=20261115c"></script>
+<script src="theme-manager.js?v=20261115b"></script>
+<script src="page-navigation.js"></script>
 </body>
 </html>

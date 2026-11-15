@@ -3,6 +3,10 @@ const cors = require("cors");
 const http = require("http");
 const { Server } = require("socket.io");
 const Pusher = require("pusher");
+const { pool, closeDatabase } = require("./database");
+const authRoutes = require("./auth-routes");
+const adminRoutes = require("./admin-routes");
+const tokenRoutes = require("./token-routes");
 
 // Dynamic import for node-fetch v3 (ES module)
 let fetch;
@@ -60,7 +64,7 @@ const corsOptions = {
     "http://127.0.0.1:5500",
     "https://lam187648-lang.github.io" // GitHub Pages origin only
   ],
-  methods: ["GET", "POST", "OPTIONS"],
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true
 };
@@ -99,9 +103,14 @@ app.get("/health", (_req, res) => {
   res.status(200).json({ 
     ok: true, 
     timestamp: new Date().toISOString(),
-    uptime: process.uptime()
+    uptime: process.uptime(),
+    database: pool ? "configured" : "not_configured"
   });
 });
+
+app.use("/auth", authRoutes);
+app.use("/admin", adminRoutes);
+app.use("/api", tokenRoutes);
 
 // AI Chat endpoint
 app.post("/chat", chatRateLimit, async (req, res) => {
@@ -261,6 +270,29 @@ app.all(["/pusher/kick", "/pusher/gift-color", "/pusher/users"], (_req, res) => 
   res.status(403).json({ success: false, error: "Administrative access is not enabled until secure server-side authentication is configured." });
 });
 
+app.use((error, _req, res, next) => {
+  if (res.headersSent) return next(error);
+  if (error.type === "entity.parse.failed") {
+    return res.status(400).json({ error: "JSON request body không hợp lệ." });
+  }
+  if (error.code === "DATABASE_NOT_CONFIGURED") {
+    return res.status(503).json({
+      error: "PostgreSQL chưa được cấu hình. Hãy thêm DATABASE_URL trên Render.",
+      code: "DATABASE_NOT_CONFIGURED"
+    });
+  }
+  if (["ECONNREFUSED", "ENOTFOUND", "ETIMEDOUT"].includes(error.code) ||
+      (typeof error.code === "string" && error.code.startsWith("08"))) {
+    console.error("PostgreSQL is unavailable:", error.code);
+    return res.status(503).json({
+      error: "Không thể kết nối PostgreSQL. Hãy kiểm tra cấu hình và trạng thái database.",
+      code: "DATABASE_UNAVAILABLE"
+    });
+  }
+  console.error("Request failed:", error.code || error.name || "Error");
+  res.status(500).json({ error: "Máy chủ gặp lỗi khi xử lý yêu cầu." });
+});
+
 // Start server
 const PORT = process.env.PORT || 4000;
 
@@ -268,4 +300,31 @@ server.listen(PORT, () => {
   console.log("🚀 Server Tro Ly Ao đang chạy ở port", PORT);
   console.log("📡 Socket.IO ready for connections");
   console.log("🤖 AI Chat endpoint: /chat");
+  console.log(pool ? "🗄️ PostgreSQL is configured" : "⚠️ DATABASE_URL is missing; account and admin APIs return 503");
 });
+
+let shuttingDown = false;
+async function shutdown(signal) {
+  if (shuttingDown) return;
+  shuttingDown = true;
+  console.log(`Received ${signal}; closing server resources.`);
+  const timeout = setTimeout(() => {
+    console.error("Graceful shutdown timed out.");
+    process.exitCode = 1;
+  }, 15000);
+  timeout.unref();
+
+  io.close(async () => {
+    try {
+      await closeDatabase();
+      clearTimeout(timeout);
+      console.log("Server resources closed.");
+    } catch (error) {
+      console.error("Failed to close PostgreSQL pool:", error.message);
+      process.exitCode = 1;
+    }
+  });
+}
+
+process.once("SIGINT", () => shutdown("SIGINT"));
+process.once("SIGTERM", () => shutdown("SIGTERM"));

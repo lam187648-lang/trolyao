@@ -90,11 +90,15 @@
             color: rgba(255,255,255,0.4);
         }
     </style>
-<link rel="stylesheet" href="light-ai-theme.css?v=20261115">
-<script src="theme-manager.js?v=20261115" defer></script>
+<link rel="stylesheet" href="light-ai-theme.css?v=20261115b">
+<script src="theme-manager.js?v=20261115b" defer></script>
 </head>
 <body>
     <div class="kick-container">
+        <nav class="page-controls" aria-label="Điều hướng thông báo">
+            <button type="button" data-page-back data-fallback="auth.html">← Quay lại</button>
+            <a href="index.html">⌂ Trang chủ</a>
+        </nav>
         <div class="kick-icon">🚫</div>
         <h1 class="kick-title">Bạn đã bị kick!</h1>
         <p class="kick-message">
@@ -114,5 +118,6 @@
         document.getElementById('timestamp').textContent = 
             'Thời gian: ' + new Date().toLocaleString('vi-VN');
     </script>
+    <script src="page-navigation.js"></script>
 </body>
 </html>

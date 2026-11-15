@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Cửa Hàng Token & Màu Sắc</title>
 <link rel="stylesheet" href="style.css">
-<link rel="stylesheet" href="light-ai-theme.css?v=20261115">
-<script src="theme-manager.js?v=20261115" defer></script>
+<link rel="stylesheet" href="light-ai-theme.css?v=20261115b">
+<script src="theme-manager.js?v=20261115b" defer></script>
 <style>
 .shop-container {
     max-width: 1200px;
@@ -442,15 +442,7 @@
                 <div class="token-label">Tokens hiện tại</div>
             </div>
 
-            <div class="token-form">
-                <div class="token-input-group">
-                    <input type="number" id="token-amount" class="token-input" placeholder="Nhập số token..." min="0">
-                    <button class="token-btn" onclick="addTokens()">Nạp Token</button>
-                </div>
-                <div style="font-size: 12px; color: var(--text-secondary);">
-                    Nhập số token muốn nạp vào tài khoản
-                </div>
-            </div>
+            <p>Token được nhận qua phần thưởng học tập. Việc cộng hoặc tặng Token chỉ do Admin thực hiện.</p>
 
             <div id="token-message"></div>
         </div>
@@ -464,11 +456,14 @@
         </div>
     </div>
 
-    <div style="text-align: center; margin-top: 30px;">
-        <a href="index.html" class="back-btn">🏠 Quay lại Chatbot</a>
-    </div>
+    <nav class="page-controls" aria-label="Điều hướng cửa hàng" style="justify-content:center; margin-top:30px;">
+        <button type="button" data-page-back data-fallback="index.html">← Quay lại</button>
+        <a href="index.html">⌂ Trang chủ</a>
+    </nav>
 </div>
 
-<script src="token-shop-new.js"></script>
+<script src="auth-api.js?v=20261115c"></script>
+<script src="token-shop-new.js?v=20261115b"></script>
+<script src="page-navigation.js"></script>
 </body>
 </html>

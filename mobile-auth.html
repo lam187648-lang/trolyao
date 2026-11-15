@@ -147,14 +147,18 @@
     border: 1px solid #bfdbfe;
 }
 </style>
-<link rel="stylesheet" href="light-ai-theme.css?v=20261115">
+<link rel="stylesheet" href="light-ai-theme.css?v=20261115b">
 </head>
 <body>
+<nav class="page-controls auth-page-controls" aria-label="Điều hướng xác thực">
+    <button type="button" data-page-back data-fallback="index.html">← Quay lại</button>
+    <a href="index.html">⌂ Trang chủ</a>
+</nav>
 <div class="auth-container">
     <div class="auth-card">
         <div class="auth-header">
-            <h1>?? Chatbot</h1>
-            <p>Mobile Compatible Login</p>
+            <h1>Trợ Lý Ảo</h1>
+            <p>Đăng nhập tương thích với thiết bị di động</p>
         </div>
 
         <div class="mobile-info">
@@ -204,7 +208,9 @@
     </div>
 </div>
 
-<script src="mobile-compatible-auth.js"></script>
-<script src="theme-manager.js?v=20261115"></script>
+<script src="auth-api.js?v=20261115c"></script>
+<script src="mobile-compatible-auth.js?v=20261115c"></script>
+<script src="theme-manager.js?v=20261115b"></script>
+<script src="page-navigation.js"></script>
 </body>
 </html>

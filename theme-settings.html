@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#eef7ff">
+  <title>Tùy chỉnh giao diện | Trợ Lý Ảo</title>
+  <link rel="stylesheet" href="light-ai-theme.css?v=20261115b">
+  <link rel="stylesheet" href="theme-settings.css?v=20261115">
+  <script src="theme-manager.js?v=20261115b" defer></script>
+</head>
+<body class="theme-settings-page">
+  <header class="settings-topbar">
+    <button class="ui-button quiet" id="back-button" type="button" aria-label="Quay lại trang trước">← Quay lại</button>
+    <a class="ui-button quiet" href="index.html">Trang chủ</a>
+    <span class="settings-breadcrumb">Cài đặt <span aria-hidden="true">/</span> Tùy chỉnh giao diện</span>
+  </header>
+
+  <main class="settings-layout">
+    <section class="settings-intro">
+      <span class="eyebrow">CÁ NHÂN HÓA KHÔNG GIAN</span>
+      <h1>Tùy chỉnh giao diện</h1>
+      <p>Chọn bảng màu dịu mắt cho toàn bộ không gian học tập. Lựa chọn được lưu trên thiết bị và đồng bộ theo tài khoản khi máy chủ đã bật.</p>
+    </section>
+
+    <div class="settings-grid">
+      <section class="settings-panel" aria-labelledby="color-heading">
+        <div class="panel-heading">
+          <div>
+            <h2 id="color-heading">Màu giao diện</h2>
+            <p>Màu phổ thông dùng tự do; màu đặc biệt cần được Admin cấp quyền.</p>
+          </div>
+          <span class="selected-label" id="selected-label">Đang chọn: Xanh dương</span>
+        </div>
+
+        <h3 class="palette-heading">Màu phổ thông</h3>
+        <div class="palette-grid" id="basic-palettes"></div>
+
+        <h3 class="palette-heading special-heading">Màu đặc biệt <span>Chỉ dùng khi đã được Admin cấp</span></h3>
+        <div class="palette-grid" id="special-palettes"></div>
+        <p class="settings-status" id="settings-status" role="status" aria-live="polite"></p>
+      </section>
+
+      <aside class="settings-panel preview-panel" aria-labelledby="preview-heading">
+        <div class="panel-heading">
+          <div>
+            <h2 id="preview-heading">Xem trước</h2>
+            <p>Giao diện sẽ đồng bộ ở các trang khác.</p>
+          </div>
+        </div>
+        <div class="preview-canvas" id="preview-canvas">
+          <div class="preview-card">
+            <span class="preview-badge">TRỢ LÝ AI</span>
+            <h3>Học tập rõ ràng hơn</h3>
+            <p>Hỏi bài, ôn tập và cùng AI tìm lời giải.</p>
+            <button type="button" class="preview-action">Bắt đầu trò chuyện</button>
+          </div>
+          <div class="preview-message">
+            <span class="preview-dot"></span>
+            Không gian của bạn, theo cách bạn thích.
+          </div>
+        </div>
+        <div class="preview-mode">
+          <span>Chế độ hiện tại</span>
+          <strong id="mode-label">Sáng</strong>
+        </div>
+        <div class="settings-actions">
+          <button class="ui-button primary" id="apply-button" type="button">Áp dụng màu</button>
+          <button class="ui-button quiet" id="reset-button" type="button">Khôi phục mặc định</button>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <script src="auth-api.js?v=20261115c"></script>
+  <script src="theme-settings.js?v=20261115"></script>
+</body>
+</html>

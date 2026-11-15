@@ -1,36 +1,63 @@
 // Authentication System
 class AuthSystem {
   constructor() {
+    this.databaseMode = false;
+    this.modeReady = false;
     this.init();
   }
 
-  init() {
+  async init() {
     this.setupEventListeners();
-    this.checkExistingSession();
+    try {
+      const { databaseConfigured } = await window.AuthApi.databaseStatus();
+      this.databaseMode = databaseConfigured;
+      this.modeReady = true;
+      const notice = document.getElementById('auth-mode-notice');
+      if (notice && !databaseConfigured) {
+        notice.textContent = 'PostgreSQL chưa được cấu hình. Tài khoản hiện tại chỉ lưu trên thiết bị này; dữ liệu cũ không bị xóa.';
+        if (window.AuthApi.hasSession()) window.AuthApi.clearSession();
+      }
+      await this.checkExistingSession();
+    } catch (error) {
+      this.showMessage(`Không kiểm tra được trạng thái máy chủ: ${error.message}`);
+    }
   }
 
   setupEventListeners() {
     // Login form
     document.getElementById('login-form').addEventListener('submit', (e) => {
       e.preventDefault();
-      this.handleLogin();
+      void this.handleLogin();
     });
 
     // Register form
     document.getElementById('register-form').addEventListener('submit', (e) => {
       e.preventDefault();
-      this.handleRegister();
+      void this.handleRegister();
     });
 
     // Tab switching
     window.switchTab = (tab) => this.switchTab(tab);
   }
 
-  checkExistingSession() {
+  async checkExistingSession() {
     const currentUser = localStorage.getItem('currentUser');
+    if (this.databaseMode) {
+      const user = await window.AuthApi.restoreSession();
+      if (user) {
+        this.redirectToMain();
+      } else if (currentUser) {
+        const notice = document.getElementById('auth-mode-notice');
+        if (notice) {
+          notice.textContent = 'Tài khoản LocalStorage cũ vẫn được giữ trên thiết bị, nhưng cần đăng ký tài khoản server mới để dùng PostgreSQL.';
+        }
+      }
+      return;
+    }
+
     if (currentUser) {
       const users = JSON.parse(localStorage.getItem('users') || '{}');
-      if (users[currentUser]) {
+      if (users[currentUser] && !users[currentUser].serverAccount) {
         // User already logged in, redirect to main app
         this.redirectToMain();
       }
@@ -94,12 +121,28 @@ class AuthSystem {
       this.showMessage('Vui lòng nhập đầy đủ thông tin!');
       return;
     }
+
+    if (!this.modeReady) {
+      this.showMessage('Chưa kết nối được máy chủ xác thực. Vui lòng tải lại trang hoặc thử lại sau.');
+      return;
+    }
+
+    if (this.databaseMode) {
+      return this.handleServerLogin(username, password);
+    }
     
     this.setLoading('login', true);
     
     // Simulate processing delay
-    setTimeout(() => {
+    setTimeout(async () => {
       const users = JSON.parse(localStorage.getItem('users') || '{}');
+      if (users[username]?.serverAccount) {
+        const legacyUsers = JSON.parse(localStorage.getItem('legacyUsers') || '{}');
+        if (legacyUsers[username]) {
+          users[username] = legacyUsers[username];
+          localStorage.setItem('users', JSON.stringify(users));
+        }
+      }
       
       if (!users[username]) {
         this.setLoading('login', false);
@@ -111,9 +154,7 @@ class AuthSystem {
       
       // Compare passwords (stored as base64 with UTF-8 support)
       const storedPassword = user.password;
-      const inputPassword = this.encodePassword(password);
-      
-      if (storedPassword !== inputPassword) {
+      if (!(await this.passwordMatches(password, storedPassword))) {
         this.setLoading('login', false);
         this.showMessage('Mật khẩu sai!');
         return;
@@ -176,62 +217,20 @@ class AuthSystem {
       this.showMessage('Mật khẩu phải có ít nhất 6 ký tự!');
       return;
     }
-    
-    this.setLoading('register', true);
-    
-    // Simulate processing delay
-    setTimeout(() => {
-      const users = JSON.parse(localStorage.getItem('users') || '{}');
-      
-      if (users[username]) {
-        this.setLoading('register', false);
-        this.showMessage('Tên đăng nhập đã tồn tại!');
+
+    if (!this.modeReady) {
+      this.showMessage('Chưa kết nối được máy chủ xác thực. Vui lòng tải lại trang hoặc thử lại sau.');
+      return;
+    }
+
+    if (this.databaseMode) {
+      if (password.length < 8) {
+        this.showMessage('Mật khẩu cần có ít nhất 8 ký tự khi đăng ký tài khoản server.');
         return;
       }
-      
-      // Create new user
-      const newUser = {
-        username: username,
-        password: this.encodePassword(password), // Store as base64 with UTF-8 support
-        tokens: 100, // Initial tokens
-        avatar: '',
-        purchasedColors: [],
-        selectedColorTheme: '0',
-        createdAt: Date.now(),
-        lastLogin: Date.now(),
-        lastActive: Date.now(),
-        hasReceivedFirstBonus: true, // Already got initial tokens
-        studyStats: {
-          totalMinutes: 0,
-          totalDays: 0,
-          sessions: 0,
-          lastStudyDate: null
-        }
-      };
-      
-      users[username] = newUser;
-      localStorage.setItem('users', JSON.stringify(users));
-      
-      // Auto-login after registration
-      localStorage.setItem('currentUser', username);
-      
-      // Set session data
-      const sessionData = {
-        username: username,
-        loginTime: Date.now(),
-        lastActivity: Date.now()
-      };
-      sessionStorage.setItem('authSession', JSON.stringify(sessionData));
-      
-      this.setLoading('register', false);
-      this.showMessage('Đăng ký thành công! Đang chuyển đến...', 'success');
-      
-      // Redirect to main app
-      setTimeout(() => {
-        this.redirectToMain();
-      }, 1500);
-      
-    }, 1000);
+      return this.handleServerRegister(username, password);
+    }
+    this.showMessage('Chưa thể tạo tài khoản mới vì PostgreSQL trên máy chủ chưa được cấu hình. Dữ liệu LocalStorage cũ vẫn được giữ nguyên.');
   }
 
   // Unicode-safe password encoding
@@ -240,6 +239,43 @@ class AuthSystem {
     const utf8Bytes = new TextEncoder().encode(password);
     const base64String = btoa(String.fromCharCode(...utf8Bytes));
     return base64String;
+  }
+
+  async passwordMatches(password, storedPassword) {
+    if (storedPassword === this.encodePassword(password)) return true;
+    if (!globalThis.crypto?.subtle) return false;
+    const bytes = new TextEncoder().encode(password);
+    const digest = await crypto.subtle.digest("SHA-256", bytes);
+    const hash = Array.from(new Uint8Array(digest), value => value.toString(16).padStart(2, "0")).join("");
+    return storedPassword === `sha256:${hash}`;
+  }
+
+  async handleServerLogin(username, password) {
+    this.setLoading('login', true);
+    try {
+      const result = await window.AuthApi.login(username, password);
+      await window.AuthApi.storeSession(result);
+      this.showMessage('Đăng nhập thành công!', 'success');
+      setTimeout(() => this.redirectToMain(), 500);
+    } catch (error) {
+      this.showMessage(error.message || 'Không thể đăng nhập.');
+    } finally {
+      this.setLoading('login', false);
+    }
+  }
+
+  async handleServerRegister(username, password) {
+    this.setLoading('register', true);
+    try {
+      const result = await window.AuthApi.register(username, password);
+      await window.AuthApi.storeSession(result);
+      this.showMessage('Đăng ký thành công!', 'success');
+      setTimeout(() => this.redirectToMain(), 500);
+    } catch (error) {
+      this.showMessage(error.message || 'Không thể đăng ký.');
+    } finally {
+      this.setLoading('register', false);
+    }
   }
 
   redirectToMain() {
@@ -259,6 +295,10 @@ class SessionManager {
     
     if (!sessionData || !currentUser) {
       return false;
+    }
+
+    if (window.AuthApi?.hasSession()) {
+      return true;
     }
     
     try {
@@ -299,6 +339,7 @@ class SessionManager {
   
   static clearSession() {
     sessionStorage.removeItem('authSession');
+    window.AuthApi?.clearSession();
     localStorage.removeItem('currentUser');
   }
   

@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Trò Chơi Theo Dõi Đầu | Trợ Lý Ảo</title>
-  <link rel="stylesheet" href="head-tracking-game.css">
-  <link rel="stylesheet" href="light-ai-theme.css?v=20261115">
+  <link rel="stylesheet" href="light-ai-theme.css?v=20261115b">
+  <link rel="stylesheet" href="head-tracking-game.css?v=20261115b">
   <link rel="icon" href="data:;base64,=">
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
 </head>
@@ -13,6 +13,11 @@
   <!-- Start Screen -->
   <div id="start-screen" class="screen active">
     <div class="container">
+      <nav class="game-page-nav" aria-label="Điều hướng trò chơi">
+        <a href="games.html">← Trò chơi</a>
+        <a href="index.html">Trang chủ</a>
+        <button class="game-theme-toggle" type="button" data-theme-toggle aria-label="Chuyển đổi giao diện"><span class="menu-icon" aria-hidden="true"></span><span class="game-theme-label">Giao diện</span></button>
+      </nav>
       <h1>🎮 Game Theo Dõi Đầu</h1>
       <p>Trả lời câu hỏi bằng cách di chuyển đầu</p>
       <div id="player-stats" class="player-stats"></div>
@@ -44,6 +49,11 @@
   <!-- Camera Permission Screen -->
   <div id="camera-permission-screen" class="screen">
     <div class="container">
+      <nav class="game-page-nav" aria-label="Điều hướng trò chơi">
+        <a href="games.html">← Trò chơi</a>
+        <a href="index.html">Trang chủ</a>
+        <button class="game-theme-toggle" type="button" data-theme-toggle aria-label="Chuyển đổi giao diện"><span class="menu-icon" aria-hidden="true"></span><span class="game-theme-label">Giao diện</span></button>
+      </nav>
       <h2>📷 Yêu cầu quyền Camera</h2>
       <p>Trò chơi cần quyền truy cập camera để theo dõi chuyển động đầu của bạn.</p>
       <div class="privacy-notice">
@@ -60,27 +70,36 @@
 
   <!-- Game Screen -->
   <div id="game-screen" class="screen">
-    <video id="video" autoplay muted playsinline></video>
-    <canvas id="overlay"></canvas>
+    <div class="camera-preview" id="camera-preview">
+      <video id="video" autoplay muted playsinline aria-label="Hình xem trước camera"></video>
+      <canvas id="overlay" aria-hidden="true"></canvas>
+      <button id="camera-toggle-btn" class="camera-toggle" type="button" aria-label="Mở rộng hình camera" aria-expanded="false">⤢</button>
+      <span class="game-camera-status" id="game-camera-status" role="status" aria-live="polite">Đang khởi tạo camera…</span>
+    </div>
     
     <div class="game-ui">
       <div class="top-bar">
         <div class="score">🏆 <span id="score">0</span></div>
         <div class="question-count">📝 <span id="current-question">1</span>/<span id="total-questions">10</span></div>
-        <button id="pause-btn" class="btn secondary" type="button">Tạm dừng</button>
+        <div class="top-actions">
+          <button id="pause-btn" class="btn secondary" type="button">Tạm dừng</button>
+          <button id="exit-btn" class="btn secondary" type="button">Thoát</button>
+          <a class="btn secondary game-home-link" href="index.html" aria-label="Về trang chủ"><span aria-hidden="true">⌂</span><span class="home-label">Trang chủ</span></a>
+          <button class="btn secondary game-theme-toggle" type="button" data-theme-toggle aria-label="Chuyển đổi giao diện"><span class="menu-icon" aria-hidden="true"></span><span class="game-theme-label">Giao diện</span></button>
+        </div>
       </div>
       
       <div class="question-panel">
         <div class="question-text" id="question-text">Đang tải...</div>
         <div class="answers">
-          <div class="answer left" id="answer-left">
+          <button class="answer left" id="answer-left" type="button" aria-label="Chọn đáp án bên trái">
             <span class="arrow">⬅️</span>
             <span id="answer-left-text">Sai</span>
-          </div>
-          <div class="answer right" id="answer-right">
+          </button>
+          <button class="answer right" id="answer-right" type="button" aria-label="Chọn đáp án bên phải">
             <span id="answer-right-text">Đúng</span>
             <span class="arrow">➡️</span>
-          </div>
+          </button>
         </div>
       </div>
     </div>
@@ -96,11 +115,13 @@
         <div>Tỷ lệ: <span id="percentage">0%</span></div>
       </div>
       <button id="restart-btn" class="btn">Chơi Lại</button>
-      <button id="home-btn" class="btn secondary">Thoát</button>
+      <button id="home-btn" class="btn secondary">Chọn trò chơi</button>
+      <a href="index.html" class="btn secondary">Trang chủ</a>
+      <button class="btn secondary game-theme-toggle" type="button" data-theme-toggle aria-label="Chuyển đổi giao diện"><span class="menu-icon" aria-hidden="true"></span><span class="game-theme-label">Giao diện</span></button>
     </div>
   </div>
 
-  <script src="head-tracking-game.js"></script>
-  <script src="theme-manager.js?v=20261115"></script>
+  <script src="head-tracking-game.js?v=20261115b"></script>
+  <script src="theme-manager.js?v=20261115b"></script>
 </body>
 </html>

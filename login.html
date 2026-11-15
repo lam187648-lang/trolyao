@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>?? Login - Chatbot</title>
+<title>Đăng nhập | Trợ Lý Ảo</title>
 <link rel="stylesheet" href="style.css">
 <style>
 .login-container {
@@ -199,21 +199,24 @@
     }
 }
 </style>
-<link rel="stylesheet" href="light-ai-theme.css?v=20261115">
+<link rel="stylesheet" href="light-ai-theme.css?v=20261115b">
 </head>
 <body>
-<a href="index.html" class="back-link">? đừng bấm vào đây</a>
+<nav class="page-controls auth-page-controls" aria-label="Điều hướng đăng nhập">
+    <button type="button" data-page-back data-fallback="index.html">← Quay lại</button>
+    <a href="index.html">⌂ Trang chủ</a>
+</nav>
 
 <div class="login-container">
     <div class="login-card">
         <div class="login-header">
-            <div class="login-avatar">??</div>
-            <h1>??ng Nh?p</h1>
-            <p>Chào m?ng quay tr? l?i!</p>
+            <div class="login-avatar">AI</div>
+            <h1>Đăng nhập</h1>
+            <p>Chào mừng bạn quay trở lại!</p>
         </div>
 
         <div class="mobile-info">
-            <strong>Mobile Users:</strong> trang nay là trang tối ưu cho di động và local
+            <strong>Tài khoản cũ:</strong> Dữ liệu LocalStorage chỉ có trên thiết bị này; tài khoản server cần PostgreSQL được cấu hình.
         </div>
 
         <div id="message-container"></div>
@@ -240,7 +243,9 @@
     </div>
 </div>
 
-<script src="login.js"></script>
-<script src="theme-manager.js?v=20261115"></script>
+<script src="auth-api.js?v=20261115c"></script>
+<script src="login.js?v=20261115c"></script>
+<script src="theme-manager.js?v=20261115b"></script>
+<script src="page-navigation.js"></script>
 </body>
 </html>
