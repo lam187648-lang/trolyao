@@ -181,8 +181,84 @@
     }
   }
 
+  async function loadImports() {
+    const body = byId("imports-body");
+    const status = byId("import-status").value;
+    let imports;
+    try {
+      ({ imports } = await window.AuthApi.request(`/admin/legacy-imports?status=${encodeURIComponent(status)}`));
+    } catch (error) {
+      body.replaceChildren();
+      const row = document.createElement("tr");
+      cell(row, error.message).colSpan = 7;
+      body.appendChild(row);
+      return;
+    }
+    body.replaceChildren();
+    if (!imports.length) {
+      const row = document.createElement("tr");
+      cell(row, "Không có yêu cầu nào.").colSpan = 7;
+      body.appendChild(row);
+      return;
+    }
+    for (const item of imports) {
+      const row = document.createElement("tr");
+      cell(row, item.username);
+      const local = cell(row, item.local_username);
+      if (item.same_local_username_count > 1) {
+        local.textContent += `\n⚠ ${item.same_local_username_count} yêu cầu cùng tên cũ`;
+        local.style.whiteSpace = "pre-line";
+      }
+      cell(row, Number(item.claimed_tokens).toLocaleString("vi-VN"));
+      cell(row, item.claimed_theme_ids.length ? item.claimed_theme_ids.join(", ") : "—");
+      cell(row, formatDate(item.created_at));
+      cell(row, item.status === "approved"
+        ? `${Number(item.approved_tokens).toLocaleString("vi-VN")} Token · màu ${item.approved_theme_ids.join(", ") || "—"}`
+        : item.review_note || "—");
+      const actions = document.createElement("td");
+      actions.className = "admin-actions";
+      if (item.status === "pending_review") {
+        actions.append(
+          actionButton("Duyệt", async () => {
+            const tokenText = prompt(`Số Token duyệt cho ${item.username} (0–${item.claimed_tokens}):`, String(item.claimed_tokens));
+            if (tokenText === null) return;
+            const tokens = Number(tokenText);
+            if (!Number.isSafeInteger(tokens) || tokens < 0 || tokens > Number(item.claimed_tokens)) {
+              throw new Error("Số Token duyệt không hợp lệ.");
+            }
+            const themeText = prompt("Mã màu duyệt (cách nhau bằng dấu phẩy, để trống nếu không):", item.claimed_theme_ids.join(","));
+            if (themeText === null) return;
+            const themeIds = themeText.split(",").map((value) => value.trim()).filter(Boolean);
+            const note = prompt("Ghi chú (tối đa 200 ký tự):") || "";
+            if (!confirm(`Duyệt ${tokens} Token và ${themeIds.length} màu cho ${item.username}?`)) return;
+            await window.AuthApi.request(`/admin/legacy-imports/${item.id}/approve`, {
+              method: "POST",
+              body: { tokens, themeIds, note }
+            });
+            setStatus(`Đã duyệt yêu cầu của ${item.username}.`);
+            await reload();
+          }),
+          actionButton("Từ chối", async () => {
+            const note = prompt("Lý do từ chối (tối đa 200 ký tự):");
+            if (note === null) return;
+            await window.AuthApi.request(`/admin/legacy-imports/${item.id}/reject`, {
+              method: "POST",
+              body: { note }
+            });
+            setStatus(`Đã từ chối yêu cầu của ${item.username}.`);
+            await reload();
+          }, true)
+        );
+      } else {
+        actions.textContent = "—";
+      }
+      row.appendChild(actions);
+      body.appendChild(row);
+    }
+  }
+
   async function reload() {
-    await Promise.all([loadUsers(), loadAudit()]);
+    await Promise.all([loadUsers(), loadAudit(), loadImports()]);
   }
 
   async function init() {
@@ -197,6 +273,9 @@
     byId("next-page").addEventListener("click", () => {
       state.page += 1;
       void loadUsers().catch((error) => setStatus(error.message, true));
+    });
+    byId("import-status").addEventListener("change", () => {
+      void loadImports().catch((error) => setStatus(error.message, true));
     });
     byId("user-status").addEventListener("change", () => {
       state.page = 1;

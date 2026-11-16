@@ -1,9 +1,10 @@
 const crypto = require("node:crypto");
 const express = require("express");
-const { pool, requireDatabase, withTransaction } = require("./database");
+const { pool, requireDatabase, requireMigration, withTransaction } = require("./database");
 const { authenticate, requireAdmin } = require("./auth-middleware");
 
 const router = express.Router();
+const LEGACY_IMPORT_MIGRATION = "002_garden_rewards_legacy_import";
 const DIAGNOSTIC_TABLES = ["users", "sessions", "schema_migrations"];
 const diagnosticSecret = process.env.DB_DIAGNOSTIC_SECRET?.trim() || "";
 
@@ -258,6 +259,114 @@ router.get("/audit", asyncRoute(async (req, res) => {
     [pageSize, (page - 1) * pageSize]
   );
   res.json({ logs: rows, page, pageSize });
+}));
+
+router.get("/legacy-imports", requireMigration(LEGACY_IMPORT_MIGRATION), asyncRoute(async (req, res) => {
+  const status = ["pending_review", "completed", "approved", "rejected"].includes(req.query.status)
+    ? req.query.status
+    : "pending_review";
+  const { rows } = await pool.query(
+    `SELECT li.*, u.username,
+            (SELECT COUNT(*)::int FROM legacy_imports other
+             WHERE LOWER(other.local_username) = LOWER(li.local_username)) AS same_local_username_count
+     FROM legacy_imports li
+     JOIN users u ON u.id = li.user_id
+     WHERE li.status = $1
+     ORDER BY li.created_at ASC
+     LIMIT 100`,
+    [status]
+  );
+  res.json({ imports: rows });
+}));
+
+router.post("/legacy-imports/:importId/approve", requireMigration(LEGACY_IMPORT_MIGRATION), asyncRoute(async (req, res) => {
+  const { importId } = req.params;
+  if (!isUuid(importId)) return res.status(400).json({ error: "Mã yêu cầu không hợp lệ." });
+  const tokens = Number(req.body?.tokens ?? 0);
+  const themeIds = Array.isArray(req.body?.themeIds) ? [...new Set(req.body.themeIds.map(String))] : [];
+  const note = typeof req.body?.note === "string" ? req.body.note.trim().slice(0, 200) : "";
+  if (!Number.isSafeInteger(tokens) || tokens < 0) {
+    return res.status(400).json({ error: "Số Token duyệt không hợp lệ." });
+  }
+
+  const result = await withTransaction(async (client) => {
+    const { rows } = await client.query("SELECT * FROM legacy_imports WHERE id = $1 FOR UPDATE", [importId]);
+    const record = rows[0];
+    if (!record) return { notFound: true };
+    if (record.status !== "pending_review") return { conflict: true };
+    if (tokens > Number(record.claimed_tokens)) return { invalid: "Không được duyệt nhiều Token hơn số đã khai báo." };
+    if (themeIds.some((themeId) => !record.claimed_theme_ids.includes(themeId))) {
+      return { invalid: "Chỉ được duyệt những màu có trong yêu cầu." };
+    }
+
+    const { rows: userRows } = await client.query(
+      "SELECT id FROM users WHERE id = $1 FOR UPDATE",
+      [record.user_id]
+    );
+    if (!userRows[0]) return { notFound: true };
+    if (tokens > 0) {
+      const { rows: updated } = await client.query(
+        "UPDATE users SET token_balance = token_balance + $2 WHERE id = $1 RETURNING token_balance",
+        [record.user_id, tokens]
+      );
+      await client.query(
+        `INSERT INTO token_transactions
+         (user_id, actor_user_id, transaction_type, amount, balance_after, note)
+         VALUES ($1, $2, 'legacy_import', $3, $4, $5)`,
+        [record.user_id, req.user.id, tokens, updated[0].token_balance,
+          `Chuyển dữ liệu từ tài khoản cũ "${record.local_username}"`]
+      );
+    }
+    for (const themeId of themeIds) {
+      await client.query(
+        `INSERT INTO theme_entitlements (user_id, theme_id, granted_by_user_id)
+         VALUES ($1, $2, $3)
+         ON CONFLICT (user_id, theme_id) DO NOTHING`,
+        [record.user_id, themeId, req.user.id]
+      );
+    }
+    const { rows: reviewed } = await client.query(
+      `UPDATE legacy_imports
+       SET status = 'approved', approved_tokens = $2, approved_theme_ids = $3,
+           reviewed_by_user_id = $4, review_note = $5, reviewed_at = NOW()
+       WHERE id = $1
+       RETURNING *`,
+      [importId, tokens, themeIds, req.user.id, note || null]
+    );
+    await audit(client, req.user.id, record.user_id, "legacy_import.approve", {
+      importId, tokens, themeIds, note
+    });
+    return { record: reviewed[0] };
+  });
+
+  if (result.notFound) return res.status(404).json({ error: "Không tìm thấy yêu cầu." });
+  if (result.conflict) return res.status(409).json({ error: "Yêu cầu này đã được xử lý." });
+  if (result.invalid) return res.status(400).json({ error: result.invalid });
+  res.json({ import: result.record });
+}));
+
+router.post("/legacy-imports/:importId/reject", requireMigration(LEGACY_IMPORT_MIGRATION), asyncRoute(async (req, res) => {
+  const { importId } = req.params;
+  if (!isUuid(importId)) return res.status(400).json({ error: "Mã yêu cầu không hợp lệ." });
+  const note = typeof req.body?.note === "string" ? req.body.note.trim().slice(0, 200) : "";
+
+  const result = await withTransaction(async (client) => {
+    const { rows } = await client.query("SELECT * FROM legacy_imports WHERE id = $1 FOR UPDATE", [importId]);
+    if (!rows[0]) return { notFound: true };
+    if (rows[0].status !== "pending_review") return { conflict: true };
+    const { rows: reviewed } = await client.query(
+      `UPDATE legacy_imports
+       SET status = 'rejected', reviewed_by_user_id = $2, review_note = $3, reviewed_at = NOW()
+       WHERE id = $1 RETURNING *`,
+      [importId, req.user.id, note || null]
+    );
+    await audit(client, req.user.id, rows[0].user_id, "legacy_import.reject", { importId, note });
+    return { record: reviewed[0] };
+  });
+
+  if (result.notFound) return res.status(404).json({ error: "Không tìm thấy yêu cầu." });
+  if (result.conflict) return res.status(409).json({ error: "Yêu cầu này đã được xử lý." });
+  res.json({ import: result.record });
 }));
 
 module.exports = router;

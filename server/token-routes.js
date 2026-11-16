@@ -2,14 +2,9 @@ const express = require("express");
 const { pool, requireDatabase, withTransaction } = require("./database");
 const { authenticate } = require("./auth-middleware");
 
+const { BASIC_THEME_IDS, TOKEN_THEME_PRICES } = require("./theme-catalog");
+
 const router = express.Router();
-const BASIC_THEME_IDS = new Set(
-  [...Array(13)].map((_, index) => String(index + 1)).concat("16")
-);
-const TOKEN_THEME_PRICES = new Map([
-  ["14", 50],
-  ["15", 50]
-]);
 
 function asyncRoute(handler) {
   return (req, res, next) => Promise.resolve(handler(req, res, next)).catch(next);

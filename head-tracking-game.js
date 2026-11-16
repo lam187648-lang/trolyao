@@ -38,16 +38,46 @@ let playerStats = {
   totalWrong: 0
 };
 
+const LEGACY_STATS_KEY = 'headTrackingGameStats';
+const LEGACY_STATS_OWNER_KEY = 'headTrackingGameStatsMigratedTo';
+
+function getPlayerStatsKey() {
+  const currentUser = localStorage.getItem('currentUser');
+  return currentUser ? `${LEGACY_STATS_KEY}:${currentUser}` : LEGACY_STATS_KEY;
+}
+
 function loadPlayerStats() {
-  const saved = localStorage.getItem('headTrackingGameStats');
+  const currentUser = localStorage.getItem('currentUser');
+  const key = getPlayerStatsKey();
+  let saved = localStorage.getItem(key);
+  // One-time migration: the old shared stats go to the first account that opens the game.
+  if (!saved && currentUser && !localStorage.getItem(LEGACY_STATS_OWNER_KEY)) {
+    const legacy = localStorage.getItem(LEGACY_STATS_KEY);
+    if (legacy) {
+      localStorage.setItem(key, legacy);
+      localStorage.setItem(LEGACY_STATS_OWNER_KEY, currentUser);
+      saved = legacy;
+    }
+  }
+  playerStats = { totalGames: 0, totalWins: 0, totalCorrect: 0, totalWrong: 0 };
   if (saved) {
-    playerStats = JSON.parse(saved);
+    try {
+      const parsed = JSON.parse(saved);
+      if (parsed && typeof parsed === 'object') {
+        for (const field of Object.keys(playerStats)) {
+          const value = Number(parsed[field]);
+          if (Number.isFinite(value) && value >= 0) playerStats[field] = value;
+        }
+      }
+    } catch {
+      console.warn('Không đọc được thống kê trò chơi đã lưu.');
+    }
   }
   updateStatsDisplay();
 }
 
 function savePlayerStats() {
-  localStorage.setItem('headTrackingGameStats', JSON.stringify(playerStats));
+  localStorage.setItem(getPlayerStatsKey(), JSON.stringify(playerStats));
   updateStatsDisplay();
 }
 

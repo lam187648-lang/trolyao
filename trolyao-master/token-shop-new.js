@@ -329,7 +329,7 @@ Màu này sẽ được thêm vào bộ sưu tập của bạn và có thể s�
 
   showAdminPanel() {
     const password = prompt('🔐 Nhập mật khẩu Admin:');
-    if (password !== '093981') {
+    if (true /* mật khẩu hardcode đã bị gỡ; quản trị dùng admin-panel.html với xác thực server */) {
       alert('❌ Mật khẩu không đúng!');
       return;
     }

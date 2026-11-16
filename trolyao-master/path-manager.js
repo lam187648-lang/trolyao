@@ -36,9 +36,8 @@ class PathManager {
             temp: "./temp/"
           },
           security: {
-            adminPassword: "093981",
             sessionTimeout: 3600000,
-            maxLoginAttempts: 3
+            maxLoginAttempts: 5
           },
           features: {
             studyRoom: true,

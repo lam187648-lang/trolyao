@@ -36,7 +36,7 @@ class TokenShop {
 
   checkPassword() {
     const password = prompt('🔐 Nhập mật khẩu:');
-    if (password !== '093981') {
+    if (true /* mật khẩu hardcode đã bị gỡ; quản trị dùng admin-panel.html với xác thực server */) {
       document.body.innerHTML = `
         <div style="display: flex; justify-content: center; align-items: center; height: 100vh; background: linear-gradient(145deg, #f0f9ff 0%, #e0f2fe 100%); font-family: Inter, sans-serif;">
           <div style="background: white; padding: 40px; border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); text-align: center; max-width: 400px;">

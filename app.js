@@ -377,7 +377,7 @@ function checkAuthStatus() {
       const banStatus = checkUserBan();
       if (banStatus.isBanned) {
         showAuthModal();
-        addMessage(`?? Tài khóa?n ?ã b?i khóa! Vui lòng quay la?i sau ${banStatus.remainingTime} phút.`, "bot");
+        addMessage(`Tài khoản đã bị khóa! Vui lòng quay lại sau ${banStatus.remainingTime} phút.`, "bot");
         return false;
       }
 
@@ -531,12 +531,17 @@ function initLocalStorage() {
 // Check if current user is banned
 function checkUserBan() {
   const currentUser = localStorage.getItem('currentUser');
-  if (!currentUser) return false;
+  if (!currentUser) return { isBanned: false };
 
-  const bans = JSON.parse(localStorage.getItem('userBans') || '{}');
+  let bans = {};
+  try {
+    bans = JSON.parse(localStorage.getItem('userBans') || '{}') || {};
+  } catch {
+    bans = {};
+  }
   const banInfo = bans[currentUser];
 
-  if (banInfo && banInfo.until > Date.now()) {
+  if (banInfo && Number(banInfo.until) > Date.now()) {
     const remainingTime = Math.ceil((banInfo.until - Date.now()) / 60000);
     return {
       isBanned: true,
@@ -1155,10 +1160,10 @@ function applyThemeFromStorage() {
     window.ThemeManager.applyStored();
     return;
   }
-  let isDark = localStorage.getItem("theme") === "dark";
-  if (!isDark) {
-    isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-  }
+  const storedTheme = localStorage.getItem("theme");
+  const isDark = storedTheme
+    ? storedTheme === "dark"
+    : window.matchMedia("(prefers-color-scheme: dark)").matches;
   document.body.classList.toggle("dark", isDark);
 
   // Safe DOM access with null checks

@@ -36,6 +36,11 @@ jobs:
           node --check server/auth-routes.js
           node --check server/admin-routes.js
           node --check server/token-routes.js
+          node --check server/theme-catalog.js
+          node --check server/garden-routes.js
+          node --check server/legacy-import-routes.js
+          node --check server/tests/helpers.js
+          node --check legacy-import.js
           node --check server/scripts/migrate.js
           node --check server/scripts/promote-admin.js
           node --check token-shop-new.js

@@ -271,6 +271,12 @@ class StudyRoom {
     return 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
   }
 
+  escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, (char) => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    })[char]);
+  }
+
   generateAvatar(name) {
     // Generate a simple avatar based on name
     const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F'];
@@ -309,8 +315,8 @@ class StudyRoom {
       if (user) {
         slot.classList.add('occupied');
         slot.innerHTML = `
-          <img src="${user.avatar}" alt="${user.name}" class="slot-avatar">
-          <div class="slot-name">${user.name}</div>
+          <img src="${this.escapeHtml(user.avatar || this.generateAvatar(String(user.name || '?')))}" alt="${this.escapeHtml(user.name)}" class="slot-avatar">
+          <div class="slot-name">${this.escapeHtml(user.name)}</div>
           <div class="slot-timer">${this.formatTime(user.studyTime + (Date.now() - user.joinTime))}</div>
           <div class="slot-status"></div>
           ${user.id === this.currentUser?.id ? '<button class="leave-btn" style="position: absolute; top: 4px; left: 4px; background: rgba(239,68,68,0.8); color: white; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; font-size: 12px;">×</button>' : ''}

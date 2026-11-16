@@ -37,6 +37,7 @@
     .pagination { display: flex; align-items: center; justify-content: flex-end; gap: 10px; padding-top: 14px; }
     .audit-list { display: grid; gap: 8px; }
     .audit-item { display: grid; grid-template-columns: minmax(120px, .7fr) minmax(150px, 1fr) minmax(140px, .8fr) minmax(160px, .8fr); gap: 12px; padding: 12px; border: 1px solid var(--ai-border); border-radius: 12px; background: var(--ai-surface-soft); font-size: .88rem; }
+    .audit-item span { min-width: 0; overflow-wrap: anywhere; }
     .notice { margin: 14px 0; padding: 12px 14px; border-radius: 12px; background: var(--ai-surface-soft); color: var(--ai-text-secondary); }
     .notice.error { background: #fff0f0; color: #b42332; }
     [hidden] { display: none !important; }
@@ -44,7 +45,7 @@
       body { padding: 12px; }
       .admin-topbar { flex-wrap: wrap; padding: 12px; }
       .admin-brand { width: 100%; }
-      .audit-item { grid-template-columns: 1fr 1fr; }
+      .audit-item { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
     }
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
@@ -98,13 +99,39 @@
       </article>
 
       <article class="admin-card">
+        <div class="card-heading">
+          <h2>Yêu cầu chuyển tài khoản cũ</h2>
+          <div class="admin-controls">
+            <select id="import-status" aria-label="Lọc yêu cầu chuyển dữ liệu">
+              <option value="pending_review">Chờ duyệt</option>
+              <option value="approved">Đã duyệt</option>
+              <option value="rejected">Đã từ chối</option>
+              <option value="completed">Không cần duyệt</option>
+            </select>
+          </div>
+        </div>
+        <p class="muted">Dữ liệu cũ do trình duyệt người dùng tự khai báo, không có bằng chứng sở hữu. Chỉ duyệt khi đã xác minh.</p>
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Tài khoản server</th><th>Tài khoản cũ</th><th>Token khai báo</th><th>Màu khai báo</th>
+                <th>Gửi lúc</th><th>Kết quả</th><th>Thao tác</th>
+              </tr>
+            </thead>
+            <tbody id="imports-body"><tr><td colspan="7">Đang tải...</td></tr></tbody>
+          </table>
+        </div>
+      </article>
+
+      <article class="admin-card">
         <div class="card-heading"><h2>Nhật ký quản trị</h2></div>
         <div class="audit-list" id="audit-list"><p class="muted">Đang tải nhật ký...</p></div>
       </article>
     </section>
   </main>
   <script src="auth-api.js?v=20261115d"></script>
-  <script src="admin-panel.js?v=20261115b"></script>
+  <script src="admin-panel.js?v=20261116a"></script>
   <script src="theme-manager.js?v=20261115b"></script>
 </body>
 </html>

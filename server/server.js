@@ -7,6 +7,8 @@ const { pool, closeDatabase, checkDatabaseConnection } = require("./database");
 const authRoutes = require("./auth-routes");
 const adminRoutes = require("./admin-routes");
 const tokenRoutes = require("./token-routes");
+const gardenRoutes = require("./garden-routes");
+const legacyImportRoutes = require("./legacy-import-routes");
 
 // Dynamic import for node-fetch v3 (ES module)
 let fetch;
@@ -110,6 +112,8 @@ app.get("/health", (_req, res) => {
 
 app.use("/auth", authRoutes);
 app.use("/admin", adminRoutes);
+app.use("/api", gardenRoutes);
+app.use("/api", legacyImportRoutes);
 app.use("/api", tokenRoutes);
 
 // AI Chat endpoint
@@ -274,6 +278,9 @@ app.use((error, req, res, next) => {
   if (res.headersSent) return next(error);
   if (error.type === "entity.parse.failed") {
     return res.status(400).json({ error: "JSON request body không hợp lệ." });
+  }
+  if (error.type === "entity.too.large") {
+    return res.status(413).json({ error: "Dữ liệu gửi lên quá lớn." });
   }
   if (error.code === "DATABASE_NOT_CONFIGURED") {
     return res.status(503).json({

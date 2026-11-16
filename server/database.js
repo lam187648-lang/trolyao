@@ -63,6 +63,37 @@ async function checkInitialSchemaMigration() {
   return rows[0].applied;
 }
 
+const appliedMigrations = new Set();
+
+async function isMigrationApplied(migrationId) {
+  if (!pool) return false;
+  if (appliedMigrations.has(migrationId)) return true;
+  const { rows } = await pool.query(
+    `SELECT to_regclass('schema_migrations') IS NOT NULL AS tracking_table_exists`
+  );
+  if (!rows[0]?.tracking_table_exists) return false;
+  const { rows: appliedRows } = await pool.query(
+    "SELECT 1 FROM schema_migrations WHERE migration_id = $1",
+    [migrationId]
+  );
+  if (appliedRows.length) appliedMigrations.add(migrationId);
+  return appliedRows.length > 0;
+}
+
+function requireMigration(migrationId) {
+  return (_req, res, next) => {
+    isMigrationApplied(migrationId)
+      .then((applied) => {
+        if (applied) return next();
+        res.status(503).json({
+          error: "Cơ sở dữ liệu chưa được cập nhật cho chức năng này. Quản trị viên cần chạy npm run db:migrate.",
+          code: "MIGRATION_REQUIRED"
+        });
+      })
+      .catch(next);
+  };
+}
+
 function requireDatabase(_req, res, next) {
   if (!pool) {
     return res.status(503).json({
@@ -108,5 +139,7 @@ module.exports = {
   withTransaction,
   closeDatabase,
   checkDatabaseConnection,
-  checkInitialSchemaMigration
+  checkInitialSchemaMigration,
+  isMigrationApplied,
+  requireMigration
 };

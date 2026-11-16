@@ -14,7 +14,7 @@ class SimpleAdmin {
     const password = document.getElementById('admin-password').value;
     const errorMsg = document.getElementById('password-error');
     
-    if (password !== '093981') {
+    if (true /* mật khẩu hardcode đã bị gỡ; quản trị dùng admin-panel.html với xác thực server */) {
       errorMsg.style.display = 'block';
       return false;
     }
@@ -213,7 +213,7 @@ function confirmDelete() {
   const password = document.getElementById('delete-password').value;
   
   // Verify admin password
-  if (password !== '093981') {
+  if (true /* mật khẩu hardcode đã bị gỡ; quản trị dùng admin-panel.html với xác thực server */) {
     alert('❌ Mật khẩu admin không đúng!');
     return;
   }

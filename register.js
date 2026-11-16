@@ -106,17 +106,17 @@ class RegisterPage {
     switch (strength) {
       case 0:
       case 1:
-        message = 'M?t kh?u y?u';
+        message = 'Mật khẩu yếu';
         className = 'strength-weak';
         break;
       case 2:
       case 3:
-        message = 'M?t kh?u trung bình';
+        message = 'Mật khẩu trung bình';
         className = 'strength-medium';
         break;
       case 4:
       case 5:
-        message = 'M?t kh?u m?nh';
+        message = 'Mật khẩu mạnh';
         className = 'strength-strong';
         break;
     }
@@ -135,7 +135,7 @@ class RegisterPage {
     const confirmPassword = confirmPasswordInput.value;
     
     if (confirmPassword && password !== confirmPassword) {
-      this.showError(confirmPasswordInput, 'M?t kh?u không kh?p!');
+      this.showError(confirmPasswordInput, 'Mật khẩu không khớp!');
       return false;
     }
     

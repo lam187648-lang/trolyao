@@ -3,18 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Trang Xác Thuc</title>
+<title>Trang Xác Thực - Trợ Lý Ảo</title>
 <link rel="stylesheet" href="style.css">
 <style>
-.auth-container {
+  .auth-container {
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
     background: linear-gradient(145deg, #f0f9ff 0%, #e0f2fe 100%);
     font-family: Inter, sans-serif;
-}
-.auth-card {
+    padding: 20px;
+  }
+  .auth-card {
     background: white;
     padding: 40px;
     border-radius: 16px;
@@ -22,25 +23,25 @@
     width: 100%;
     max-width: 400px;
     text-align: center;
-}
-.auth-header {
+  }
+  .auth-header {
     margin-bottom: 30px;
-}
-.auth-header h1 {
+  }
+  .auth-header h1 {
     color: #1e40af;
     margin-bottom: 10px;
     font-size: 28px;
-}
-.auth-header p {
+  }
+  .auth-header p {
     color: #64748b;
     font-size: 16px;
-}
-.auth-tabs {
+  }
+  .auth-tabs {
     display: flex;
     margin-bottom: 30px;
     border-bottom: 1px solid #e5e7eb;
-}
-.auth-tab {
+  }
+  .auth-tab {
     flex: 1;
     padding: 12px;
     background: none;
@@ -50,40 +51,40 @@
     font-weight: 500;
     color: #6b7280;
     transition: all 0.2s ease;
-}
-.auth-tab.active {
+  }
+  .auth-tab.active {
     color: #3b82f6;
     border-bottom: 2px solid #3b82f6;
-}
-.auth-form {
+  }
+  .auth-form {
     display: none;
-}
-.auth-form.active {
+  }
+  .auth-form.active {
     display: block;
-}
-.form-group {
+  }
+  .form-group {
     margin-bottom: 20px;
     text-align: left;
-}
-.form-label {
+  }
+  .form-label {
     display: block;
     margin-bottom: 8px;
     font-weight: 500;
     color: #374151;
-}
-.form-input {
+  }
+  .form-input {
     width: 100%;
     padding: 12px;
     border: 1.5px solid #d1d5db;
     border-radius: 8px;
     font-size: 16px;
     transition: border-color 0.2s ease;
-}
-.form-input:focus {
+  }
+  .form-input:focus {
     outline: none;
     border-color: #3b82f6;
-}
-.auth-btn {
+  }
+  .auth-btn {
     width: 100%;
     padding: 14px;
     background: linear-gradient(135deg, #3b82f6, #2563eb);
@@ -95,17 +96,17 @@
     cursor: pointer;
     transition: all 0.2s ease;
     margin-top: 10px;
-}
-.auth-btn:hover {
+  }
+  .auth-btn:hover {
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-}
-.auth-btn:disabled {
+  }
+  .auth-btn:disabled {
     opacity: 0.6;
     cursor: not-allowed;
     transform: none;
-}
-.error-message {
+  }
+  .error-message {
     background: #fef2f2;
     color: #dc2626;
     padding: 12px;
@@ -113,8 +114,8 @@
     margin-bottom: 20px;
     font-size: 14px;
     border: 1px solid #fecaca;
-}
-.success-message {
+  }
+  .success-message {
     background: #f0fdf4;
     color: #16a34a;
     padding: 12px;
@@ -122,8 +123,8 @@
     margin-bottom: 20px;
     font-size: 14px;
     border: 1px solid #bbf7d0;
-}
-.loading {
+  }
+  .loading {
     display: inline-block;
     width: 16px;
     height: 16px;
@@ -131,61 +132,61 @@
     border-radius: 50%;
     border-top-color: transparent;
     animation: spin 0.8s linear infinite;
-}
-@keyframes spin {
+  }
+  @keyframes spin {
     to { transform: rotate(360deg); }
-}
+  }
 </style>
 </head>
 <body>
 <div class="auth-container">
-    <div class="auth-card">
-        <div class="auth-header">
-            <h1>?? Chatbot</h1>
-            <p>??ng nh?p ho?c ??ng ký ?? b?t ??u</p>
-        </div>
-
-        <div class="auth-tabs">
-            <button class="auth-tab active" onclick="switchTab('login')">??ng Nh?p</button>
-            <button class="auth-tab" onclick="switchTab('register')">??ng Ký</button>
-        </div>
-
-        <div id="message-container"></div>
-
-        <!-- Login Form -->
-        <form id="login-form" class="auth-form active">
-            <div class="form-group">
-                <label class="form-label">Tên ??ng nh?p</label>
-                <input type="text" id="login-username" class="form-input" required>
-            </div>
-            <div class="form-group">
-                <label class="form-label">M?t kh?u</label>
-                <input type="password" id="login-password" class="form-input" required>
-            </div>
-            <button type="submit" class="auth-btn" id="login-btn">
-                <span id="login-text">??ng Nh?p</span>
-            </button>
-        </form>
-
-        <!-- Register Form -->
-        <form id="register-form" class="auth-form">
-            <div class="form-group">
-                <label class="form-label">Tên ??ng nh?p</label>
-                <input type="text" id="register-username" class="form-input" required>
-            </div>
-            <div class="form-group">
-                <label class="form-label">M?t kh?u</label>
-                <input type="password" id="register-password" class="form-input" required>
-            </div>
-            <div class="form-group">
-                <label class="form-label">Xác nh?n m?t kh?u</label>
-                <input type="password" id="register-confirm" class="form-input" required>
-            </div>
-            <button type="submit" class="auth-btn" id="register-btn">
-                <span id="register-text">??ng Ký</span>
-            </button>
-        </form>
+  <div class="auth-card">
+    <div class="auth-header">
+      <h1>🤖 Trợ Lý Ảo</h1>
+      <p>Đăng nhập hoặc đăng ký để bắt đầu</p>
     </div>
+
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchTab('login')">Đăng Nhập</button>
+      <button class="auth-tab" onclick="switchTab('register')">Đăng Ký</button>
+    </div>
+
+    <div id="message-container"></div>
+
+    <!-- Login Form -->
+    <form id="login-form" class="auth-form active">
+      <div class="form-group">
+        <label class="form-label" for="login-username">Tên đăng nhập</label>
+        <input type="text" id="login-username" class="form-input" required placeholder="Nhập tên của bạn">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="login-password">Mật khẩu</label>
+        <input type="password" id="login-password" class="form-input" required placeholder="Nhập mật khẩu">
+      </div>
+      <button type="submit" class="auth-btn" id="login-btn">
+        <span id="login-text">Đăng Nhập</span>
+      </button>
+    </form>
+
+    <!-- Register Form -->
+    <form id="register-form" class="auth-form">
+      <div class="form-group">
+        <label class="form-label" for="register-username">Tên đăng nhập</label>
+        <input type="text" id="register-username" class="form-input" required placeholder="Chọn tên đăng nhập">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="register-password">Mật khẩu</label>
+        <input type="password" id="register-password" class="form-input" required placeholder="Tạo mật khẩu">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="register-confirm-password">Xác nhận mật khẩu</label>
+        <input type="password" id="register-confirm-password" class="form-input" required placeholder="Nhập lại mật khẩu">
+      </div>
+      <button type="submit" class="auth-btn" id="register-btn">
+        <span id="register-text">Đăng Ký</span>
+      </button>
+    </form>
+  </div>
 </div>
 
 <script src="auth.js"></script>

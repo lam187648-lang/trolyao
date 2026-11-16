@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trang Chính - Khu Vườn Kiên Nhẫn</title>
     <style>
+        .garden-history { margin: 24px auto 0; padding: 20px; max-width: 1100px; border-radius: 16px; background: var(--ai-surface, rgba(255,255,255,.9)); border: 1px solid var(--ai-border, #e2e8f0); }
+        .garden-history h2 { margin: 0 0 12px; }
+        .garden-history h3 { margin: 0 0 8px; font-size: 1rem; }
+        .garden-history-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 16px; }
+        .garden-history-list { margin: 0; padding-left: 18px; display: grid; gap: 6px; overflow-wrap: anywhere; }
         * {
             margin: 0;
             padding: 0;
@@ -740,8 +745,22 @@
                 <div id="reward" class="reward">
                     <h3>🎉 Chúc Mừng! Bạn Đã Kiên Trì!</h3>
                     <p id="tokenReward">Bạn nhận được <strong>0 tokens</strong>!</p>
-                    <p>Thời gian: <span id="timeSpent">0</span> phút | Tối đa: 500 tokens</p>
+                    <p>Thời gian: <span id="timeSpent">0</span> phút | Thưởng: 5 tokens/phút</p>
                     <p>Cây của bạn đã được lưu vào Khu Vườn Lịch Sử.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="garden-history" aria-labelledby="garden-history-title">
+            <h2 id="garden-history-title">Lịch Sử Khu Vườn</h2>
+            <div class="garden-history-grid">
+                <div class="garden-history-column">
+                    <h3>Đã được máy chủ xác nhận</h3>
+                    <ul id="serverGardenHistory" class="garden-history-list"><li>Đang tải...</li></ul>
+                </div>
+                <div class="garden-history-column">
+                    <h3>Lưu trên thiết bị này (chưa xác nhận)</h3>
+                    <ul id="localGardenHistory" class="garden-history-list"></ul>
                 </div>
             </div>
         </section>
@@ -753,6 +772,7 @@
 
     <!-- Device Manager -->
     <script src="device-manager.js"></script>
+    <script src="auth-api.js?v=20261115d"></script>
     
     <script>
         // Check authentication
@@ -886,6 +906,96 @@
         let lastRenderedStage = null;
         let plantRenderVersion = 0;
         let rewardTokens = 0;
+        let serverGardenSessionId = null;
+
+        function isServerGardenAccount() {
+            const savedUsers = JSON.parse(localStorage.getItem('users') || '{}');
+            const user = savedUsers[localStorage.getItem('currentUser')];
+            return Boolean(user?.serverAccount && window.AuthApi?.hasSession());
+        }
+
+        function formatGardenDate(value) {
+            const date = new Date(value);
+            return Number.isNaN(date.getTime()) ? '' : date.toLocaleString('vi-VN');
+        }
+
+        function fillHistoryList(listId, items, emptyText) {
+            const list = document.getElementById(listId);
+            list.replaceChildren();
+            for (const text of items.length ? items : [emptyText]) {
+                const item = document.createElement('li');
+                item.textContent = text;
+                list.appendChild(item);
+            }
+        }
+
+        function readLocalGardenHistory() {
+            const username = localStorage.getItem('currentUser');
+            try {
+                const own = JSON.parse(localStorage.getItem(username ? `gardenHistory:${username}` : 'gardenHistory') || 'null');
+                if (Array.isArray(own)) return own;
+                if (username && !localStorage.getItem('gardenHistoryMigratedTo')) {
+                    const legacy = JSON.parse(localStorage.getItem('gardenHistory') || '[]');
+                    return Array.isArray(legacy) ? legacy : [];
+                }
+            } catch {
+                return [];
+            }
+            return [];
+        }
+
+        async function renderGardenHistory() {
+            const localItems = readLocalGardenHistory().slice(-10).reverse().map((entry) => {
+                const seedName = seeds[entry.seed]?.name || 'Cây';
+                const tokens = Number(entry.tokens) > 0 ? `${Number(entry.tokens)} tokens (chỉ trên thiết bị)` : 'không có thưởng';
+                return `${seedName} · ${Number(entry.time) || 0} phút · ${tokens} · ${formatGardenDate(entry.date)}`;
+            });
+            fillHistoryList('localGardenHistory', localItems, 'Chưa có lịch sử trên thiết bị này.');
+
+            if (!isServerGardenAccount()) {
+                fillHistoryList('serverGardenHistory', [], 'Đăng nhập tài khoản server để xem lịch sử đã xác nhận.');
+                return;
+            }
+            try {
+                const { history } = await window.AuthApi.request('/api/garden/history');
+                const statusText = { rewarded: 'đã nhận', abandoned: 'đã dừng', running: 'đang trồng' };
+                fillHistoryList('serverGardenHistory', history.map((entry) => {
+                    const reward = entry.status === 'rewarded' ? `+${entry.rewardAmount} tokens` : statusText[entry.status] || entry.status;
+                    return `${seeds[entry.seed]?.name || 'Cây'} · ${entry.durationMinutes} phút · ${reward} · ${formatGardenDate(entry.startedAt)}`;
+                }), 'Chưa có lượt trồng nào trên máy chủ.');
+            } catch (error) {
+                fillHistoryList('serverGardenHistory', [], `Không tải được lịch sử máy chủ: ${error.message}`);
+            }
+        }
+
+        async function claimServerGardenReward(sessionId) {
+            const rewardText = document.getElementById('tokenReward');
+            if (!sessionId) {
+                rewardText.textContent = 'Đã hoàn thành! Lượt này không được máy chủ ghi nhận nên không có thưởng Token.';
+                return;
+            }
+            rewardText.textContent = 'Đang xác nhận phần thưởng với máy chủ...';
+            try {
+                const result = await window.AuthApi.request('/api/garden-reward', {
+                    method: 'POST',
+                    body: { sessionId }
+                });
+                rewardText.innerHTML = `Bạn nhận được <strong>${Number(result.rewardAmount)} tokens</strong>! 🎉 (máy chủ đã xác nhận)`;
+                const savedUsers = JSON.parse(localStorage.getItem('users') || '{}');
+                const username = localStorage.getItem('currentUser');
+                if (savedUsers[username]) {
+                    savedUsers[username].tokens = Number(result.tokenBalance);
+                    localStorage.setItem('users', JSON.stringify(savedUsers));
+                }
+                localStorage.setItem('userTokens', String(result.tokenBalance));
+                document.getElementById('user-tokens').textContent = `💎 ${Number(result.tokenBalance)} tokens`;
+                showTokenNotification(Number(result.rewardAmount));
+                renderGardenHistory();
+            } catch (error) {
+                const wait = error.retryAfterSeconds ? ` Thử lại sau ${error.retryAfterSeconds} giây.` : '';
+                rewardText.textContent = `Đã hoàn thành, nhưng máy chủ chưa ghi nhận thưởng: ${error.message}${wait}`;
+            }
+        }
 
         const seeds = {
             oak: {
@@ -941,10 +1051,31 @@
             });
         });
 
-        document.getElementById('startBtn').addEventListener('click', () => {
+        document.getElementById('startBtn').addEventListener('click', async () => {
             if (!selectedSeed || !selectedTime) {
                 alert('Vui lòng chọn hạt giống và thời gian!');
                 return;
+            }
+            if (gameSession) return;
+            const startBtn = document.getElementById('startBtn');
+            serverGardenSessionId = null;
+            if (isServerGardenAccount()) {
+                startBtn.disabled = true;
+                try {
+                    const { session } = await window.AuthApi.request('/api/garden/sessions', {
+                        method: 'POST',
+                        body: { seed: selectedSeed, durationMinutes: selectedTime }
+                    });
+                    serverGardenSessionId = session.id;
+                } catch (error) {
+                    const serverUnsupported = error.status === 404 || error.code === 'MIGRATION_REQUIRED';
+                    if (!serverUnsupported || !confirm('Máy chủ chưa hỗ trợ thưởng khu vườn. Vẫn trồng cây nhưng không nhận Token?')) {
+                        if (!serverUnsupported) alert(`Không thể bắt đầu lượt trồng trên máy chủ: ${error.message}`);
+                        return;
+                    }
+                } finally {
+                    startBtn.disabled = false;
+                }
             }
             startGame();
         });
@@ -1086,6 +1217,12 @@
 
         function stopGame() {
             if (!gameSession) return;
+            if (serverGardenSessionId) {
+                const abandonedSessionId = serverGardenSessionId;
+                serverGardenSessionId = null;
+                window.AuthApi.request(`/api/garden/sessions/${abandonedSessionId}/abandon`, { method: 'POST' })
+                    .catch(() => {});
+            }
             const abandonedSeed = gameSession.seed;
             clearGameTimer();
             gameSession = null;
@@ -1146,7 +1283,13 @@
             // Add tokens to user account
             const currentUser = localStorage.getItem('currentUser');
             const users = JSON.parse(localStorage.getItem('users') || '{}');
-            if (currentUser && users[currentUser]) {
+            const isServerAccount = Boolean(users[currentUser]?.serverAccount);
+            if (isServerAccount) {
+                // Server balances are only changed by authenticated backend APIs.
+                const claimedSessionId = serverGardenSessionId;
+                serverGardenSessionId = null;
+                void claimServerGardenReward(claimedSessionId);
+            } else if (currentUser && users[currentUser]) {
                 const MAX_TOKEN = 1000000; // Tối đa 1 triệu token
                 const currentTokens = Math.max(0, users[currentUser].tokens || 0);
                 // Cộng token với giới hạn MAX
@@ -1157,17 +1300,35 @@
             }
             
             // Save to garden history
-            const history = JSON.parse(localStorage.getItem('gardenHistory') || '[]');
-            history.push({ 
-                seed: completedSession.seed,
-                time: completedSession.timeMinutes,
-                tokens: rewardTokens,
-                date: new Date().toISOString() 
-            });
-            localStorage.setItem('gardenHistory', JSON.stringify(history));
+            const historyKey = currentUser ? `gardenHistory:${currentUser}` : 'gardenHistory';
+            let history = [];
+            try {
+                const savedHistory = JSON.parse(localStorage.getItem(historyKey) || 'null');
+                if (Array.isArray(savedHistory)) {
+                    history = savedHistory;
+                } else if (currentUser && !localStorage.getItem('gardenHistoryMigratedTo')) {
+                    // One-time migration: the old shared history goes to the first account that completes a game.
+                    const legacyHistory = JSON.parse(localStorage.getItem('gardenHistory') || '[]');
+                    if (Array.isArray(legacyHistory)) history = legacyHistory;
+                    localStorage.setItem('gardenHistoryMigratedTo', currentUser);
+                }
+            } catch {
+                history = [];
+            }
+            // Server accounts keep their verified history on the backend (see renderGardenHistory).
+            if (!isServerAccount) {
+                history.push({
+                    seed: completedSession.seed,
+                    time: completedSession.timeMinutes,
+                    tokens: rewardTokens,
+                    date: new Date().toISOString()
+                });
+            }
+            localStorage.setItem(historyKey, JSON.stringify(history));
+            renderGardenHistory();
             
             // Show token notification
-            showTokenNotification(rewardTokens);
+            if (!isServerAccount) showTokenNotification(rewardTokens);
         }
         
         function showTokenNotification(amount) {
@@ -1293,6 +1454,10 @@
                     showNotification('🔒 Cần mở khóa trong Cửa Hàng Token!');
                     return;
                 }
+                if (users[currentUser]?.serverAccount && theme.price > 0) {
+                    showNotification('Hãy mua màu này trong Cửa Hàng Token.');
+                    return;
+                }
                 // Check tokens and auto-purchase if enough
                 const userTokens = Math.max(0, users[currentUser]?.tokens || 0);
                 if (userTokens >= theme.price) {
@@ -1334,6 +1499,7 @@
         // Initialize color panel on load
         document.addEventListener('DOMContentLoaded', () => {
             initColorThemePanel();
+            void renderGardenHistory();
             
             // Start periodic lastActive updater for admin panel online tracking
             setInterval(() => {

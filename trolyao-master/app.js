@@ -610,11 +610,11 @@ function initLocalStorage() {
 // Check if current user is banned
 function checkUserBan() {
   const currentUser = localStorage.getItem('currentUser');
-  if (!currentUser) return false;
-  
+  if (!currentUser) return { isBanned: false };
+
   const bans = JSON.parse(localStorage.getItem('userBans') || '{}');
   const banInfo = bans[currentUser];
-  
+
   if (banInfo && banInfo.until > Date.now()) {
     const remainingTime = Math.ceil((banInfo.until - Date.now()) / 60000);
     return {
@@ -623,7 +623,7 @@ function checkUserBan() {
       until: new Date(banInfo.until)
     };
   }
-  
+
   return { isBanned: false };
 }
 
@@ -1093,7 +1093,7 @@ function processCommand(text) {
   } else if (command.startsWith('/token')) {
     // Check password before redirecting
     const password = prompt('🔐 Nhập mật khẩu để vào Cửa Hàng Token:');
-    if (password !== '093981') {
+    if (true /* mật khẩu hardcode đã bị gỡ; quản trị dùng admin-panel.html với xác thực server */) {
       return '❌ Mật khẩu không đúng! Bạn không có quyền truy cập Cửa Hàng Token.';
     }
     // Redirect to new token shop page
@@ -1132,17 +1132,21 @@ function toggleTheme() {
 
 function applyThemeFromStorage() {
   document.body.classList.remove("dark");
-  
+  const isDark = localStorage.getItem("theme") === "dark";
+  if (isDark) document.body.classList.add("dark");
+
   // Safe DOM access with null checks
   const themeToggle = document.getElementById("theme-toggle");
   const themeToggleMenu = document.getElementById("theme-toggle-menu");
-  
+
   if (themeToggle) {
-    themeToggle.textContent = isDark ? "☀️": "🌙";
+    themeToggle.textContent = isDark ? "☀️" : "🌙";
   }
   if (themeToggleMenu) {
     const menuIcon = themeToggleMenu.querySelector('.menu-icon');
-    if (menuIcon) menuIcon.textContent = "⚙";
+    if (menuIcon) {
+      menuIcon.textContent = isDark ? "☀️" : "🌙";
+    }
   }
 }
 

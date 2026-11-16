@@ -2,16 +2,13 @@ const fs = require("node:fs/promises");
 const path = require("node:path");
 const { pool, closeDatabase } = require("../database");
 
+const MIGRATION_IDS = ["001_initial_schema", "002_garden_rewards_legacy_import"];
+
 async function main() {
   if (!pool) {
     throw new Error("DATABASE_URL is not configured; no migration was run.");
   }
 
-  const migrationId = "001_initial_schema";
-  const sql = await fs.readFile(
-    path.join(__dirname, "..", "migrations", `${migrationId}.sql`),
-    "utf8"
-  );
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
@@ -22,19 +19,25 @@ async function main() {
          applied_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
        )`
     );
-    const { rows } = await client.query(
-      "SELECT migration_id FROM schema_migrations WHERE migration_id = $1",
-      [migrationId]
-    );
-    if (rows.length === 0) {
-      await client.query(sql);
-      await client.query(
-        "INSERT INTO schema_migrations (migration_id) VALUES ($1)",
+    for (const migrationId of MIGRATION_IDS) {
+      const { rows } = await client.query(
+        "SELECT migration_id FROM schema_migrations WHERE migration_id = $1",
         [migrationId]
       );
-      console.log(`Applied migration ${migrationId}.`);
-    } else {
-      console.log(`Migration ${migrationId} is already applied.`);
+      if (rows.length === 0) {
+        const sql = await fs.readFile(
+          path.join(__dirname, "..", "migrations", `${migrationId}.sql`),
+          "utf8"
+        );
+        await client.query(sql);
+        await client.query(
+          "INSERT INTO schema_migrations (migration_id) VALUES ($1)",
+          [migrationId]
+        );
+        console.log(`Applied migration ${migrationId}.`);
+      } else {
+        console.log(`Migration ${migrationId} is already applied.`);
+      }
     }
     await client.query("COMMIT");
   } catch (error) {

@@ -261,19 +261,19 @@ class EnhancedStudyRoom {
     if (statsDiv) {
       statsDiv.innerHTML = `
         <div style="background: var(--primary-light); padding: 15px; border-radius: 12px; margin-top: 20px;">
-          <h3 style="color: var(--primary); margin-bottom: 10px;">Th?ng Kê H?c T?p</h3>
+          <h3 style="color: var(--primary); margin-bottom: 10px;">Thống Kê Học Tập</h3>
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px;">
             <div style="text-align: center;">
               <div style="font-size: 24px; font-weight: bold; color: var(--primary);">${stats.totalMinutes}</div>
-              <div style="font-size: 12px; color: var(--text-secondary);">Phút h?c</div>
+              <div style="font-size: 12px; color: var(--text-secondary);">Phút học</div>
             </div>
             <div style="text-align: center;">
               <div style="font-size: 24px; font-weight: bold; color: var(--primary);">${stats.totalDays}</div>
-              <div style="font-size: 12px; color: var(--text-secondary);">Ngày h?c</div>
+              <div style="font-size: 12px; color: var(--text-secondary);">Ngày học</div>
             </div>
             <div style="text-align: center;">
               <div style="font-size: 24px; font-weight: bold; color: var(--primary);">${stats.sessions}</div>
-              <div style="font-size: 12px; color: var(--text-secondary);">Bu?i h?c</div>
+              <div style="font-size: 12px; color: var(--text-secondary);">Buổi học</div>
             </div>
           </div>
         </div>
@@ -290,7 +290,7 @@ class EnhancedStudyRoom {
         // Update display
         const timerDiv = document.getElementById('session-timer');
         if (timerDiv) {
-          timerDiv.textContent = `Th?i gian h?c: ${sessionTime} phút`;
+          timerDiv.textContent = `Thời gian học: ${sessionTime} phút`;
         }
         
         // Check for 10-minute milestone
@@ -318,7 +318,7 @@ class EnhancedStudyRoom {
       users[currentUser].tokens = (users[currentUser].tokens || 0) + tokenAmount;
       localStorage.setItem('users', JSON.stringify(users));
       
-      this.showMessage(`Chúc m?ng! B?n nh?n du?c ${tokenAmount} tokens sau ${minutes} phút h?c!`, 'success');
+      this.showMessage(`Chúc mừng! Bạn nhận được ${tokenAmount} tokens sau ${minutes} phút học!`, 'success');
       
       // Update display
       this.displayUserInfo();
