@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#f5f7ff">
   <title>Quản trị hệ thống | Trợ Lý Ảo</title>
   <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="light-ai-theme.css?v=20261115b">
+  <link rel="stylesheet" href="light-ai-theme.css?v=20261117a">
   <style>
     body { min-height: 100vh; padding: 24px; }
     .admin-shell { width: min(1440px, 100%); margin: 0 auto; }
@@ -27,25 +27,81 @@
     .admin-table th, .admin-table td { padding: 12px; border-bottom: 1px solid var(--ai-border); text-align: left; vertical-align: top; }
     .admin-table th { color: var(--ai-muted); background: var(--ai-surface-soft); font-size: .78rem; font-weight: 700; white-space: nowrap; }
     .admin-table tr:last-child td { border-bottom: 0; }
-    .admin-actions { display: flex; min-width: 290px; flex-wrap: wrap; gap: 6px; }
-    .admin-actions button, .admin-button { min-height: 36px; padding: 7px 10px; border: 1px solid var(--ai-border); border-radius: 10px; color: var(--ai-text); background: var(--ai-surface-soft); cursor: pointer; }
+    .admin-actions { display: flex; min-width: 320px; flex-wrap: wrap; gap: 6px; }
+    .admin-actions button, .admin-button { min-height: 36px; padding: 7px 10px; border: 1px solid var(--ai-border); border-radius: 10px; color: var(--ai-text); background: var(--ai-surface-soft); cursor: pointer; font-size: .85rem; transition: all .15s; }
     .admin-actions button:hover, .admin-button:hover { border-color: var(--ai-primary); color: var(--ai-primary); }
     .admin-button.primary { border-color: transparent; color: white; background: var(--ai-primary); }
-    .admin-button.danger { color: #b42332; }
+    .admin-button.primary:hover { background: var(--ai-primary-hover); }
+    .admin-button.danger { color: #b42332; border-color: #f5b8bd; }
+    .admin-button.danger:hover { background: #fff0f0; }
+    .admin-button.warning { color: #b45309; border-color: #fcd29b; }
+    .admin-button.warning:hover { background: #fffbeb; }
+    .admin-button.success { color: #16794a; border-color: #bbf7d0; }
+    .admin-button.success:hover { background: #f0fdf4; }
     .status-pill { display: inline-flex; padding: 4px 9px; border-radius: 999px; background: #e7f7ef; color: #16794a; font-size: .78rem; font-weight: 700; }
     .status-pill.locked { background: #fff0f0; color: #b42332; }
     .pagination { display: flex; align-items: center; justify-content: flex-end; gap: 10px; padding-top: 14px; }
     .audit-list { display: grid; gap: 8px; }
-    .audit-item { display: grid; grid-template-columns: minmax(120px, .7fr) minmax(150px, 1fr) minmax(140px, .8fr) minmax(160px, .8fr); gap: 12px; padding: 12px; border: 1px solid var(--ai-border); border-radius: 12px; background: var(--ai-surface-soft); font-size: .88rem; }
+    .audit-item { display: grid; grid-template-columns: minmax(120px,.7fr) minmax(150px,1fr) minmax(140px,.8fr) minmax(160px,.8fr); gap: 12px; padding: 12px; border: 1px solid var(--ai-border); border-radius: 12px; background: var(--ai-surface-soft); font-size: .88rem; }
     .audit-item span { min-width: 0; overflow-wrap: anywhere; }
     .notice { margin: 14px 0; padding: 12px 14px; border-radius: 12px; background: var(--ai-surface-soft); color: var(--ai-text-secondary); }
     .notice.error { background: #fff0f0; color: #b42332; }
     [hidden] { display: none !important; }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 1000;
+      display: flex; align-items: center; justify-content: center; padding: 20px;
+      opacity: 0; pointer-events: none; transition: opacity .2s;
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: auto; }
+    .modal-box {
+      background: var(--ai-surface); border-radius: 20px; padding: 28px;
+      width: min(560px, 100%); max-height: 85vh; overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0,0,0,.25);
+      transform: translateY(16px); transition: transform .2s;
+    }
+    .modal-overlay.open .modal-box { transform: translateY(0); }
+    .modal-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+    .modal-header h3 { margin: 0 auto 0 0; font-size: 1.1rem; }
+    .modal-close { border: none; background: none; font-size: 1.3rem; cursor: pointer; color: var(--ai-muted); padding: 4px 8px; border-radius: 8px; }
+    .modal-close:hover { background: var(--ai-surface-soft); color: var(--ai-text); }
+    .modal-field { margin-bottom: 16px; }
+    .modal-field label { display: block; font-size: .85rem; font-weight: 600; color: var(--ai-muted); margin-bottom: 6px; }
+    .modal-field input, .modal-field select, .modal-field textarea {
+      width: 100%; padding: 10px 14px; border: 1px solid var(--ai-border);
+      border-radius: 12px; background: var(--ai-surface); color: var(--ai-text); font: inherit; font-size: .9rem;
+    }
+    .modal-field textarea { resize: vertical; min-height: 80px; }
+    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+
+    /* Color Grid in modal */
+    .theme-color-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; max-height: 320px; overflow-y: auto; padding: 4px;
+    }
+    .theme-color-item {
+      border: 2px solid var(--ai-border); border-radius: 12px; padding: 10px 8px;
+      text-align: center; cursor: pointer; transition: all .15s; background: var(--ai-surface-soft);
+    }
+    .theme-color-item:hover { border-color: var(--ai-primary); transform: translateY(-2px); }
+    .theme-color-item.selected { border-color: var(--ai-primary); background: var(--primary-light, #eaf4ff); }
+    .theme-color-item.owned { opacity: .55; cursor: not-allowed; }
+    .theme-swatch {
+      width: 40px; height: 40px; border-radius: 50%; margin: 0 auto 6px;
+      display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
+    }
+    .theme-name { font-size: .72rem; font-weight: 600; color: var(--ai-text); line-height: 1.3; }
+    .theme-owned-badge { font-size: .65rem; color: #16794a; background: #e7f7ef; border-radius: 6px; padding: 2px 6px; margin-top: 4px; display: inline-block; }
+
+    /* Items management link */
+    .admin-items-link { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; background: linear-gradient(135deg, var(--ai-primary), var(--ai-primary-hover)); color: white; text-decoration: none; border-radius: 12px; font-weight: 600; font-size: .9rem; transition: all .15s; }
+    .admin-items-link:hover { opacity: .9; transform: translateY(-1px); }
+
     @media (max-width: 720px) {
       body { padding: 12px; }
       .admin-topbar { flex-wrap: wrap; padding: 12px; }
       .admin-brand { width: 100%; }
-      .audit-item { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+      .audit-item { grid-template-columns: minmax(0,1fr) minmax(0,1fr); }
     }
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
@@ -57,12 +113,13 @@
     <header class="admin-topbar">
       <button class="admin-button" id="back-btn" type="button">← Quay lại</button>
       <a class="admin-brand" href="index.html">Trợ Lý Ảo <span class="muted">/ Quản trị</span></a>
+      <a class="admin-items-link" href="admin-items.html">🎨 Cấp Token & Màu</a>
       <a class="admin-button" href="index.html">Trang chủ</a>
     </header>
 
     <section class="admin-heading">
       <h1>Quản trị hệ thống</h1>
-      <p>Quản lý tài khoản, Token, quyền màu và nhật ký thao tác.</p>
+      <p>Quản lý tài khoản, Kick/Ban và nhật ký thao tác.</p>
     </section>
 
     <p class="notice" id="admin-status" role="status" aria-live="polite">Đang kiểm tra quyền truy cập...</p>
@@ -84,7 +141,7 @@
           <table class="admin-table">
             <thead>
               <tr>
-                <th>ID / Username</th><th>Email</th><th>Đăng ký</th><th>Đăng nhập gần nhất</th>
+                <th>ID / Username</th><th>Email</th><th>Đăng ký</th><th>Đăng nhập</th>
                 <th>Token</th><th>Vai trò / Trạng thái</th><th>Thao tác</th>
               </tr>
             </thead>
@@ -99,8 +156,7 @@
       </article>
 
       <article class="admin-card">
-        <div class="card-heading">
-          <h2>Yêu cầu chuyển tài khoản cũ</h2>
+        <div class="card-heading"><h2>Yêu cầu chuyển tài khoản cũ</h2>
           <div class="admin-controls">
             <select id="import-status" aria-label="Lọc yêu cầu chuyển dữ liệu">
               <option value="pending_review">Chờ duyệt</option>
@@ -130,8 +186,39 @@
       </article>
     </section>
   </main>
-  <script src="auth-api.js?v=20261115d"></script>
-  <script src="admin-panel.js?v=20261116a"></script>
+
+  <!-- Modal Ban -->
+  <div class="modal-overlay" id="ban-modal" role="dialog" aria-modal="true" aria-labelledby="ban-modal-title">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="ban-modal-title">🔒 Ban tài khoản</h3>
+        <button class="modal-close" id="ban-modal-close" type="button" aria-label="Đóng">×</button>
+      </div>
+      <p class="muted" id="ban-modal-username"></p>
+      <div class="modal-field">
+        <label for="ban-reason">Lý do ban</label>
+        <textarea id="ban-reason" placeholder="Nhập lý do ban tài khoản..."></textarea>
+      </div>
+      <div class="modal-field">
+        <label for="ban-duration">Thời hạn</label>
+        <select id="ban-duration">
+          <option value="1h">1 giờ</option>
+          <option value="6h">6 giờ</option>
+          <option value="1d">1 ngày</option>
+          <option value="7d">7 ngày</option>
+          <option value="30d">30 ngày</option>
+          <option value="permanent">Vĩnh viễn</option>
+        </select>
+      </div>
+      <div class="modal-actions">
+        <button class="admin-button" id="ban-modal-cancel" type="button">Hủy</button>
+        <button class="admin-button danger" id="ban-modal-confirm" type="button">🔒 Xác nhận Ban</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="auth-api.js?v=20261117a"></script>
+  <script src="admin-panel.js?v=20261117a"></script>
   <script src="theme-manager.js?v=20261115b"></script>
 </body>
 </html>

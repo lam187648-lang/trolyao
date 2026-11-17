@@ -118,7 +118,8 @@ router.post("/login", authRateLimit, asyncRoute(async (req, res) => {
 
   const { rows } = await pool.query(
     `SELECT id, username, email, password_hash, role, token_balance,
-            selected_theme_id, created_at, last_login_at, status
+            selected_theme_id, created_at, last_login_at, status,
+            ban_reason, ban_started_at, ban_expires_at
      FROM users WHERE lower(username) = lower($1) OR lower(email) = lower($1)
      LIMIT 1`,
     [identifier]
@@ -127,8 +128,25 @@ router.post("/login", authRateLimit, asyncRoute(async (req, res) => {
   if (!user || !(await bcrypt.compare(password, user.password_hash))) {
     return res.status(401).json({ error: "Tên đăng nhập hoặc mật khẩu không đúng." });
   }
+
+  // Kiểm tra ban hết hạn → tự động mở khóa
+  if (user.status === "locked" && user.ban_expires_at && new Date(user.ban_expires_at) <= new Date()) {
+    await pool.query(
+      `UPDATE users SET status = 'active', ban_reason = NULL, ban_started_at = NULL, ban_expires_at = NULL
+       WHERE id = $1`,
+      [user.id]
+    );
+    user.status = "active";
+  }
+
   if (user.status !== "active") {
-    return res.status(403).json({ error: "Tài khoản hiện đang bị khóa.", code: "ACCOUNT_LOCKED" });
+    return res.status(403).json({
+      error: "Tài khoản hiện đang bị khóa.",
+      code: "ACCOUNT_LOCKED",
+      reason: user.ban_reason || null,
+      startedAt: user.ban_started_at || null,
+      expiresAt: user.ban_expires_at || null
+    });
   }
 
   const result = await withTransaction(async (client) => {

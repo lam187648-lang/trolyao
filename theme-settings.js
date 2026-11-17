@@ -108,10 +108,11 @@
         renderPalettes("special-palettes", specialPalettes, true);
         return;
       }
-      const username = localStorage.getItem("currentUser");
-      const users = JSON.parse(localStorage.getItem("users") || "{}");
-      const purchased = users[username]?.purchasedColors || [];
-      purchased.forEach(id => allowedSpecialIds.add(String(id)));
+      // FIX: Luôn gọi thẳng API server để lấy quyền màu, không dùng localStorage
+      // Điều này đảm bảo màu được Admin cấp sẽ xuất hiện ngay lập tức
+      const entitlementsData = await window.AuthApi.request("/api/themes/entitlements");
+      const serverThemeIds = entitlementsData.themeIds || [];
+      serverThemeIds.forEach(id => allowedSpecialIds.add(String(id)));
       if (specialPalettes.some(item => item.id === selectedId) && !allowedSpecialIds.has(selectedId)) {
         selectedId = "1";
         window.ThemeManager.setColorTheme("1");
@@ -120,6 +121,8 @@
       renderPalettes("special-palettes", specialPalettes, true);
       if (!allowedSpecialIds.size) {
         setStatus("Tài khoản chưa được Admin cấp quyền màu đặc biệt.", "");
+      } else {
+        setStatus(`Đã tải ${allowedSpecialIds.size} màu đặc biệt được cấp.`, "success");
       }
     } catch (error) {
       permissionCheckFailed = true;

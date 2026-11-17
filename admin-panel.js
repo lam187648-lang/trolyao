@@ -1,6 +1,6 @@
 (() => {
   const pageSize = 25;
-  const state = { page: 1, total: 0, searchTimer: null };
+  const state = { page: 1, total: 0, searchTimer: null, banTargetUserId: null, banTargetUsername: null };
   const byId = (id) => document.getElementById(id);
   const statusElement = byId("admin-status");
 
@@ -31,17 +31,61 @@
     return td;
   }
 
-  function actionButton(label, action, isDanger = false) {
+  function actionButton(label, action, variant = "") {
     const button = document.createElement("button");
     button.type = "button";
     button.textContent = label;
-    if (isDanger) button.classList.add("danger");
+    if (variant) button.classList.add(variant);
     button.addEventListener("click", () => {
       void action().catch((error) => setStatus(error.message, true));
     });
     return button;
   }
 
+  // =================== BAN MODAL ===================
+  const banModal = byId("ban-modal");
+  function openBanModal(userId, username) {
+    state.banTargetUserId = userId;
+    state.banTargetUsername = username;
+    byId("ban-modal-username").textContent = `Tài khoản: ${username}`;
+    byId("ban-reason").value = "";
+    byId("ban-duration").value = "1d";
+    banModal.classList.add("open");
+    byId("ban-reason").focus();
+  }
+  function closeBanModal() {
+    banModal.classList.remove("open");
+    state.banTargetUserId = null;
+    state.banTargetUsername = null;
+  }
+  byId("ban-modal-close").addEventListener("click", closeBanModal);
+  byId("ban-modal-cancel").addEventListener("click", closeBanModal);
+  banModal.addEventListener("click", (e) => { if (e.target === banModal) closeBanModal(); });
+
+  byId("ban-modal-confirm").addEventListener("click", async () => {
+    const userId = state.banTargetUserId;
+    const username = state.banTargetUsername;
+    if (!userId) return;
+    const reason = byId("ban-reason").value.trim();
+    const duration = byId("ban-duration").value;
+    byId("ban-modal-confirm").disabled = true;
+    try {
+      const result = await window.AuthApi.request(`/admin/users/${userId}/ban`, {
+        method: "POST",
+        body: { reason, duration }
+      });
+      const exp = result.expiresAt ? ` đến ${formatDate(result.expiresAt)}` : " vĩnh viễn";
+      setStatus(`Đã ban ${username}${exp}.`);
+      closeBanModal();
+      await reload();
+    } catch (error) {
+      setStatus(error.message, true);
+    } finally {
+      byId("ban-modal-confirm").disabled = false;
+    }
+  });
+
+  // =================== LOAD USERS ===================
   async function loadUsers() {
     const search = byId("user-search").value.trim();
     const status = byId("user-status").value;
@@ -72,6 +116,7 @@
       cell(row, formatDate(user.created_at));
       cell(row, formatDate(user.last_login_at));
       cell(row, Number(user.token_balance).toLocaleString("vi-VN"));
+
       const accountState = document.createElement("td");
       accountState.textContent = user.role;
       const pill = document.createElement("span");
@@ -83,66 +128,44 @@
 
       const actions = document.createElement("td");
       actions.className = "admin-actions";
-      actions.append(
-        actionButton("Cộng Token", async () => {
-          const amountText = prompt(`Số Token muốn cộng cho ${user.username}:`);
-          if (amountText === null) return;
-          const amount = Number(amountText);
-          if (!Number.isSafeInteger(amount) || amount < 1 || amount > 1000000) {
-            throw new Error("Số Token phải là số nguyên từ 1 đến 1.000.000.");
-          }
-          const note = prompt("Lý do (tối đa 200 ký tự):") || "";
-          if (!confirm(`Xác nhận cộng ${amount} Token cho ${user.username}?`)) return;
-          await window.AuthApi.request(`/admin/users/${user.id}/tokens`, {
-            method: "POST",
-            body: { amount, note }
-          });
-          setStatus(`Đã cộng ${amount} Token cho ${user.username}.`);
+
+      // Kick phiên
+      actions.append(actionButton("⚡ Kick phiên", async () => {
+        if (!confirm(`Thu hồi toàn bộ phiên đăng nhập của ${user.username}?`)) return;
+        const result = await window.AuthApi.request(`/admin/users/${user.id}/sessions/revoke`, {
+          method: "POST"
+        });
+        setStatus(`Đã kick ${user.username} (thu hồi ${result.revokedSessions} phiên).`);
+        await loadAudit();
+      }, "danger"));
+
+      // Ban
+      if (user.status !== "locked") {
+        actions.append(actionButton("🔒 Ban", async () => {
+          openBanModal(user.id, user.username);
+        }, "warning"));
+      } else {
+        // Unban
+        actions.append(actionButton("🔓 Mở khóa", async () => {
+          if (!confirm(`Mở khóa tài khoản ${user.username}?`)) return;
+          await window.AuthApi.request(`/admin/users/${user.id}/unban`, { method: "POST" });
+          setStatus(`Đã mở khóa ${user.username}.`);
           await reload();
-        }),
-        actionButton("Cấp màu", async () => {
-          const themeId = prompt(`Mã màu đặc biệt cần cấp cho ${user.username}:`);
-          if (themeId === null) return;
-          const normalizedId = themeId.trim();
-          if (!/^[A-Za-z0-9_-]{1,40}$/.test(normalizedId)) throw new Error("Mã màu không hợp lệ.");
-          if (!confirm(`Cấp màu ${normalizedId} cho ${user.username}?`)) return;
-          await window.AuthApi.request(`/admin/users/${user.id}/themes/${encodeURIComponent(normalizedId)}`, {
-            method: "POST"
-          });
-          setStatus(`Đã cấp màu ${normalizedId} cho ${user.username}.`);
-          await loadAudit();
-        }),
-        actionButton("Thu hồi màu", async () => {
-          const themeId = prompt(`Mã màu cần thu hồi của ${user.username}:`);
-          if (themeId === null) return;
-          const normalizedId = themeId.trim();
-          if (!/^[A-Za-z0-9_-]{1,40}$/.test(normalizedId)) throw new Error("Mã màu không hợp lệ.");
-          if (!confirm(`Thu hồi màu ${normalizedId} của ${user.username}?`)) return;
-          await window.AuthApi.request(`/admin/users/${user.id}/themes/${encodeURIComponent(normalizedId)}`, {
-            method: "DELETE"
-          });
-          setStatus(`Đã thu hồi màu ${normalizedId} của ${user.username}.`);
-          await loadAudit();
-        }),
-        actionButton(user.status === "locked" ? "Mở khóa" : "Khóa", async () => {
-          const nextStatus = user.status === "locked" ? "active" : "locked";
-          if (!confirm(`${nextStatus === "locked" ? "Khóa" : "Mở khóa"} tài khoản ${user.username}?`)) return;
-          await window.AuthApi.request(`/admin/users/${user.id}/status`, {
-            method: "PATCH",
-            body: { status: nextStatus }
-          });
-          setStatus(`Đã cập nhật trạng thái ${user.username}.`);
-          await reload();
-        }, user.status !== "locked"),
-        actionButton("Kick phiên", async () => {
-          if (!confirm(`Thu hồi toàn bộ phiên đăng nhập của ${user.username}?`)) return;
-          const result = await window.AuthApi.request(`/admin/users/${user.id}/sessions/revoke`, {
-            method: "POST"
-          });
-          setStatus(`Đã thu hồi ${result.revokedSessions} phiên của ${user.username}.`);
-          await loadAudit();
-        }, true)
-      );
+        }, "success"));
+      }
+
+      // Khóa/Mở (lock không ghi lý do)
+      actions.append(actionButton(user.status === "locked" ? "✅ Active" : "🔐 Khóa", async () => {
+        const nextStatus = user.status === "locked" ? "active" : "locked";
+        if (!confirm(`${nextStatus === "locked" ? "Khóa" : "Mở khóa"} tài khoản ${user.username}?`)) return;
+        await window.AuthApi.request(`/admin/users/${user.id}/status`, {
+          method: "PATCH",
+          body: { status: nextStatus }
+        });
+        setStatus(`Đã cập nhật trạng thái ${user.username}.`);
+        await reload();
+      }, user.status !== "locked" ? "warning" : "success"));
+
       row.appendChild(actions);
       byId("users-body").appendChild(row);
     }
@@ -153,8 +176,9 @@
     byId("next-page").disabled = state.page >= pageCount;
   }
 
+  // =================== LOAD AUDIT ===================
   async function loadAudit() {
-    const { logs } = await window.AuthApi.request("/admin/audit?page=1&pageSize=15");
+    const { logs } = await window.AuthApi.request("/admin/audit?page=1&pageSize=20");
     const list = byId("audit-list");
     list.replaceChildren();
     if (!logs.length) {
@@ -181,6 +205,7 @@
     }
   }
 
+  // =================== LOAD IMPORTS ===================
   async function loadImports() {
     const body = byId("imports-body");
     const status = byId("import-status").value;
@@ -247,7 +272,7 @@
             });
             setStatus(`Đã từ chối yêu cầu của ${item.username}.`);
             await reload();
-          }, true)
+          }, "danger")
         );
       } else {
         actions.textContent = "—";

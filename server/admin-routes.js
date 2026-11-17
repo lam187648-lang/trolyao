@@ -187,15 +187,22 @@ router.post("/users/:userId/sessions/revoke", asyncRoute(async (req, res) => {
   if (!isUuid(userId)) return res.status(400).json({ error: "ID người dùng không hợp lệ." });
 
   const result = await withTransaction(async (client) => {
-    const { rows: userRows } = await client.query("SELECT id FROM users WHERE id = $1", [userId]);
+    const { rows: userRows } = await client.query("SELECT id, username FROM users WHERE id = $1", [userId]);
     if (!userRows[0]) return null;
     const { rowCount } = await client.query("DELETE FROM sessions WHERE user_id = $1", [userId]);
     await audit(client, req.user.id, userId, "sessions.revoke", { revoked: rowCount });
-    return rowCount;
+    return { count: rowCount, username: userRows[0].username };
   });
 
   if (result === null) return res.status(404).json({ error: "Không tìm thấy tài khoản." });
-  res.json({ revokedSessions: result });
+
+  // Phát sự kiện Socket.IO để kick ngay lập tức
+  const io = req.app.get("io");
+  if (io) {
+    io.emit("user:kicked", { userId, username: result.username, kickedBy: req.user.username });
+  }
+
+  res.json({ revokedSessions: result.count });
 }));
 
 router.post("/users/:userId/themes/:themeId", asyncRoute(async (req, res) => {
@@ -205,8 +212,14 @@ router.post("/users/:userId/themes/:themeId", asyncRoute(async (req, res) => {
   }
 
   const result = await withTransaction(async (client) => {
-    const { rows } = await client.query("SELECT id FROM users WHERE id = $1", [userId]);
-    if (!rows[0]) return false;
+    const { rows } = await client.query("SELECT id, username FROM users WHERE id = $1", [userId]);
+    if (!rows[0]) return { notFound: true };
+    // Kiểm tra đã sở hữu chưa
+    const { rows: existing } = await client.query(
+      "SELECT 1 FROM theme_entitlements WHERE user_id = $1 AND theme_id = $2",
+      [userId, themeId]
+    );
+    if (existing.length) return { alreadyOwned: true, username: rows[0].username };
     await client.query(
       `INSERT INTO theme_entitlements (user_id, theme_id, granted_by_user_id)
        VALUES ($1, $2, $3)
@@ -214,9 +227,10 @@ router.post("/users/:userId/themes/:themeId", asyncRoute(async (req, res) => {
       [userId, themeId, req.user.id]
     );
     await audit(client, req.user.id, userId, "theme.grant", { themeId });
-    return true;
+    return { success: true, username: rows[0].username };
   });
-  if (!result) return res.status(404).json({ error: "Không tìm thấy tài khoản." });
+  if (result.notFound) return res.status(404).json({ error: "Không tìm thấy tài khoản." });
+  if (result.alreadyOwned) return res.status(409).json({ error: `Tài khoản ${result.username} đã sở hữu màu ${themeId}.`, code: "ALREADY_OWNED" });
   res.status(204).end();
 }));
 
@@ -368,5 +382,114 @@ router.post("/legacy-imports/:importId/reject", requireMigration(LEGACY_IMPORT_M
   if (result.conflict) return res.status(409).json({ error: "Yêu cầu này đã được xử lý." });
   res.json({ import: result.record });
 }));
+
+// GET /admin/users/:userId/themes - Lấy danh sách màu của user
+router.get("/users/:userId/themes", asyncRoute(async (req, res) => {
+  const { userId } = req.params;
+  if (!isUuid(userId)) return res.status(400).json({ error: "ID người dùng không hợp lệ." });
+  const { rows } = await pool.query(
+    `SELECT te.theme_id, te.created_at, u.username AS granted_by_username
+     FROM theme_entitlements te
+     LEFT JOIN users u ON u.id = te.granted_by_user_id
+     WHERE te.user_id = $1
+     ORDER BY te.created_at DESC`,
+    [userId]
+  );
+  res.json({ themeIds: rows.map(r => r.theme_id), details: rows });
+}));
+
+// POST /admin/users/:userId/ban - Ban tài khoản
+router.post("/users/:userId/ban", asyncRoute(async (req, res) => {
+  const { userId } = req.params;
+  if (!isUuid(userId)) return res.status(400).json({ error: "ID người dùng không hợp lệ." });
+
+  const reason = typeof req.body?.reason === "string" ? req.body.reason.trim().slice(0, 300) : "";
+  const duration = req.body?.duration; // "1h", "1d", "7d", "permanent"
+
+  let expiresAt = null;
+  if (duration && duration !== "permanent") {
+    const match = /^(\d+)(h|d)$/.exec(duration);
+    if (!match) return res.status(400).json({ error: "Thời hạn ban không hợp lệ. Dùng: 1h, 6h, 1d, 7d, permanent." });
+    const value = parseInt(match[1], 10);
+    const unit = match[2];
+    const ms = unit === "h" ? value * 3600000 : value * 86400000;
+    expiresAt = new Date(Date.now() + ms);
+  }
+
+  const result = await withTransaction(async (client) => {
+    const { rows } = await client.query(
+      "SELECT id, username FROM users WHERE id = $1",
+      [userId]
+    );
+    if (!rows[0]) return null;
+    const user = rows[0];
+
+    // Không cho ban admin khác
+    const { rows: targetRows } = await client.query(
+      "SELECT role FROM users WHERE id = $1",
+      [userId]
+    );
+    if (targetRows[0]?.role === "admin" && req.user.id !== userId) {
+      return { forbidden: true };
+    }
+
+    await client.query(
+      `UPDATE users SET status = 'locked',
+        ban_reason = $2,
+        ban_started_at = NOW(),
+        ban_expires_at = $3
+       WHERE id = $1`,
+      [userId, reason || null, expiresAt]
+    );
+    // Thu hồi tất cả session
+    await client.query("DELETE FROM sessions WHERE user_id = $1", [userId]);
+    await audit(client, req.user.id, userId, "account.ban", { reason, duration, expiresAt });
+    return { username: user.username };
+  });
+
+  if (!result) return res.status(404).json({ error: "Không tìm thấy tài khoản." });
+  if (result.forbidden) return res.status(403).json({ error: "Không thể ban tài khoản admin khác." });
+
+  // Phát sự kiện Socket.IO
+  const io = req.app.get("io");
+  if (io) {
+    io.emit("user:banned", {
+      userId,
+      username: result.username,
+      reason,
+      expiresAt: expiresAt?.toISOString() || null,
+      bannedBy: req.user.username
+    });
+  }
+
+  res.json({ banned: true, username: result.username, expiresAt: expiresAt?.toISOString() || null });
+}));
+
+// POST /admin/users/:userId/unban - Mở khóa tài khoản
+router.post("/users/:userId/unban", asyncRoute(async (req, res) => {
+  const { userId } = req.params;
+  if (!isUuid(userId)) return res.status(400).json({ error: "ID người dùng không hợp lệ." });
+
+  const result = await withTransaction(async (client) => {
+    const { rows } = await client.query(
+      "SELECT id, username FROM users WHERE id = $1",
+      [userId]
+    );
+    if (!rows[0]) return null;
+    await client.query(
+      `UPDATE users SET status = 'active', ban_reason = NULL, ban_started_at = NULL, ban_expires_at = NULL
+       WHERE id = $1`,
+      [userId]
+    );
+    await audit(client, req.user.id, userId, "account.unban", {});
+    return { username: rows[0].username };
+  });
+
+  if (!result) return res.status(404).json({ error: "Không tìm thấy tài khoản." });
+  res.json({ unbanned: true, username: result.username });
+}));
+
+// GET /admin/users - mở rộng để trả về ban_reason, ban_expires_at
+// (đã được xử lý qua query existing, chỉ cần thêm columns vào SELECT)
 
 module.exports = router;

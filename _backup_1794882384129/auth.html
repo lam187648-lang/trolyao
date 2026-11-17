@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trang Xác Thuc</title>
+<link rel="stylesheet" href="style.css">
+<style>
+.auth-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: linear-gradient(145deg, #f0f9ff 0%, #e0f2fe 100%);
+    font-family: Inter, sans-serif;
+}
+.auth-card {
+    background: white;
+    padding: 40px;
+    border-radius: 16px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+}
+.auth-header {
+    margin-bottom: 30px;
+}
+.auth-header h1 {
+    color: #1e40af;
+    margin-bottom: 10px;
+    font-size: 28px;
+}
+.auth-header p {
+    color: #64748b;
+    font-size: 16px;
+}
+.auth-tabs {
+    display: flex;
+    margin-bottom: 30px;
+    border-bottom: 1px solid #e5e7eb;
+}
+.auth-tab {
+    flex: 1;
+    padding: 12px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 500;
+    color: #6b7280;
+    transition: all 0.2s ease;
+}
+.auth-tab.active {
+    color: #3b82f6;
+    border-bottom: 2px solid #3b82f6;
+}
+.auth-form {
+    display: none;
+}
+.auth-form.active {
+    display: block;
+}
+.form-group {
+    margin-bottom: 20px;
+    text-align: left;
+}
+.form-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #374151;
+}
+.password-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+.password-wrapper .form-input {
+    padding-right: 46px;
+}
+.toggle-password-btn {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 6px;
+    color: #64748b;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), color 0.15s ease, background-color 0.15s ease;
+}
+.toggle-password-btn:hover {
+    color: #3b82f6;
+    background: rgba(59, 130, 246, 0.1);
+    transform: translateY(-50%) scale(1.1);
+}
+.toggle-password-btn:active {
+    transform: translateY(-50%) scale(0.92);
+}
+.toggle-password-btn:focus-visible {
+    outline: 2px solid #3b82f6;
+    outline-offset: 1px;
+}
+.form-input {
+    width: 100%;
+    padding: 12px;
+    border: 1.5px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: border-color 0.2s ease;
+}
+.form-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+}
+.auth-btn {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-top: 10px;
+}
+.auth-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+.auth-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+.error-message {
+    background: #fef2f2;
+    color: #dc2626;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    border: 1px solid #fecaca;
+}
+.success-message {
+    background: #f0fdf4;
+    color: #16a34a;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    border: 1px solid #bbf7d0;
+}
+.loading {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: spin 0.8s linear infinite;
+}
+.auth-mode-notice {
+    background: #eff6ff;
+    color: #1e3a8a;
+    padding: 10px 12px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    font-size: 13px;
+}
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+</style>
+<link rel="stylesheet" href="light-ai-theme.css?v=20261115b">
+</head>
+<body>
+<nav class="page-controls auth-page-controls" aria-label="Điều hướng trang xác thực">
+    <button type="button" data-page-back data-fallback="index.html">← Quay lại</button>
+    <a href="index.html">⌂ Trang chủ</a>
+</nav>
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <h1>Trợ Lý Ảo</h1>
+            <p>Đăng nhập hoặc đăng ký để bắt đầu</p>
+        </div>
+
+        <div class="auth-tabs">
+            <button class="auth-tab active" onclick="switchTab('login')">Đăng nhập</button>
+            <button class="auth-tab" onclick="switchTab('register')">Đăng ký</button>
+        </div>
+
+        <div id="message-container"></div>
+        <div class="auth-mode-notice" id="auth-mode-notice" role="status" aria-live="polite">
+            Đang kiểm tra trạng thái máy chủ...
+        </div>
+
+        <!-- Login Form -->
+        <form id="login-form" class="auth-form active">
+            <div class="form-group">
+                <label class="form-label">Tên đăng nhập</label>
+                <input type="text" id="login-username" class="form-input" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Mật khẩu</label>
+                <div class="password-wrapper">
+                    <input type="password" id="login-password" class="form-input" required autocomplete="current-password">
+                    <button type="button" class="toggle-password-btn" id="toggle-login-password" aria-label="Hiện mật khẩu" aria-pressed="false" title="Hiện mật khẩu">
+                        <svg class="eye-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+                            <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <button type="submit" class="auth-btn" id="login-btn">
+                <span id="login-text">Đăng nhập</span>
+            </button>
+        </form>
+
+        <!-- Register Form -->
+        <form id="register-form" class="auth-form">
+            <div class="form-group">
+                <label class="form-label">Tên đăng nhập</label>
+                <input type="text" id="register-username" class="form-input" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Mật khẩu</label>
+                <div class="password-wrapper">
+                    <input type="password" id="register-password" class="form-input" required autocomplete="new-password">
+                    <button type="button" class="toggle-password-btn" id="toggle-register-password" aria-label="Hiện mật khẩu" aria-pressed="false" title="Hiện mật khẩu">
+                        <svg class="eye-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+                            <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Xác nhận mật khẩu</label>
+                <div class="password-wrapper">
+                    <input type="password" id="register-confirm-password" class="form-input" required autocomplete="new-password">
+                    <button type="button" class="toggle-password-btn" id="toggle-register-confirm-password" aria-label="Hiện mật khẩu xác nhận" aria-pressed="false" title="Hiện mật khẩu xác nhận">
+                        <svg class="eye-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+                            <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <button type="submit" class="auth-btn" id="register-btn">
+                <span id="register-text">Đăng ký</span>
+            </button>
+        </form>
+    </div>
+</div>
+
+<script src="auth-api.js?v=20261115d"></script>
+<script src="auth.js?v=20261115c"></script>
+<script src="theme-manager.js?v=20261115b"></script>
+<script src="page-navigation.js"></script>
+</body>
+</html>

@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trợ Lý Ảo — Chatbot Hỗ Trợ Học Tập</title>
+<link rel="stylesheet" href="style.css?v=20261114">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
+<style>
+/* ========== SPECIAL BACKGROUND EFFECTS ========== */
+/* Floating particles at bottom */
+body::before {
+    content: "";
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 200px;
+    background: 
+        radial-gradient(circle at 20% 100%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 80% 100%, rgba(147, 51, 234, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 50% 100%, rgba(236, 72, 153, 0.1) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: -1;
+    animation: bgPulse 8s ease-in-out infinite;
+}
+
+@keyframes bgPulse {
+    0%, 100% { opacity: 0.5; transform: scaleY(1); }
+    50% { opacity: 0.8; transform: scaleY(1.1); }
+}
+
+/* Animated gradient orbs */
+.bg-orb {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(80px);
+    pointer-events: none;
+    z-index: -2;
+    animation: orbFloat 20s ease-in-out infinite;
+}
+
+.bg-orb-1 {
+    width: 400px;
+    height: 400px;
+    background: rgba(59, 130, 246, 0.2);
+    bottom: -200px;
+    left: -100px;
+    animation-delay: 0s;
+}
+
+.bg-orb-2 {
+    width: 300px;
+    height: 300px;
+    background: rgba(147, 51, 234, 0.15);
+    bottom: -150px;
+    right: -50px;
+    animation-delay: -5s;
+}
+
+.bg-orb-3 {
+    width: 250px;
+    height: 250px;
+    background: rgba(236, 72, 153, 0.12);
+    bottom: -100px;
+    left: 50%;
+    transform: translateX(-50%);
+    animation-delay: -10s;
+}
+
+@keyframes orbFloat {
+    0%, 100% { 
+        transform: translateY(0) scale(1);
+        opacity: 0.5;
+    }
+    33% { 
+        transform: translateY(-30px) scale(1.1);
+        opacity: 0.7;
+    }
+    66% { 
+        transform: translateY(-15px) scale(0.95);
+        opacity: 0.6;
+    }
+}
+
+/* Sparkle stars at bottom */
+.sparkle-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 150px;
+    pointer-events: none;
+    z-index: -1;
+    overflow: hidden;
+}
+
+.sparkle {
+    position: absolute;
+    bottom: 0;
+    width: 4px;
+    height: 4px;
+    background: white;
+    border-radius: 50%;
+    animation: sparkleUp 4s ease-out infinite;
+    opacity: 0;
+}
+
+.sparkle:nth-child(1) { left: 10%; animation-delay: 0s; }
+.sparkle:nth-child(2) { left: 20%; animation-delay: 0.5s; width: 6px; height: 6px; }
+.sparkle:nth-child(3) { left: 30%; animation-delay: 1s; }
+.sparkle:nth-child(4) { left: 40%; animation-delay: 1.5s; width: 3px; height: 3px; }
+.sparkle:nth-child(5) { left: 50%; animation-delay: 2s; }
+.sparkle:nth-child(6) { left: 60%; animation-delay: 2.5s; width: 5px; height: 5px; }
+.sparkle:nth-child(7) { left: 70%; animation-delay: 3s; }
+.sparkle:nth-child(8) { left: 80%; animation-delay: 3.5s; width: 4px; height: 4px; }
+.sparkle:nth-child(9) { left: 90%; animation-delay: 0.3s; }
+.sparkle:nth-child(10) { left: 5%; animation-delay: 1.8s; width: 3px; height: 3px; }
+
+@keyframes sparkleUp {
+    0% {
+        transform: translateY(0) scale(0);
+        opacity: 0;
+    }
+    10% {
+        opacity: 1;
+        transform: translateY(-20px) scale(1);
+    }
+    90% {
+        opacity: 0.5;
+    }
+    100% {
+        transform: translateY(-120px) scale(0);
+        opacity: 0;
+    }
+}
+
+/* Wave effect at bottom */
+.wave-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 100px;
+    pointer-events: none;
+    z-index: -1;
+    overflow: hidden;
+}
+
+.wave {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 100%;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%23e0e7ff' fill-opacity='0.3' d='M0,192L48,197.3C96,203,192,213,288,229.3C384,245,480,267,576,250.7C672,235,768,181,864,181.3C960,181,1056,235,1152,234.7C1248,235,1344,181,1392,154.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3E%3C/path%3E%3C/svg%3E");
+    background-size: 1440px 100%;
+    animation: waveMove 15s linear infinite;
+    opacity: 0.6;
+}
+
+.wave:nth-child(2) {
+    animation-delay: -5s;
+    opacity: 0.4;
+    transform: scaleY(0.8);
+}
+
+.wave:nth-child(3) {
+    animation-delay: -10s;
+    opacity: 0.3;
+    transform: scaleY(0.6);
+}
+
+@keyframes waveMove {
+    0% { background-position-x: 0; }
+    100% { background-position-x: 1440px; }
+}
+
+/* ========== EXCLUSIVE COLOR ICON - NO ANIMATIONS ========== */
+/* Static icon styling only - no animations */
+.color-item.exclusive .color-icon,
+.color-item.premium-exclusive .color-icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 42px;
+    z-index: 10;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+/* ========== OPTIMIZED WAVE ANIMATION ========== */
+.wave-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 120px;
+    pointer-events: none;
+    z-index: 1;
+    overflow: hidden;
+    will-change: transform;
+}
+
+.wave {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 200%;
+    height: 100%;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%23ffffff' fill-opacity='0.1' d='M0,192L48,197.3C96,203,192,213,288,229.3C384,245,480,267,576,250.7C672,235,768,181,864,181.3C960,181,1056,235,1152,234.7C1248,235,1344,181,1392,154.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3E%3C/path%3E%3C/svg%3E") repeat-x;
+    animation: waveMove 15s linear infinite;
+    opacity: 0.4;
+    will-change: transform;
+    transform: translateZ(0);
+}
+
+.wave:nth-child(2) {
+    bottom: 8px;
+    animation: waveMove 20s linear infinite reverse;
+    opacity: 0.25;
+}
+
+.wave:nth-child(3) {
+    bottom: 16px;
+    animation: waveMove 25s linear infinite;
+    opacity: 0.15;
+}
+
+@keyframes waveMove {
+    0% { transform: translateX(0) translateZ(0); }
+    100% { transform: translateX(-50%) translateZ(0); }
+}
+
+/* Theme-specific wave colors */
+body.theme-ocean-active .wave {
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%2300CED1' fill-opacity='0.3' d='M0,192L48,197.3C96,203,192,213,288,229.3C384,245,480,267,576,250.7C672,235,768,181,864,181.3C960,181,1056,235,1152,234.7C1248,235,1344,181,1392,154.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3E%3C/path%3E%3C/svg%3E") repeat-x;
+}
+
+body.theme-aurora-active .wave {
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%2339FF14' fill-opacity='0.3' d='M0,192L48,197.3C96,203,192,213,288,229.3C384,245,480,267,576,250.7C672,235,768,181,864,181.3C960,181,1056,235,1152,234.7C1248,235,1344,181,1392,154.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3E%3C/path%3E%3C/svg%3E") repeat-x;
+}
+
+body.theme-galaxy-active .wave,
+body.theme-starlight-active .wave {
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%23FFFFFF' fill-opacity='0.2' d='M0,192L48,197.3C96,203,192,213,288,229.3C384,245,480,267,576,250.7C672,235,768,181,864,181.3C960,181,1056,235,1152,234.7C1248,235,1344,181,1392,154.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3E%3C/path%3E%3C/svg%3E") repeat-x;
+}
+</style>
+<link rel="stylesheet" href="light-ai-theme.css?v=20261115b">
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+</head>
+
+<body class="chat-workspace">
+
+<!-- Background Effects -->
+<div class="bg-orb bg-orb-1"></div>
+<div class="bg-orb bg-orb-2"></div>
+<div class="bg-orb bg-orb-3"></div>
+
+<div class="sparkle-container">
+    <div class="sparkle"></div>
+    <div class="sparkle"></div>
+    <div class="sparkle"></div>
+    <div class="sparkle"></div>
+    <div class="sparkle"></div>
+    <div class="sparkle"></div>
+    <div class="sparkle"></div>
+    <div class="sparkle"></div>
+    <div class="sparkle"></div>
+    <div class="sparkle"></div>
+</div>
+
+<div class="wave-container">
+    <div class="wave"></div>
+    <div class="wave"></div>
+    <div class="wave"></div>
+</div>
+
+<!-- Overlay for sidebar -->
+<div class="overlay" id="overlay"></div>
+
+<!-- Sidebar Panel -->
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <div class="sidebar-brand">
+            <span class="brand-mark" aria-hidden="true">AI</span>
+            <span>Trợ Lý Ảo</span>
+        </div>
+        <button class="sidebar-close" id="sidebar-close" type="button" aria-label="Đóng menu">×</button>
+    </div>
+    
+    <div class="sidebar-content">
+        <button class="new-chat-btn" id="new-chat-btn" type="button" title="Cuộc trò chuyện mới" aria-label="Cuộc trò chuyện mới">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+            <span>Cuộc trò chuyện mới</span>
+        </button>
+        <label class="chat-search-label" for="chat-search">Lịch sử trò chuyện</label>
+        <input id="chat-search" class="chat-search" type="search" placeholder="Tìm trong lịch sử" autocomplete="off">
+        <div class="chat-history-list" id="chat-history-list" aria-live="polite">
+            <p class="history-empty">Chưa có cuộc trò chuyện nào.</p>
+        </div>
+
+        <div class="sidebar-nav-label">Khám phá</div>
+        <nav class="sidebar-nav" aria-label="Điều hướng chính">
+            <a class="menu-item" href="trongcay.html" title="Khu vườn">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M12 21v-8m0 3c-4.5 0-7-2.5-7-7 4.5 0 7 2.5 7 7Zm0-4c0-4.5 2.5-7 7-7 0 4.5-2.5 7-7 7Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>Khu vườn</span>
+            </a>
+            <a class="menu-item" href="games.html" title="Trò chơi">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M7.5 9h9a4 4 0 0 1 3.9 3.1l1 4.2a2 2 0 0 1-3.1 2.1l-2.7-1.8H8.4l-2.7 1.8a2 2 0 0 1-3.1-2.1l1-4.2A4 4 0 0 1 7.5 9Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+                    <path d="M8 12v4m-2-2h4m6-1h.01M18 15h.01" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+                </svg>
+                <span>Trò chơi</span>
+            </a>
+            <a class="menu-item" href="token-shop-new.html" title="Cửa hàng Token">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="m12 3 8 6-8 12L4 9l8-6Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+                    <path d="m4 9 8 2 8-2M12 11v10" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                </svg>
+                <span>Cửa hàng Token</span>
+            </a>
+            <a class="menu-item" href="study-room.html" title="Phòng học nhóm">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M16 20v-1.5a3.5 3.5 0 0 0-3.5-3.5h-5A3.5 3.5 0 0 0 4 18.5V20m6-8a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm6-6.5a3.5 3.5 0 0 1 0 6.8m2 3.2a3.5 3.5 0 0 1 2 3.1V20" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>Phòng học nhóm</span>
+            </a>
+            <a class="menu-item" href="theme-settings.html" title="Tùy chỉnh giao diện">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M4 7h9m4 0h3M4 17h3m4 0h9M13 4v6M7 14v6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                </svg>
+                <span>Tùy chỉnh giao diện</span>
+            </a>
+            <a class="menu-item" href="legacy-import.html" title="Chuyển tài khoản cũ">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M4 8h13m0 0-4-4m4 4-4 4M20 16H7m0 0 4-4m-4 4 4 4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>Chuyển tài khoản cũ</span>
+            </a>
+            <a class="menu-item" href="admin/" title="Quản trị hệ thống">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M12 3 19 6v5c0 4.7-2.9 8-7 10-4.1-2-7-5.3-7-10V6l7-3Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+                    <path d="m9 12 2 2 4-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>Quản trị</span>
+            </a>
+        </nav>
+
+        <!-- Color Theme Selection -->
+        <div class="color-theme-panel" id="color-theme-panel">
+            <h4>Thay Màu Nền</h4>
+            <div class="color-grid" id="color-grid">
+                <!-- Colors will be added dynamically -->
+            </div>
+        </div>
+
+        <div class="user-section">
+            <div class="user-avatar-container" id="user-avatar-container" title="Đổi ảnh đại diện">
+                <img src="" alt="User Avatar" id="user-avatar" style="display: none;">
+            </div>
+            <div class="user-info">
+                <div class="user-name" id="user-name">Người dùng</div>
+                <div class="user-tokens">
+                    <span class="token-icon">💎</span>
+                    <span id="token-count">0</span> tokens
+                </div>
+            </div>
+            <input type="file" id="avatar-upload" accept="image/*" hidden>
+            <button class="change-avatar-btn" id="change-avatar-btn">Đổi Avatar</button>
+        </div>
+
+        <!-- Theme Toggle -->
+        <div class="menu-section">
+            <button class="menu-item" id="theme-toggle-menu" type="button" title="Chuyển đổi Dark/Light">
+                <span class="menu-icon" aria-hidden="true">🌙</span>
+                <span>Chuyển đổi Dark/Light</span>
+            </button>
+        </div>
+
+        <!-- Logout Button -->
+        <div class="menu-section">
+            <button class="menu-item" id="logout-btn" type="button" title="Đăng xuất">
+                <span class="menu-icon" aria-hidden="true">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none">
+                        <path d="M10 17l5-5-5-5m5 5H3m9-9h6a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3h-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </span>
+                <span>Đăng xuất</span>
+            </button>
+        </div>
+
+    </div>
+</div>
+
+<!-- Login/Registration Modal -->
+<div class="auth-modal" id="auth-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="modal-title">Đăng Nhập</h2>
+            <button type="button" class="auth-theme-toggle" data-theme-toggle aria-label="Chuyển sang giao diện tối">🌙</button>
+            <button class="close-btn" id="close-modal">&times;</button>
+        </div>
+        
+        <div class="modal-body">
+            <!-- Login Form -->
+            <form id="login-form" class="auth-form">
+                <div class="form-group">
+                    <label for="login-username">Tên đăng nhập:</label>
+                    <input type="text" id="login-username" required placeholder="Nhập tên của bạn">
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Mật khẩu:</label>
+                    <input type="password" id="login-password" required placeholder="Nhập mật khẩu">
+                </div>
+                <button type="submit" class="auth-btn">Đăng Nhập</button>
+            </form>
+            
+            <!-- Registration Form -->
+            <form id="register-form" class="auth-form" style="display: none;">
+                <div class="form-group">
+                    <label for="register-username">Tên đăng nhập:</label>
+                    <input type="text" id="register-username" required placeholder="Nhập tên của bạn">
+                </div>
+                <div class="form-group">
+                    <label for="register-password">Mật khẩu:</label>
+                    <input type="password" id="register-password" required placeholder="Tạo mật khẩu">
+                </div>
+                <div class="form-group">
+                    <label for="register-confirm-password">Xác nhận mật khẩu:</label>
+                    <input type="password" id="register-confirm-password" required placeholder="Nhập lại mật khẩu">
+                </div>
+                <button type="submit" class="auth-btn">Đăng Ký</button>
+            </form>
+        </div>
+        
+        <div class="modal-footer">
+            <p id="switch-text">
+                Chưa có tài khoản? <a href="#" id="switch-to-register">Đăng ký ngay</a>
+            </p>
+            <p class="auth-security-note">Tài khoản mới được lưu an toàn trên máy chủ sau khi PostgreSQL được cấu hình. Tài khoản LocalStorage cũ vẫn được giữ trên thiết bị nhưng không có quyền hoặc số dư server.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Admin Panel Modal -->
+<div class="admin-modal" id="admin-modal">
+    <div class="admin-content">
+        <div class="admin-header">
+            <h2>🔐 Bảng Điều Khiển Admin</h2>
+            <button class="close-btn" id="close-admin-modal">&times;</button>
+        </div>
+        
+        <div class="admin-body">
+            <!-- Active Users Section -->
+            <div class="admin-section">
+                <h3>👥 Người dùng đang hoạt động</h3>
+                <div id="active-users-list" class="users-list">
+                    <!-- Users will be listed here -->
+                </div>
+            </div>
+            
+            <!-- Time Control Section -->
+            <div class="admin-section">
+                <h3>⏰ Điều khiển thời gian truy cập</h3>
+                <div class="time-control">
+                    <div class="form-group">
+                        <label for="time-limit">Giới hạn thời gian (phút):</label>
+                        <input type="number" id="time-limit" min="1" max="999" value="60" placeholder="Nhập số phút">
+                    </div>
+                    <button class="admin-btn" id="set-time-limit">Áp dụng giới hạn</button>
+                </div>
+            </div>
+            
+            <!-- System Info -->
+            <div class="admin-section">
+                <h3>📊 Thông tin hệ thống</h3>
+                <div class="system-info">
+                    <p><strong>Tổng người dùng:</strong> <span id="total-users">0</span></p>
+                    <p><strong>Người dùng online:</strong> <span id="online-users">0</span></p>
+                    <p><strong>Thời gian server:</strong> <span id="server-time">--:--:--</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="chatbot">
+    <div class="ai-toolbar">
+        <button class="menu-toggle" id="menu-toggle" type="button" aria-label="Mở menu" aria-expanded="false">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+        </button>
+        <span class="toolbar-label">Không gian học tập</span>
+        <span class="toolbar-caption">Lưu lịch sử trên thiết bị này</span>
+    </div>
+
+    <div class="chat-header">
+        <div class="header-content">
+            <div class="header-icon" role="img" aria-label="Trợ lý AI"></div>
+            <div class="header-text">
+                <h2>Trợ Lý Ảo</h2>
+                <p>Không gian AI học tập · Hỏi đáp · Phân tích hình ảnh</p>
+                <div class="header-status">
+                    <span class="status-dot"></span>
+                    <span id="header-status-text">Đang kết nối máy chủ…</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="quick-tags" id="quick-tags">
+        <button type="button" class="tag-btn" data-text="Giải bài toán này từng bước để em dễ hiểu.">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <rect x="4" y="3" width="16" height="18" rx="3" stroke="currentColor" stroke-width="1.7"/>
+                <path d="M8 7h8M8 12h.01M12 12h.01M16 12h.01M8 16h.01M12 16h.01M16 16h.01" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+            </svg>
+            <span>Toán từng bước</span>
+        </button>
+        <button type="button" class="tag-btn" data-text="Tóm tắt bài này trong 5 ý chính ngắn gọn.">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M7 3h7l5 5v13H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+                <path d="M14 3v6h5M9 13h6m-6 4h6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+            </svg>
+            <span>Tóm tắt nhanh</span>
+        </button>
+        <button type="button" class="tag-btn" data-text="Đặt 3 câu hỏi để em tự ôn tập lại kiến thức.">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M9 18h6m-5 3h4m-2-19a7 7 0 0 0-4 12.7c.5.4 1 1.1 1 1.8h6c0-.7.5-1.4 1-1.8A7 7 0 0 0 12 2Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span>Ôn tập logic</span>
+        </button>
+        <button type="button" class="tag-btn" data-text="Phân tích hình em gửi và giải thích dễ hiểu.">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <rect x="3" y="4" width="18" height="16" rx="3" stroke="currentColor" stroke-width="1.7"/>
+                <circle cx="9" cy="10" r="2" stroke="currentColor" stroke-width="1.7"/>
+                <path d="m5 17 4-4 3 3 3-4 4 5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span>Phân tích hình</span>
+        </button>
+    </div>
+
+    <div class="chat-body" id="chat-body">
+    </div>
+
+    <div class="chat-input">
+        <div class="input-row">
+            <textarea
+                id="user-input"
+                rows="1"
+                placeholder="Nhập câu hỏi... (Enter gửi · Shift+Enter xuống dòng)"
+                autocomplete="off"
+            ></textarea>
+            <div class="input-actions">
+                <input type="file" id="image-input" accept="image/*" hidden>
+                <button type="button" class="upload-btn" id="upload-btn" aria-label="Đính kèm ảnh">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="m8 12.5 6.7-6.7a3 3 0 0 1 4.2 4.2l-8.5 8.5a5 5 0 0 1-7.1-7.1l8.5-8.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span>Ảnh</span>
+                </button>
+                <button type="button" id="send-btn" aria-label="Gửi tin nhắn">
+                    <svg class="send-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="m4 12 16-8-5.5 16-3.1-6.2L4 12Zm7.4 1.8L20 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span id="send-label">Gửi</span>
+                </button>
+            </div>
+        </div>
+        <div class="file-info hidden" id="file-info">
+            <span class="file-name" id="file-name"></span>
+            <button type="button" class="file-remove" id="file-remove" aria-label="Xóa ảnh">✕</button>
+        </div>
+    </div>
+
+</div>
+
+<script src="auth-api.js?v=20261115d"></script>
+<script src="app.js?v=20261115c"></script>
+<script src="theme-manager.js?v=20261115b"></script>
+
+</body>
+</html>
