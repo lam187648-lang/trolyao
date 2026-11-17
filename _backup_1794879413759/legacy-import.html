@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f5f7ff">
+  <title>Chuyển tài khoản cũ | Trợ Lý Ảo</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="light-ai-theme.css?v=20261115b">
+  <style>
+    body { min-height: 100vh; padding: 24px; }
+    .import-shell { width: min(860px, 100%); margin: 0 auto; display: grid; gap: 18px; }
+    .import-topbar, .import-card { border: 1px solid var(--ai-border); border-radius: var(--ai-radius); background: var(--ai-surface); box-shadow: var(--ai-shadow-soft); }
+    .import-topbar { display: flex; align-items: center; gap: 12px; padding: 14px 18px; }
+    .import-brand { margin-right: auto; font-weight: 750; color: var(--ai-text); text-decoration: none; }
+    .import-card { padding: clamp(16px, 2vw, 24px); min-width: 0; }
+    .import-card h1 { margin: 0 0 6px; font-size: clamp(1.4rem, 3vw, 2rem); letter-spacing: -.03em; }
+    .import-card h2 { margin: 0 0 12px; font-size: 1.1rem; }
+    .muted { color: var(--ai-muted); }
+    .import-button { min-height: 40px; padding: 8px 14px; border: 1px solid var(--ai-border); border-radius: 10px; color: var(--ai-text); background: var(--ai-surface-soft); cursor: pointer; font: inherit; text-decoration: none; }
+    .import-button:hover:not(:disabled) { border-color: var(--ai-primary); color: var(--ai-primary); }
+    .import-button.primary { border-color: transparent; color: #fff; background: var(--ai-primary); }
+    .import-button:disabled { opacity: .55; cursor: not-allowed; }
+    .import-form { display: grid; gap: 10px; max-width: 420px; }
+    .import-form input { min-height: 42px; padding: 8px 12px; border: 1px solid var(--ai-border); border-radius: 12px; background: var(--ai-surface); color: var(--ai-text); font: inherit; }
+    .account-list { display: grid; gap: 10px; }
+    .account-option { display: flex; gap: 12px; align-items: flex-start; padding: 12px; border: 1px solid var(--ai-border); border-radius: 12px; cursor: pointer; }
+    .account-option:has(input:checked) { border-color: var(--ai-primary); }
+    .account-option span { overflow-wrap: anywhere; }
+    .notice { margin: 0; padding: 12px 14px; border-radius: 12px; background: var(--ai-surface-soft); color: var(--ai-text-secondary); }
+    .notice.error { background: #fff0f0; color: #b42332; }
+    .result-list { margin: 6px 0 12px; padding-left: 20px; }
+    [hidden] { display: none !important; }
+    @media (max-width: 600px) { body { padding: 12px; } .import-topbar { flex-wrap: wrap; } }
+  </style>
+</head>
+<body>
+  <main class="import-shell">
+    <header class="import-topbar">
+      <a class="import-brand" href="index.html">Trợ Lý Ảo <span class="muted">/ Chuyển tài khoản cũ</span></a>
+      <a class="import-button" href="index.html">Trang chủ</a>
+    </header>
+
+    <section class="import-card">
+      <h1>Chuyển dữ liệu tài khoản cũ</h1>
+      <p class="muted">Dữ liệu của tài khoản cũ chỉ được lưu trên trình duyệt này nên máy chủ không thể tự xác minh. Màu đang dùng (nếu hợp lệ) được áp dụng ngay; Token và màu trả phí sẽ chờ quản trị viên duyệt. Dữ liệu cũ trên trình duyệt luôn được giữ nguyên.</p>
+    </section>
+
+    <p class="notice" id="import-status" role="status" aria-live="polite">Đang kiểm tra...</p>
+
+    <section class="import-card" id="login-card" hidden>
+      <h2>1. Đăng nhập tài khoản server</h2>
+      <form class="import-form" id="login-form">
+        <input id="login-username" autocomplete="username" placeholder="Tên đăng nhập" required>
+        <input id="login-password" type="password" autocomplete="current-password" placeholder="Mật khẩu" required>
+        <button class="import-button primary" id="login-btn" type="submit">Đăng nhập</button>
+      </form>
+    </section>
+
+    <section class="import-card" id="accounts-card" hidden>
+      <h2>2. Chọn tài khoản cũ trên trình duyệt này</h2>
+      <p class="muted" id="server-user-label"></p>
+      <div class="account-list" id="account-list"></div>
+      <p style="margin-top:14px"><button class="import-button primary" id="submit-btn" type="button" disabled>Gửi yêu cầu chuyển dữ liệu</button></p>
+    </section>
+
+    <section class="import-card" id="result-card" hidden>
+      <h2>Kết quả</h2>
+      <div id="result-body"></div>
+    </section>
+  </main>
+  <script src="auth-api.js?v=20261115d"></script>
+  <script src="legacy-import.js?v=20261116a"></script>
+  <script src="theme-manager.js?v=20261115b"></script>
+</body>
+</html>

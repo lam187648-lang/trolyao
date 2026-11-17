@@ -47,6 +47,7 @@ const io = new Server(server, {
     methods: ["GET", "POST"]
   }
 });
+app.set("io", io);
 
 const API_KEY = process.env.OPENROUTER_API_KEY;
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
@@ -161,22 +162,62 @@ app.post("/chat", chatRateLimit, async (req, res) => {
 let users = [];
 io.on("connection", (socket) => {
   socket.emit("users", users);
+  socket.emit("study-room:users", users);
+
   socket.on("join", (user) => {
     if (!user || typeof user.username !== "string" || !/^[\p{L}\p{N}_-]{2,24}$/u.test(user.username)) return;
     const username = user.username;
+    const safeAvatar = typeof user.avatar === "string" && (user.avatar.startsWith("data:image/") || user.avatar.startsWith("http") || user.avatar.length < 500000)
+      ? user.avatar
+      : "";
+    const safeTheme = typeof user.selectedColorTheme === "string" ? user.selectedColorTheme : "1";
+    const safeStudyTime = Number(user.studyTime) || 0;
+
     users = users.filter((entry) => entry.username !== username);
-    users.push({ id: socket.id, username, isAdmin: false, joinTime: Date.now() });
+    users.push({
+      id: socket.id,
+      username,
+      avatar: safeAvatar,
+      selectedColorTheme: safeTheme,
+      studyTime: safeStudyTime,
+      isAdmin: false,
+      joinTime: Date.now()
+    });
     io.emit("users", users);
+    io.emit("study-room:users", users);
+  });
+
+  socket.on("study-room:update-profile", (data) => {
+    const entry = users.find(u => u.id === socket.id);
+    if (!entry) return;
+    if (typeof data?.avatar === "string" && (data.avatar.startsWith("data:image/") || data.avatar.startsWith("http") || data.avatar.length < 500000)) {
+      entry.avatar = data.avatar;
+    }
+    if (typeof data?.selectedColorTheme === "string") {
+      entry.selectedColorTheme = data.selectedColorTheme;
+    }
+    if (Number.isFinite(data?.studyTime)) {
+      entry.studyTime = Number(data.studyTime);
+    }
+    io.emit("users", users);
+    io.emit("study-room:users", users);
+  });
+
+  socket.on("study-room:leave", () => {
+    users = users.filter(u => u.id !== socket.id);
+    io.emit("users", users);
+    io.emit("study-room:users", users);
   });
 
   // Admin actions stay disabled until a real server-side session/role system exists.
   socket.on("kick", () => socket.emit("admin-action-disabled", {
-    message: "Chức năng quản trị đang tạm khóa để bảo vệ tài khoản."
+    message: "Chức năng quản trị vui lòng thực hiện qua Trang Quản Trị."
   }));
 
   socket.on("disconnect", () => {
     users = users.filter((entry) => entry.id !== socket.id);
     io.emit("users", users);
+    io.emit("study-room:users", users);
   });
 });
 

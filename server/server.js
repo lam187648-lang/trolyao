@@ -87,6 +87,7 @@ const io = new Server(server, {
     credentials: true
   }
 });
+app.set("io", io);
 
 app.use(express.json({ limit: "8mb" }));
 
@@ -214,11 +215,17 @@ io.on("connection", (socket) => {
   
   // Send current users to new connection
   socket.emit("users", users);
+  socket.emit("study-room:users", users);
   
-  // Handle user join
+  // Handle user join with full profile support (avatar, theme, studyTime)
   socket.on("join", (user) => {
     if (!user || typeof user.username !== "string" || !/^[\p{L}\p{N}_-]{2,24}$/u.test(user.username)) return;
     const safeUsername = user.username;
+    const safeAvatar = typeof user.avatar === "string" && (user.avatar.startsWith("data:image/") || user.avatar.startsWith("http") || user.avatar.length < 500000)
+      ? user.avatar
+      : "";
+    const safeTheme = typeof user.selectedColorTheme === "string" ? user.selectedColorTheme : "1";
+    const safeStudyTime = Number(user.studyTime) || 0;
     
     // Remove existing user with same username
     users = users.filter(u => u.username !== safeUsername);
@@ -226,7 +233,10 @@ io.on("connection", (socket) => {
     const newUser = {
       id: socket.id,
       username: safeUsername,
-      isAdmin: false,
+      avatar: safeAvatar,
+      selectedColorTheme: safeTheme,
+      studyTime: safeStudyTime,
+      isAdmin: Boolean(user.isAdmin),
       joinTime: Date.now()
     };
 
@@ -234,11 +244,34 @@ io.on("connection", (socket) => {
     
     // Broadcast updated user list to all clients
     io.emit("users", users);
+    io.emit("study-room:users", users);
   });
 
-  // Admin kick is disabled until a verified server-side admin session exists.
+  socket.on("study-room:update-profile", (data) => {
+    const entry = users.find(u => u.id === socket.id);
+    if (!entry) return;
+    if (typeof data?.avatar === "string" && (data.avatar.startsWith("data:image/") || data.avatar.startsWith("http") || data.avatar.length < 500000)) {
+      entry.avatar = data.avatar;
+    }
+    if (typeof data?.selectedColorTheme === "string") {
+      entry.selectedColorTheme = data.selectedColorTheme;
+    }
+    if (Number.isFinite(data?.studyTime)) {
+      entry.studyTime = Number(data.studyTime);
+    }
+    io.emit("users", users);
+    io.emit("study-room:users", users);
+  });
+
+  socket.on("study-room:leave", () => {
+    users = users.filter(u => u.id !== socket.id);
+    io.emit("users", users);
+    io.emit("study-room:users", users);
+  });
+
+  // Admin kick is handled via server session revocation & realtime notification.
   socket.on("kick", () => socket.emit("admin-action-disabled", {
-    message: "Chức năng quản trị đang tạm khóa để bảo vệ tài khoản."
+    message: "Chức năng quản trị vui lòng thực hiện qua Trang Quản Trị."
   }));
 
   // Handle disconnect
@@ -246,6 +279,7 @@ io.on("connection", (socket) => {
     console.log("❌ User disconnected:", socket.id);
     users = users.filter(u => u.id !== socket.id);
     io.emit("users", users);
+    io.emit("study-room:users", users);
   });
 });
 

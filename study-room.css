@@ -20,6 +20,7 @@
   --bg-gradient-2: #f5f7fb;
   --surface: #ffffff;
   --surface-hover: #f1f3f8;
+  --input-bg: #ffffff;
   --text: #1a2030;
   --text-secondary: #5b6578;
   --text-muted: #8d95a3;
@@ -46,6 +47,7 @@ body.dark {
   --bg-gradient-2: #151a2e;
   --surface: #1e2540;
   --surface-hover: #262e4a;
+  --input-bg: #151a2e;
   --text: #e8ecf4;
   --text-secondary: #a0a8ba;
   --text-muted: #6b7385;

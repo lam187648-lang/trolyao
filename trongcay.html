@@ -424,25 +424,7 @@
 
         /* ========== COLOR THEME PANEL ========== */
         .theme-toggle {
-            position: fixed;
-            bottom: 24px;
-            right: 24px;
-            width: 56px;
-            height: 56px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--primary), var(--primary-hover));
-            border: none;
-            color: white;
-            font-size: 24px;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            transition: all 0.2s ease;
-            z-index: 1000;
-        }
-
-        .theme-toggle:hover {
-            transform: scale(1.1);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+            display: none !important;
         }
 
         .color-theme-panel {
@@ -947,8 +929,7 @@
         async function renderGardenHistory() {
             const localItems = readLocalGardenHistory().slice(-10).reverse().map((entry) => {
                 const seedName = seeds[entry.seed]?.name || 'Cây';
-                const tokens = Number(entry.tokens) > 0 ? `${Number(entry.tokens)} tokens (chỉ trên thiết bị)` : 'không có thưởng';
-                return `${seedName} · ${Number(entry.time) || 0} phút · ${tokens} · ${formatGardenDate(entry.date)}`;
+                return `${seedName} · ${Number(entry.time) || 0} phút · (Lưu trên thiết bị) · ${formatGardenDate(entry.date)}`;
             });
             fillHistoryList('localGardenHistory', localItems, 'Chưa có lịch sử trên thiết bị này.');
 
@@ -959,7 +940,7 @@
             try {
                 const { history } = await window.AuthApi.request('/api/garden/history');
                 const statusText = { rewarded: 'đã nhận', abandoned: 'đã dừng', running: 'đang trồng' };
-                fillHistoryList('serverGardenHistory', history.map((entry) => {
+                fillHistoryList('serverGardenHistory', (history || []).map((entry) => {
                     const reward = entry.status === 'rewarded' ? `+${entry.rewardAmount} tokens` : statusText[entry.status] || entry.status;
                     return `${seeds[entry.seed]?.name || 'Cây'} · ${entry.durationMinutes} phút · ${reward} · ${formatGardenDate(entry.startedAt)}`;
                 }), 'Chưa có lượt trồng nào trên máy chủ.');
@@ -971,7 +952,8 @@
         async function claimServerGardenReward(sessionId) {
             const rewardText = document.getElementById('tokenReward');
             if (!sessionId) {
-                rewardText.textContent = 'Đã hoàn thành! Lượt này không được máy chủ ghi nhận nên không có thưởng Token.';
+                rewardText.innerHTML = 'Đã hoàn thành! Lượt trồng này chưa được máy chủ ghi nhận nên không có thưởng Token.';
+                renderGardenHistory();
                 return;
             }
             rewardText.textContent = 'Đang xác nhận phần thưởng với máy chủ...';
@@ -980,20 +962,23 @@
                     method: 'POST',
                     body: { sessionId }
                 });
-                rewardText.innerHTML = `Bạn nhận được <strong>${Number(result.rewardAmount)} tokens</strong>! 🎉 (máy chủ đã xác nhận)`;
+                const tokensAwarded = Number(result.rewardAmount) || 0;
+                const newBalance = Number(result.tokenBalance);
+                rewardText.innerHTML = `Bạn nhận được <strong>${tokensAwarded} tokens</strong>! 🎉 (máy chủ đã xác nhận)`;
                 const savedUsers = JSON.parse(localStorage.getItem('users') || '{}');
                 const username = localStorage.getItem('currentUser');
                 if (savedUsers[username]) {
-                    savedUsers[username].tokens = Number(result.tokenBalance);
+                    savedUsers[username].tokens = newBalance;
                     localStorage.setItem('users', JSON.stringify(savedUsers));
                 }
-                localStorage.setItem('userTokens', String(result.tokenBalance));
-                document.getElementById('user-tokens').textContent = `💎 ${Number(result.tokenBalance)} tokens`;
-                showTokenNotification(Number(result.rewardAmount));
+                localStorage.setItem('userTokens', String(newBalance));
+                document.getElementById('user-tokens').textContent = `💎 ${newBalance} tokens`;
+                showTokenNotification(tokensAwarded);
                 renderGardenHistory();
             } catch (error) {
                 const wait = error.retryAfterSeconds ? ` Thử lại sau ${error.retryAfterSeconds} giây.` : '';
                 rewardText.textContent = `Đã hoàn thành, nhưng máy chủ chưa ghi nhận thưởng: ${error.message}${wait}`;
+                renderGardenHistory();
             }
         }
 
@@ -1275,60 +1260,41 @@
             rewardTokens = Math.max(MIN_TOKEN, Math.min(calculatedTokens, MAX_TOKEN)); // Min 0, max 1000000
             
             // Update reward message with detailed info
-            document.getElementById('tokenReward').innerHTML = `Bạn nhận được <strong>${rewardTokens} tokens</strong>! 🎉`;
+            document.getElementById('tokenReward').innerHTML = `Đang xác nhận kết quả...`;
             document.getElementById('timeSpent').textContent = completedSession.timeMinutes;
             document.getElementById('reward').style.display = 'block';
             updateGameControls();
             
-            // Add tokens to user account
+            // Add tokens to user account via server only
             const currentUser = localStorage.getItem('currentUser');
             const users = JSON.parse(localStorage.getItem('users') || '{}');
-            const isServerAccount = Boolean(users[currentUser]?.serverAccount);
+            const isServerAccount = Boolean(users[currentUser]?.serverAccount && window.AuthApi?.hasSession());
             if (isServerAccount) {
                 // Server balances are only changed by authenticated backend APIs.
+                // Do NOT self-credit tokens from client/localStorage.
                 const claimedSessionId = serverGardenSessionId;
                 serverGardenSessionId = null;
                 void claimServerGardenReward(claimedSessionId);
-            } else if (currentUser && users[currentUser]) {
-                const MAX_TOKEN = 1000000; // Tối đa 1 triệu token
-                const currentTokens = Math.max(0, users[currentUser].tokens || 0);
-                // Cộng token với giới hạn MAX
-                users[currentUser].tokens = Math.min(MAX_TOKEN, currentTokens + rewardTokens);
-                localStorage.setItem('users', JSON.stringify(users));
-                localStorage.setItem('userTokens', users[currentUser].tokens.toString());
-                document.getElementById('user-tokens').textContent = `💎 ${users[currentUser].tokens} tokens`;
-            }
-            
-            // Save to garden history
-            const historyKey = currentUser ? `gardenHistory:${currentUser}` : 'gardenHistory';
-            let history = [];
-            try {
-                const savedHistory = JSON.parse(localStorage.getItem(historyKey) || 'null');
-                if (Array.isArray(savedHistory)) {
-                    history = savedHistory;
-                } else if (currentUser && !localStorage.getItem('gardenHistoryMigratedTo')) {
-                    // One-time migration: the old shared history goes to the first account that completes a game.
-                    const legacyHistory = JSON.parse(localStorage.getItem('gardenHistory') || '[]');
-                    if (Array.isArray(legacyHistory)) history = legacyHistory;
-                    localStorage.setItem('gardenHistoryMigratedTo', currentUser);
+            } else {
+                // Device-only play: do NOT add server tokens locally
+                document.getElementById('tokenReward').innerHTML = `Bạn đã hoàn thành phiên trồng cây (${completedSession.timeMinutes} phút)!<br><small style="color: #64748b;">(Tài khoản cục bộ: Đăng nhập tài khoản server để nhận Token máy chủ xác nhận)</small>`;
+                const historyKey = currentUser ? `gardenHistory:${currentUser}` : 'gardenHistory';
+                let history = [];
+                try {
+                    const savedHistory = JSON.parse(localStorage.getItem(historyKey) || 'null');
+                    if (Array.isArray(savedHistory)) history = savedHistory;
+                } catch {
+                    history = [];
                 }
-            } catch {
-                history = [];
-            }
-            // Server accounts keep their verified history on the backend (see renderGardenHistory).
-            if (!isServerAccount) {
                 history.push({
                     seed: completedSession.seed,
                     time: completedSession.timeMinutes,
-                    tokens: rewardTokens,
+                    tokens: 0,
                     date: new Date().toISOString()
                 });
+                localStorage.setItem(historyKey, JSON.stringify(history));
+                renderGardenHistory();
             }
-            localStorage.setItem(historyKey, JSON.stringify(history));
-            renderGardenHistory();
-            
-            // Show token notification
-            if (!isServerAccount) showTokenNotification(rewardTokens);
         }
         
         function showTokenNotification(amount) {
@@ -1496,10 +1462,19 @@
             }
         }
 
-        // Initialize color panel on load
+        // Initialize garden on load
         document.addEventListener('DOMContentLoaded', () => {
-            initColorThemePanel();
             void renderGardenHistory();
+            
+            // Sync server token balance if logged in
+            if (window.AuthApi && window.AuthApi.hasSession()) {
+                window.AuthApi.request('/api/balance').then(data => {
+                    if (data && typeof data.tokenBalance === 'number') {
+                        document.getElementById('user-tokens').textContent = `💎 ${data.tokenBalance} tokens`;
+                        localStorage.setItem('userTokens', String(data.tokenBalance));
+                    }
+                }).catch(() => {});
+            }
             
             // Start periodic lastActive updater for admin panel online tracking
             setInterval(() => {
@@ -1511,22 +1486,11 @@
                         localStorage.setItem('users', JSON.stringify(users));
                     }
                 }
-            }, 60000); // Update every minute
+            }, 60000);
         });
         }
     </script>
 
-    <!-- Color Theme Toggle Button -->
-    <button class="theme-toggle" onclick="toggleColorPanel()" title="Chọn màu nền">🎨</button>
-    
-    <!-- Color Theme Panel -->
-    <div id="color-theme-panel" class="color-theme-panel">
-        <div class="panel-header">
-            <h3>🎨 Chọn màu nền</h3>
-            <button class="close-btn" onclick="toggleColorPanel()">✕</button>
-        </div>
-        <div id="color-grid" class="color-grid"></div>
-    </div>
 <script src="theme-manager.js?v=20261115b"></script>
 <script src="page-navigation.js"></script>
 </body>

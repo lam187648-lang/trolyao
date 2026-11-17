@@ -79,20 +79,90 @@
     });
   }
 
+  function getCurrentUser() {
+    return localStorage.getItem("currentUser") || "";
+  }
+
+  function getStoredAccountTheme(user) {
+    const username = user !== undefined ? user : getCurrentUser();
+    if (username) {
+      const val = localStorage.getItem(`theme:${username}`);
+      if (val === "dark" || val === "light") return val;
+      try {
+        const users = JSON.parse(localStorage.getItem("users") || "{}");
+        if (users[username]?.themeMode === "dark" || users[username]?.themeMode === "light") {
+          return users[username].themeMode;
+        }
+      } catch {}
+    }
+    const guest = localStorage.getItem("theme:guest") || localStorage.getItem(themeKey);
+    return guest === "dark" ? "dark" : "light";
+  }
+
+  function saveAccountTheme(mode, user) {
+    const username = user !== undefined ? user : getCurrentUser();
+    const selectedTheme = mode === "dark" ? "dark" : "light";
+    if (username) {
+      localStorage.setItem(`theme:${username}`, selectedTheme);
+      try {
+        const users = JSON.parse(localStorage.getItem("users") || "{}");
+        if (users[username]) {
+          users[username].themeMode = selectedTheme;
+          localStorage.setItem("users", JSON.stringify(users));
+        }
+      } catch {}
+    } else {
+      localStorage.setItem("theme:guest", selectedTheme);
+    }
+    localStorage.setItem(themeKey, selectedTheme);
+  }
+
+  function getStoredAccountColorTheme(user) {
+    const username = user !== undefined ? user : getCurrentUser();
+    if (username) {
+      const val = localStorage.getItem(`colorTheme:${username}`);
+      if (val && colorThemes[val]) return val;
+      try {
+        const users = JSON.parse(localStorage.getItem("users") || "{}");
+        if (users[username]?.selectedColorTheme && colorThemes[users[username].selectedColorTheme]) {
+          return String(users[username].selectedColorTheme);
+        }
+      } catch {}
+    }
+    const fallback = localStorage.getItem(colorThemeKey);
+    return (fallback && colorThemes[fallback]) ? fallback : "1";
+  }
+
+  function saveAccountColorTheme(themeId, user) {
+    const username = user !== undefined ? user : getCurrentUser();
+    const strId = String(themeId);
+    if (username) {
+      localStorage.setItem(`colorTheme:${username}`, strId);
+      try {
+        const users = JSON.parse(localStorage.getItem("users") || "{}");
+        if (users[username]) {
+          users[username].selectedColorTheme = strId;
+          localStorage.setItem("users", JSON.stringify(users));
+        }
+      } catch {}
+    }
+    localStorage.setItem(colorThemeKey, strId);
+  }
+
   function applyTheme(theme, persist) {
     const selectedTheme = theme === "dark" ? "dark" : "light";
     root.dataset.theme = selectedTheme;
     body.dataset.theme = selectedTheme;
     body.classList.toggle("dark", selectedTheme === "dark");
     root.style.colorScheme = selectedTheme;
-    if (persist) localStorage.setItem(themeKey, selectedTheme);
+    if (persist) saveAccountTheme(selectedTheme);
     applySelectedColorTheme();
     updateToggleButtons(selectedTheme);
     window.dispatchEvent(new CustomEvent("app:themechange", { detail: { theme: selectedTheme } }));
   }
 
   function applySelectedColorTheme() {
-    const palette = colorThemes[localStorage.getItem(colorThemeKey)];
+    const palette = colorThemes[getStoredAccountColorTheme()];
     if (!palette) return;
     const [primary, hover, light] = palette;
     root.style.setProperty("--ai-primary", primary);
@@ -125,14 +195,17 @@
   }
 
   function applyStoredTheme() {
-    applyTheme(localStorage.getItem(themeKey) === "dark" ? "dark" : "light", false);
+    applyTheme(getStoredAccountTheme(), false);
   }
 
   window.ThemeManager = {
     applyStored: applyStoredTheme,
+    restoreAccountTheme: (username) => {
+      applyTheme(getStoredAccountTheme(username), false);
+    },
     setColorTheme: (themeId) => {
       if (!colorThemes[String(themeId)]) return false;
-      localStorage.setItem(colorThemeKey, String(themeId));
+      saveAccountColorTheme(themeId);
       applySelectedColorTheme();
       window.dispatchEvent(new CustomEvent("app:colorthemechange", {
         detail: { themeId: String(themeId) }

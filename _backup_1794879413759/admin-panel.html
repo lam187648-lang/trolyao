@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f5f7ff">
+  <title>Quản trị hệ thống | Trợ Lý Ảo</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="light-ai-theme.css?v=20261115b">
+  <style>
+    body { min-height: 100vh; padding: 24px; }
+    .admin-shell { width: min(1440px, 100%); margin: 0 auto; }
+    .admin-topbar, .admin-card { border: 1px solid var(--ai-border); border-radius: var(--ai-radius); background: var(--ai-surface); box-shadow: var(--ai-shadow-soft); }
+    .admin-topbar { display: flex; align-items: center; gap: 16px; padding: 16px 20px; }
+    .admin-brand { margin-right: auto; font-weight: 750; color: var(--ai-text); text-decoration: none; }
+    .admin-heading { margin: 28px 0 20px; }
+    .admin-heading h1 { margin: 0 0 6px; font-size: clamp(1.6rem, 3vw, 2.2rem); letter-spacing: -.04em; }
+    .admin-heading p, .muted { color: var(--ai-muted); }
+    .admin-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; }
+    .admin-card { min-width: 0; padding: clamp(16px, 2vw, 24px); }
+    .card-heading { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
+    .card-heading h2 { margin: 0 auto 0 0; font-size: 1.15rem; }
+    .admin-controls { display: flex; flex-wrap: wrap; gap: 10px; }
+    .admin-controls input, .admin-controls select { min-height: 42px; padding: 8px 12px; border: 1px solid var(--ai-border); border-radius: 12px; background: var(--ai-surface); color: var(--ai-text); }
+    .admin-table-wrap { overflow-x: auto; border: 1px solid var(--ai-border); border-radius: 14px; }
+    .admin-table { width: 100%; border-collapse: collapse; min-width: 1000px; }
+    .admin-table th, .admin-table td { padding: 12px; border-bottom: 1px solid var(--ai-border); text-align: left; vertical-align: top; }
+    .admin-table th { color: var(--ai-muted); background: var(--ai-surface-soft); font-size: .78rem; font-weight: 700; white-space: nowrap; }
+    .admin-table tr:last-child td { border-bottom: 0; }
+    .admin-actions { display: flex; min-width: 290px; flex-wrap: wrap; gap: 6px; }
+    .admin-actions button, .admin-button { min-height: 36px; padding: 7px 10px; border: 1px solid var(--ai-border); border-radius: 10px; color: var(--ai-text); background: var(--ai-surface-soft); cursor: pointer; }
+    .admin-actions button:hover, .admin-button:hover { border-color: var(--ai-primary); color: var(--ai-primary); }
+    .admin-button.primary { border-color: transparent; color: white; background: var(--ai-primary); }
+    .admin-button.danger { color: #b42332; }
+    .status-pill { display: inline-flex; padding: 4px 9px; border-radius: 999px; background: #e7f7ef; color: #16794a; font-size: .78rem; font-weight: 700; }
+    .status-pill.locked { background: #fff0f0; color: #b42332; }
+    .pagination { display: flex; align-items: center; justify-content: flex-end; gap: 10px; padding-top: 14px; }
+    .audit-list { display: grid; gap: 8px; }
+    .audit-item { display: grid; grid-template-columns: minmax(120px, .7fr) minmax(150px, 1fr) minmax(140px, .8fr) minmax(160px, .8fr); gap: 12px; padding: 12px; border: 1px solid var(--ai-border); border-radius: 12px; background: var(--ai-surface-soft); font-size: .88rem; }
+    .audit-item span { min-width: 0; overflow-wrap: anywhere; }
+    .notice { margin: 14px 0; padding: 12px 14px; border-radius: 12px; background: var(--ai-surface-soft); color: var(--ai-text-secondary); }
+    .notice.error { background: #fff0f0; color: #b42332; }
+    [hidden] { display: none !important; }
+    @media (max-width: 720px) {
+      body { padding: 12px; }
+      .admin-topbar { flex-wrap: wrap; padding: 12px; }
+      .admin-brand { width: 100%; }
+      .audit-item { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="admin-shell">
+    <header class="admin-topbar">
+      <button class="admin-button" id="back-btn" type="button">← Quay lại</button>
+      <a class="admin-brand" href="index.html">Trợ Lý Ảo <span class="muted">/ Quản trị</span></a>
+      <a class="admin-button" href="index.html">Trang chủ</a>
+    </header>
+
+    <section class="admin-heading">
+      <h1>Quản trị hệ thống</h1>
+      <p>Quản lý tài khoản, Token, quyền màu và nhật ký thao tác.</p>
+    </section>
+
+    <p class="notice" id="admin-status" role="status" aria-live="polite">Đang kiểm tra quyền truy cập...</p>
+
+    <section id="admin-content" class="admin-grid" hidden>
+      <article class="admin-card">
+        <div class="card-heading">
+          <h2>Tài khoản</h2>
+          <div class="admin-controls">
+            <input id="user-search" type="search" placeholder="Tìm username hoặc email" aria-label="Tìm tài khoản">
+            <select id="user-status" aria-label="Lọc trạng thái">
+              <option value="">Tất cả trạng thái</option>
+              <option value="active">Đang hoạt động</option>
+              <option value="locked">Đã khóa</option>
+            </select>
+          </div>
+        </div>
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>ID / Username</th><th>Email</th><th>Đăng ký</th><th>Đăng nhập gần nhất</th>
+                <th>Token</th><th>Vai trò / Trạng thái</th><th>Thao tác</th>
+              </tr>
+            </thead>
+            <tbody id="users-body"><tr><td colspan="7">Đang tải...</td></tr></tbody>
+          </table>
+        </div>
+        <div class="pagination">
+          <button class="admin-button" id="previous-page" type="button">Trước</button>
+          <span class="muted" id="page-label">Trang 1</span>
+          <button class="admin-button" id="next-page" type="button">Sau</button>
+        </div>
+      </article>
+
+      <article class="admin-card">
+        <div class="card-heading">
+          <h2>Yêu cầu chuyển tài khoản cũ</h2>
+          <div class="admin-controls">
+            <select id="import-status" aria-label="Lọc yêu cầu chuyển dữ liệu">
+              <option value="pending_review">Chờ duyệt</option>
+              <option value="approved">Đã duyệt</option>
+              <option value="rejected">Đã từ chối</option>
+              <option value="completed">Không cần duyệt</option>
+            </select>
+          </div>
+        </div>
+        <p class="muted">Dữ liệu cũ do trình duyệt người dùng tự khai báo, không có bằng chứng sở hữu. Chỉ duyệt khi đã xác minh.</p>
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Tài khoản server</th><th>Tài khoản cũ</th><th>Token khai báo</th><th>Màu khai báo</th>
+                <th>Gửi lúc</th><th>Kết quả</th><th>Thao tác</th>
+              </tr>
+            </thead>
+            <tbody id="imports-body"><tr><td colspan="7">Đang tải...</td></tr></tbody>
+          </table>
+        </div>
+      </article>
+
+      <article class="admin-card">
+        <div class="card-heading"><h2>Nhật ký quản trị</h2></div>
+        <div class="audit-list" id="audit-list"><p class="muted">Đang tải nhật ký...</p></div>
+      </article>
+    </section>
+  </main>
+  <script src="auth-api.js?v=20261115d"></script>
+  <script src="admin-panel.js?v=20261116a"></script>
+  <script src="theme-manager.js?v=20261115b"></script>
+</body>
+</html>

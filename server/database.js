@@ -68,16 +68,59 @@ const appliedMigrations = new Set();
 async function isMigrationApplied(migrationId) {
   if (!pool) return false;
   if (appliedMigrations.has(migrationId)) return true;
-  const { rows } = await pool.query(
-    `SELECT to_regclass('schema_migrations') IS NOT NULL AS tracking_table_exists`
-  );
-  if (!rows[0]?.tracking_table_exists) return false;
-  const { rows: appliedRows } = await pool.query(
-    "SELECT 1 FROM schema_migrations WHERE migration_id = $1",
-    [migrationId]
-  );
-  if (appliedRows.length) appliedMigrations.add(migrationId);
-  return appliedRows.length > 0;
+  try {
+    const { rows } = await pool.query(
+      `SELECT to_regclass('schema_migrations') IS NOT NULL AS tracking_table_exists`
+    );
+    if (rows[0]?.tracking_table_exists) {
+      const { rows: appliedRows } = await pool.query(
+        "SELECT 1 FROM schema_migrations WHERE migration_id = $1",
+        [migrationId]
+      );
+      if (appliedRows.length > 0) {
+        appliedMigrations.add(migrationId);
+        return true;
+      }
+    }
+    // Fallback: check if the target tables exist directly
+    if (migrationId === "002_garden_rewards_legacy_import") {
+      const { rows: tableRows } = await pool.query(
+        `SELECT EXISTS (
+           SELECT 1 FROM information_schema.tables
+           WHERE table_schema = current_schema() AND table_name = 'garden_sessions'
+         ) AS exists`
+      );
+      if (tableRows[0]?.exists) {
+        // Record into schema_migrations if table exists
+        try {
+          await pool.query(
+            `CREATE TABLE IF NOT EXISTS schema_migrations (
+               migration_id TEXT PRIMARY KEY,
+               applied_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+             );
+             INSERT INTO schema_migrations (migration_id) VALUES ($1) ON CONFLICT DO NOTHING;`,
+            [migrationId]
+          );
+        } catch (_) {}
+        appliedMigrations.add(migrationId);
+        return true;
+      }
+    } else if (migrationId === "001_initial_schema") {
+      const { rows: tableRows } = await pool.query(
+        `SELECT EXISTS (
+           SELECT 1 FROM information_schema.tables
+           WHERE table_schema = current_schema() AND table_name = 'users'
+         ) AS exists`
+      );
+      if (tableRows[0]?.exists) {
+        appliedMigrations.add(migrationId);
+        return true;
+      }
+    }
+  } catch (err) {
+    console.error("isMigrationApplied check error:", err.message);
+  }
+  return false;
 }
 
 function requireMigration(migrationId) {

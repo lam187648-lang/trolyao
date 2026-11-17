@@ -26,6 +26,43 @@ class LoginPage {
       });
     }
 
+    // Toggle password visibility
+    const toggleBtn = document.getElementById('toggle-password');
+    if (toggleBtn && passwordInput) {
+      const eyeIconSvg = `
+        <svg class="eye-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+          <circle cx="12" cy="12" r="3"/>
+        </svg>
+      `;
+      const eyeOffIconSvg = `
+        <svg class="eye-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/>
+          <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/>
+          <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/>
+          <line x1="2" y1="2" x2="22" y2="22"/>
+        </svg>
+      `;
+      const toggle = () => {
+        const isPassword = passwordInput.type === 'password';
+        passwordInput.type = isPassword ? 'text' : 'password';
+        toggleBtn.innerHTML = isPassword ? eyeOffIconSvg : eyeIconSvg;
+        toggleBtn.setAttribute('aria-label', isPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu');
+        toggleBtn.setAttribute('title', isPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu');
+        toggleBtn.setAttribute('aria-pressed', String(isPassword));
+      };
+      toggleBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        toggle();
+      });
+      toggleBtn.addEventListener('keydown', (e) => {
+        if (e.key === ' ' || e.key === 'Enter') {
+          e.preventDefault();
+          toggle();
+        }
+      });
+    }
+
     // Username input validation
     const usernameInput = document.getElementById('username');
     if (usernameInput) {

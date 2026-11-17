@@ -36,6 +36,50 @@ class AuthSystem {
       void this.handleRegister();
     });
 
+    // Password visibility toggles
+    const eyeIconSvg = `
+      <svg class="eye-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+        <circle cx="12" cy="12" r="3"/>
+      </svg>
+    `;
+    const eyeOffIconSvg = `
+      <svg class="eye-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/>
+        <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/>
+        <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/>
+        <line x1="2" y1="2" x2="22" y2="22"/>
+      </svg>
+    `;
+
+    const bindToggle = (btnId, inputId) => {
+      const btn = document.getElementById(btnId);
+      const input = document.getElementById(inputId);
+      if (!btn || !input) return;
+      const toggle = () => {
+        const isPassword = input.type === 'password';
+        input.type = isPassword ? 'text' : 'password';
+        btn.innerHTML = isPassword ? eyeOffIconSvg : eyeIconSvg;
+        btn.setAttribute('aria-label', isPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu');
+        btn.setAttribute('title', isPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu');
+        btn.setAttribute('aria-pressed', String(isPassword));
+      };
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        toggle();
+      });
+      btn.addEventListener('keydown', (e) => {
+        if (e.key === ' ' || e.key === 'Enter') {
+          e.preventDefault();
+          toggle();
+        }
+      });
+    };
+
+    bindToggle('toggle-login-password', 'login-password');
+    bindToggle('toggle-register-password', 'register-password');
+    bindToggle('toggle-register-confirm-password', 'register-confirm-password');
+
     // Tab switching
     window.switchTab = (tab) => this.switchTab(tab);
   }
