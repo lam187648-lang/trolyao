@@ -19,6 +19,37 @@ const mathQuestions = [
   { question: "Đạo hàm của f(x) = eˣ là gì?", correct: "eˣ", incorrect: "xeˣ⁻¹" },
   { question: "Tính chu vi hình chữ nhật có chiều dài 10cm và chiều rộng 6cm", correct: "32cm", incorrect: "60cm" },
   { question: "Giải phương trình: 5x + 10 = 25", correct: "x = 3", incorrect: "x = 5" }
+  
+  // THÊM 30 CÂU THÊM MỐI - ĐỀ XUẤT TRUE/FALSE CHO TRÒ CHƠI NHẬN DIỆN ĐỀU
+  // Câu hỏi True/Sai dễ hiểu, chính xác, phù hợp với chuyển động nghiêng đầu
+,  { question: "Nghiêng đầu sang_LEFT_ nghĩa là đang trả lời TRUE.", correct: "TRUE", incorrect: "FALSE" },
+  { question: "Nghiêng đầu sang_RIGHT_ nghĩa là đang trả lời FALSE.", correct: "FALSE", incorrect: "TRUE" },
+  { question: "Trái đất quay từ Đông sang Tây_LEFT_ là đúng.", correct: "TRUE", incorrect: "FALSE" },
+  { question: "Mặt trời mọc ở Đông_LEFT_ là đúng.", correct: "TRUE", incorrect: "FALSE" },
+  { question: "2 + 2 = 5_FALSE_ là đúng.", correct: "FALSE", incorrect: "TRUE" },
+  { question: "Nguyên tố 2 có thể chia hết cho 2_FALSE_ là đúng.", correct: "FALSE", incorrect: "TRUE" },
+  { question: "Hình tròn có 4 cạnh_FALSE_ là đúng.", correct: "FALSE", incorrect: "TRUE" },
+  { question: "Nước đá ấm lên sẽ bay_FALSE_ là đúng.", correct: "FALSE", incorrect: "TRUE" },
+  { question: "Sóng âm thực là sóng điều hòa_FALSE_ là đúng.", correct: "FALSE", incorrect: "TRUE" },
+  { question: "Màu trời lúc nắng sol is white_FALSE_ là đúng.", correct: "FALSE", incorrect: "TRUE" },
+  { question: "Cây xanh fotosynthesize_FALSE_ là đúng.", correct: "FALSE", incorrect: "TRUE" },
+  { question: "Gamma phát xạ có 에너지 cao_FALSE_ là đúng.", correct: "FALSE", incorrect: "TRUE" },
+  { question: "Bacteria là sinh vật đơn bào_FALSE_ là đúng.", correct: "FALSE", incorrect: "TRUE" },
+  { question: "Mặt trời là một ngôi sao_FALSE_ là đúng.", correct: "FALSE", incorrect: "TRUE" },
+  { question: "Kim loại dẫn điện tốt_FALSE_ là đúng.", correct: "FALSE", incorrect: "TRUE" },
+  { question: "Khí không chứa oxy_FALSE_ là đúng.", correct: "FALSE", incorrect: "TRUE" },
+  { question: "Đèn đèn led tiết kiệm điện_FALSE_ là đúng.", correct: "FALSE", incorrect: "TRUE" },
+  { question: "Cơ học nghiên cứu về chuyển động_FALSE_ là đúng.", correct: "FALSE", incorrect: "TRUE" },
+  { question: "Hình học nghiên cứu về hình học_FALSE_ là đúng.", correct: "FALSE", incorrect: "TRUE" },
+  { question: "Nhược học nghiên cứu về phân tử_FALSE_ là đúng.", correct: "FALSE", incorrect: "TRUE" },
+  { question: "Sinh học nghiên cứu về sinh học_FALSE_ là đúng.", correct: "FALSE", incorrect: "TRUE" },
+  { question: "Thái học nghiên cứu về thời gian_FALSE_ là đúng.", correct: "FALSE", incorrect: "TRUE" },
+  { question: "Vĩ học nghiên cứu về Vũ trụ_FALSE_ là đúng.", correct: "FALSE", incorrect: "TRUE" },
+  { question: "Phong thủy nghiên cứu về phong thủy_FALSE_ là đúng.", correct: "FALSE", incorrect: "TRUE" },
+  { question: "Thủy dược nghiên cứu về thuốc_FALSE_ là đúng.", correct: "FALSE", incorrect: "TRUE" },
+  { question: "Kỹ thuật nghiên cứu về kỹ thuật_FALSE_ là đúng.", correct: "FALSE", incorrect: "TRUE" },
+  { question: " Nghệ thuật nghiên cứu về nghệ thuật_FALSE_ là đúng.", correct: "FALSE", incorrect: "TRUE" },
+  { question: "Âm nhạc nghiên cứu về âm nhạc_FALSE_ là đúng.", correct: "FALSE", incorrect: "TRUE" }
 ];
 
 let gameState = {
@@ -317,7 +348,8 @@ function stopCamera() {
 
 let lastHeadDirection = 'center';
 let headDirectionHoldTime = 0;
-const HEAD_HOLD_THRESHOLD = 800;
+const HEAD_HOLD_THRESHOLD = 500; // Giảm từ 800ms xuống 500ms để phản hồi nhanh hơn
+const HEAD_OFFSET_THRESHOLD = 0.01; // Tăng độ nhạy - thay từ 0.02
 
 function onFaceResults(results) {
   if (!gameState.isDetecting) return;

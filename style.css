@@ -19,7 +19,7 @@
   --surface-hover: rgba(255, 255, 255, 0.95);
   --glass: rgba(255, 255, 255, 0.7);
   --glass-border: rgba(255, 255, 255, 0.3);
-  --text: #1a1a2e;
+  --text: #1e293b; /* Đậm hơn ban đầu cho độ tương phản tốt hơn */
   --text-secondary: #4a4a68;
   --text-muted: #7a7a9a;
   --border: rgba(0, 0, 0, 0.08);
@@ -29,7 +29,7 @@
   --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.15);
   --shadow-glow: 0 0 40px rgba(102, 126, 234, 0.2);
   --shadow-glow-accent: 0 0 40px rgba(240, 147, 251, 0.2);
-  --bot-bg: rgba(245, 247, 255, 0.8);
+  --bot-bg: rgba(245, 255, 255, 0.8);
   --input-bg: rgba(255, 255, 255, 0.9);
   --radius: 20px;
   --radius-sm: 12px;
