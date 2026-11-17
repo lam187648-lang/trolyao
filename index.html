@@ -247,6 +247,7 @@ body.theme-starlight-active .wave {
 }
 </style>
 <link rel="stylesheet" href="light-ai-theme.css?v=20261115b">
+<link rel="stylesheet" href="visual-upgrade.css?v=20261117a">
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 </head>
@@ -511,6 +512,7 @@ body.theme-starlight-active .wave {
                     <span class="status-dot"></span>
                     <span id="header-status-text">Đang kết nối máy chủ…</span>
                 </div>
+                <p class="ui-greeting" id="ui-greeting">Chào mừng bạn quay lại!</p>
             </div>
         </div>
     </div>
@@ -547,6 +549,59 @@ body.theme-starlight-active .wave {
     </div>
 
     <div class="chat-body" id="chat-body">
+        <section class="home-hub" id="home-hub" aria-label="Tổng quan và truy cập nhanh">
+        <div class="home-hub-aside">
+            <span class="home-hub-eyebrow">TRỢ LÝ ẢO · HỌC TẬP</span>
+            <h1 class="home-hub-title">Học tập <span>không giới hạn</span></h1>
+            <p class="home-hub-sub">Hỏi bài, ôn tập, nuôi cây kiên nhẫn và kết nối phòng học — tất cả trong một không gian.</p>
+            <div class="home-stats">
+                <div class="home-stat">
+                    <span class="home-stat-label">Tokens</span>
+                    <strong id="home-stat-tokens">0</strong>
+                </div>
+                <div class="home-stat">
+                    <span class="home-stat-label">Máy chủ</span>
+                    <strong id="home-stat-server">Đang kiểm tra</strong>
+                </div>
+                <div class="home-stat">
+                    <span class="home-stat-label">Giao diện</span>
+                    <strong id="home-stat-mode">Sáng</strong>
+                </div>
+            </div>
+        </div>
+        <div class="home-links">
+            <a class="home-link" href="trongcay.html">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 21v-8m0 3c-4.5 0-7-2.5-7-7 4.5 0 7 2.5 7 7Zm0-4c0-4.5 2.5-7 7-7 0 4.5-2.5 7-7 7Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span>Khu vườn</span>
+                <small>Tập trung kiên nhẫn</small>
+            </a>
+            <a class="home-link" href="games.html">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7.5 9h9a4 4 0 0 1 3.9 3.1l1 4.2a2 2 0 0 1-3.1 2.1l-2.7-1.8H8.4l-2.7 1.8a2 2 0 0 1-3.1-2.1l1-4.2A4 4 0 0 1 7.5 9Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M8 12v4m-2-2h4m6-1h.01M18 15h.01" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+                <span>Trò chơi</span>
+                <small>Thử thách tư duy</small>
+            </a>
+            <a class="home-link" href="study-room.html">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M16 20v-1.5a3.5 3.5 0 0 0-3.5-3.5h-5A3.5 3.5 0 0 0 4 18.5V20m6-8a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm6-6.5a3.5 3.5 0 0 1 0 6.8m2 3.2a3.5 3.5 0 0 1 2 3.1V20" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span>Phòng học</span>
+                <small>Học cùng mọi người</small>
+            </a>
+            <a class="home-link" href="token-shop-new.html">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m12 3 8 6-8 12L4 9l8-6Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="m4 9 8 2 8-2M12 11v10" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+                <span>Cửa hàng</span>
+                <small>Token và màu sắc</small>
+            </a>
+            <a class="home-link" href="theme-settings.html">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7h9m4 0h3M4 17h3m4 0h9M13 4v6M7 14v6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                <span>Giao diện</span>
+                <small>Cá nhân hóa</small>
+            </a>
+            <a class="home-link" href="legacy-import.html">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 8h13m0 0-4-4m4 4-4 4M20 16H7m0 0 4-4m-4 4 4 4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span>Tài khoản cũ</span>
+                <small>Chuyển dữ liệu</small>
+            </a>
+        </div>
+    </section>
     </div>
 
     <div class="chat-input">
@@ -584,6 +639,7 @@ body.theme-starlight-active .wave {
 <script src="auth-api.js?v=20261115d"></script>
 <script src="app.js?v=20261115c"></script>
 <script src="theme-manager.js?v=20261115b"></script>
+<script src="ui-effects.js?v=20261117a" defer></script>
 
 </body>
 </html>

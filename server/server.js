@@ -3,7 +3,13 @@ const cors = require("cors");
 const http = require("http");
 const { Server } = require("socket.io");
 const Pusher = require("pusher");
-const { pool, closeDatabase, checkDatabaseConnection } = require("./database");
+const {
+  pool,
+  closeDatabase,
+  checkDatabaseConnection,
+  checkSchemaStatus,
+  describeSchemaError
+} = require("./database");
 const authRoutes = require("./auth-routes");
 const adminRoutes = require("./admin-routes");
 const tokenRoutes = require("./token-routes");
@@ -330,12 +336,15 @@ app.use((error, req, res, next) => {
       code: "DATABASE_UNAVAILABLE"
     });
   }
-  if (["42P01", "42703"].includes(error.code)) {
-    console.error(`PostgreSQL schema error for ${req.method} ${req.path}:`, error.code);
-    return res.status(503).json({
-      error: "Schema PostgreSQL chưa sẵn sàng. Hãy kiểm tra migration 001_initial_schema.",
-      code: "DATABASE_SCHEMA_NOT_READY"
-    });
+  const schemaError = describeSchemaError(error);
+  if (schemaError) {
+    const detail = [schemaError.body.table, schemaError.body.column]
+      .filter(Boolean)
+      .join(".");
+    console.error(
+      `PostgreSQL schema error for ${req.method} ${req.path}: ${error.code}${detail ? ` (${detail})` : ""}`
+    );
+    return res.status(schemaError.statusCode).json(schemaError.body);
   }
   const errorCode = typeof error.code === "string" && /^[A-Z0-9_]+$/.test(error.code)
     ? error.code
@@ -343,6 +352,31 @@ app.use((error, req, res, next) => {
   console.error(`Request failed for ${req.method} ${req.path}: ${error.name || "Error"} (${errorCode})`);
   res.status(500).json({ error: "Máy chủ gặp lỗi khi xử lý yêu cầu." });
 });
+
+// Read-only schema diagnostics. Migrations are never applied on startup.
+async function logSchemaStatus() {
+  const schema = await checkSchemaStatus();
+  if (!schema.databaseConnected) {
+    console.error(`❌ PostgreSQL schema check failed (${schema.errorCode || "UNKNOWN"}).`);
+    return;
+  }
+  if (schema.missingTables.length) {
+    console.warn(
+      `⚠️ Missing tables: ${schema.missingTables.join(", ")}. Run "npm run db:migrate" in server/ after a backup.`
+    );
+  }
+  if (schema.missingColumns.length) {
+    console.warn(
+      `⚠️ Missing columns: ${schema.missingColumns.join(", ")}. Run "npm run db:migrate" in server/ after a backup.`
+    );
+  }
+  if (schema.pendingMigrations.length) {
+    console.warn(`⚠️ Pending migrations: ${schema.pendingMigrations.join(", ")}.`);
+  }
+  if (schema.schemaReady && schema.pendingMigrations.length === 0) {
+    console.log("✅ PostgreSQL schema is ready");
+  }
+}
 
 // Start server
 const PORT = process.env.PORT || 4000;
@@ -352,7 +386,14 @@ server.listen(PORT, () => {
   console.log("📡 Socket.IO ready for connections");
   console.log("🤖 AI Chat endpoint: /chat");
   console.log(pool ? "🗄️ PostgreSQL is configured" : "⚠️ DATABASE_URL is missing; account and admin APIs return 503");
-  void checkDatabaseConnection();
+  void checkDatabaseConnection()
+    .then((connected) => (connected ? logSchemaStatus() : null))
+    .catch((error) => {
+      const code = typeof error?.code === "string" && /^[A-Z0-9_]+$/.test(error.code)
+        ? error.code
+        : "UNKNOWN";
+      console.error(`Startup schema check failed (${code}).`);
+    });
 });
 
 let shuttingDown = false;

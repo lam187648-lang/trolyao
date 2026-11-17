@@ -1,0 +1,2354 @@
+/* =====================================================================
+   VISUAL UPGRADE LAYER — Trợ Lý Ảo
+   Lớp giao diện bổ sung, nạp SAU style.css / light-ai-theme.css và CSS riêng
+   của từng trang. Không thay đổi logic, dữ liệu hay cấu trúc DOM hiện có.
+   Tôn trọng biến theme của người dùng: --ai-primary / --primary / --accent.
+   ===================================================================== */
+
+/* ---------------------------------------------------------------------
+   1. DESIGN TOKENS
+   --------------------------------------------------------------------- */
+:root {
+  --ui-cyan: #22d3ee;  --ui-sky: #38bdf8;
+  --ui-blue: #3b82f6;
+  --ui-indigo: #6366f1;
+  --ui-violet: #8b5cf6;
+  --ui-magenta: #d946ef;
+  --ui-green: #22c55e;
+  --ui-amber: #f59e0b;
+  --ui-red: #ef4444;
+
+  --ui-r-xs: 10px;
+  --ui-r-sm: 12px;
+  --ui-r-md: 16px;
+  --ui-r-lg: 22px;
+  --ui-r-xl: 28px;
+
+  --ui-ease: cubic-bezier(.22, .61, .36, 1);
+  --ui-ease-out: cubic-bezier(.16, 1, .3, 1);
+
+  --ui-accent: var(--ai-primary, #245f9f);
+  --ui-accent-soft: color-mix(in srgb, var(--ui-accent) 16%, transparent);
+  --ui-accent-line: color-mix(in srgb, var(--ui-accent) 38%, transparent);
+  --ui-grad: linear-gradient(120deg, var(--ui-accent) 0%, var(--ui-indigo) 52%, var(--ui-violet) 100%);
+  --ui-grad-soft: linear-gradient(135deg,
+      color-mix(in srgb, var(--ui-accent) 12%, transparent),
+      color-mix(in srgb, var(--ui-violet) 10%, transparent));
+
+  --ui-veil: rgba(255, 255, 255, .62);
+  --ui-veil-strong: rgba(255, 255, 255, .82);
+  --ui-hairline: rgba(18, 44, 74, .08);
+  --ui-shadow-soft: 0 2px 4px rgba(16, 38, 66, .04), 0 12px 30px -14px rgba(16, 38, 66, .22);
+  --ui-shadow-lift: 0 4px 10px rgba(16, 38, 66, .06), 0 24px 48px -20px rgba(16, 38, 66, .3);
+  --ui-glow-soft: 0 0 0 1px color-mix(in srgb, var(--ui-accent) 24%, transparent),
+                  0 18px 44px -22px color-mix(in srgb, var(--ui-accent) 55%, transparent);
+
+  --ui-text-shadow: none;
+  --ui-atmosphere-opacity: .85;
+
+  /* Tăng tương phản chữ phụ ở chế độ sáng (giữ nguyên sắc xanh - xám) */
+  --ai-muted: #5f6e84;
+  --text-muted: var(--ai-muted);
+}
+
+:root[data-theme="dark"] {
+  --ui-veil: rgba(24, 30, 54, .6);
+  --ui-veil-strong: rgba(31, 38, 66, .82);
+  --ui-hairline: rgba(163, 191, 235, .12);
+  --ui-shadow-soft: 0 2px 6px rgba(0, 0, 0, .28), 0 16px 34px -16px rgba(0, 0, 0, .5);
+  --ui-shadow-lift: 0 6px 14px rgba(0, 0, 0, .32), 0 30px 60px -24px rgba(0, 0, 0, .62);
+  --ui-glow-soft: 0 0 0 1px color-mix(in srgb, var(--ui-accent) 34%, transparent),
+                  0 20px 50px -22px color-mix(in srgb, var(--ui-accent) 62%, transparent);
+  --ui-atmosphere-opacity: .95;
+}
+
+/* ---------------------------------------------------------------------
+   2. ATMOSPHERE — ánh sáng nền có chiều sâu (không ghi đè theme đã mua)
+   --------------------------------------------------------------------- */
+#ui-atmosphere {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: var(--ui-atmosphere-opacity);
+  transition: opacity .5s var(--ui-ease);
+}
+
+#ui-atmosphere .ui-aura {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(70px);
+  opacity: .5;
+  will-change: transform;
+  background: radial-gradient(circle at 40% 40%,
+      color-mix(in srgb, var(--ui-accent) 40%, transparent), transparent 70%);
+}
+
+#ui-atmosphere .ui-aura-1 {
+  width: 46vmax;
+  height: 46vmax;
+  top: -18vmax;
+  left: -12vmax;
+  animation: uiDrift1 34s ease-in-out infinite;
+}
+
+#ui-atmosphere .ui-aura-2 {
+  width: 40vmax;
+  height: 40vmax;
+  right: -14vmax;
+  top: 18vh;
+  opacity: .42;
+  background: radial-gradient(circle at 50% 50%,
+      color-mix(in srgb, var(--ui-violet) 42%, transparent), transparent 70%);
+  animation: uiDrift2 42s ease-in-out infinite;
+}
+
+#ui-atmosphere .ui-aura-3 {
+  width: 34vmax;
+  height: 34vmax;
+  left: 24vw;
+  bottom: -18vmax;
+  opacity: .34;
+  background: radial-gradient(circle at 50% 50%,
+      color-mix(in srgb, var(--ui-cyan) 42%, transparent), transparent 70%);
+  animation: uiDrift3 48s ease-in-out infinite;
+}
+
+#ui-atmosphere::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: .35;
+  background-image:
+    linear-gradient(to right, var(--ui-hairline) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--ui-hairline) 1px, transparent 1px);
+  background-size: 68px 68px;
+  mask-image: radial-gradient(ellipse at 50% 0%, #000 0%, transparent 78%);
+  -webkit-mask-image: radial-gradient(ellipse at 50% 0%, #000 0%, transparent 78%);
+}
+
+@keyframes uiDrift1 {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(6vmax, 4vmax, 0) scale(1.12); }
+}
+
+@keyframes uiDrift2 {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1.05); }
+  50% { transform: translate3d(-5vmax, 6vmax, 0) scale(.94); }
+}
+
+@keyframes uiDrift3 {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(.96); }
+  50% { transform: translate3d(4vmax, -5vmax, 0) scale(1.08); }
+}
+
+/* Nội dung luôn nổi trên lớp không khí */
+.chatbot,
+.auth-container,
+.login-container,
+.register-container,
+.kick-container,
+.token-container,
+.shop-container,
+.study-room-container,
+.games-topbar,
+.games-main,
+.settings-topbar,
+.settings-layout,
+.admin-shell,
+.admin-topbar,
+.screen,
+dialog.modal-box,
+.modal-overlay,
+.container {
+  position: relative;
+  z-index: 1;
+}
+
+.garden-page > header,
+.garden-page > main,
+.garden-page > footer {
+  position: relative;
+  z-index: 1;
+}
+
+/* ---------------------------------------------------------------------
+   3. NỀN TẢNG CHUNG
+   --------------------------------------------------------------------- */
+::selection {
+  background: color-mix(in srgb, var(--ui-accent) 32%, transparent);
+  color: inherit;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--ui-accent) 34%, transparent) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background-clip: padding-box;
+  background-color: color-mix(in srgb, var(--ui-accent) 32%, transparent);
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: color-mix(in srgb, var(--ui-accent) 55%, transparent);
+}
+
+:where(a, button, .ui-button, .admin-button, [role="button"]):focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--ui-accent) 70%, transparent);
+  outline-offset: 3px;
+  border-radius: inherit;
+}
+
+/* Tiêu đề trang có gradient nhẹ, dễ đọc ở cả 2 chế độ */
+.games-intro h1,
+.settings-intro h1,
+.admin-heading h1,
+.study-header h1,
+.garden-page .intro h1,
+.login-header h1,
+.register-header h1,
+.auth-header h1 {
+  background: linear-gradient(105deg,
+      var(--ai-text, #192b40) 12%,
+      color-mix(in srgb, var(--ui-accent) 82%, var(--ai-text, #192b40)) 58%,
+      color-mix(in srgb, var(--ui-violet) 55%, var(--ai-text, #192b40)) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: var(--ai-text, #192b40);
+  text-wrap: balance;
+}
+
+.eyebrow,
+.games-intro .eyebrow,
+.settings-intro .eyebrow,
+.study-footer .stat-label {
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+
+/* ---------------------------------------------------------------------
+   4. BUTTON / CONTROL PHẢN HỒI
+   --------------------------------------------------------------------- */
+button,
+.ui-button,
+.admin-button,
+.auth-btn,
+.token-btn,
+.join-room-btn,
+.join-btn,
+.kick-btn,
+.back-btn,
+.upload-btn,
+.gift-btn {
+  transition:
+    transform .16s var(--ui-ease),
+    box-shadow .22s var(--ui-ease),
+    background-color .22s var(--ui-ease),
+    border-color .22s var(--ui-ease),
+    color .22s var(--ui-ease);
+}
+
+button:not(:disabled):active,
+.ui-button:not(:disabled):active,
+.admin-button:not(:disabled):active,
+.auth-btn:not(:disabled):active,
+.token-btn:not(:disabled):active,
+.join-room-btn:not(:disabled):active,
+.join-btn:not(:disabled):active,
+.kick-btn:not(:disabled):active,
+.back-btn:not(:disabled):active {
+  transform: translateY(1px) scale(.985);
+}
+
+.ui-button.primary,
+.admin-button.primary,
+.auth-btn,
+.token-btn,
+.join-room-btn,
+.join-btn {
+  border: 1px solid transparent;
+  color: #fff;
+  background-image: var(--ui-grad);
+  background-size: 160% 160%;
+  background-position: 0% 50%;
+  box-shadow: 0 12px 28px -14px color-mix(in srgb, var(--ui-accent) 80%, transparent);
+  transition: background-position .5s var(--ui-ease), transform .16s var(--ui-ease), box-shadow .25s var(--ui-ease);
+}
+
+.ui-button.primary:hover:not(:disabled),
+.admin-button.primary:hover:not(:disabled),
+.auth-btn:hover:not(:disabled),
+.token-btn:hover:not(:disabled),
+.join-room-btn:hover:not(:disabled),
+.join-btn:hover:not(:disabled) {
+  background-position: 100% 50%;
+  box-shadow: 0 18px 38px -16px color-mix(in srgb, var(--ui-accent) 90%, transparent);
+}
+
+.ui-button.quiet,
+.admin-button:not(.primary):not(.danger) {
+  backdrop-filter: blur(6px);
+}
+
+/* Ripple (do ui-effects.js chèn) */
+.ui-ripple-host {
+  position: relative;
+  overflow: hidden;
+}
+
+.ui-ripple {
+  position: absolute;
+  border-radius: 50%;
+  transform: scale(0);
+  opacity: .5;
+  pointer-events: none;
+  background: radial-gradient(circle,
+      color-mix(in srgb, currentColor 70%, transparent) 0%,
+      transparent 70%);
+  animation: uiRipple .62s var(--ui-ease-out) forwards;
+}
+
+@keyframes uiRipple {
+  to { transform: scale(2.6); opacity: 0; }
+}
+
+/* ---------------------------------------------------------------------
+   5. CARD — nổi nhẹ, viền phát sáng
+   --------------------------------------------------------------------- */
+.game-card,
+.settings-panel,
+.settings-panel.preview-panel,
+.admin-card,
+.admin-section,
+.join-card,
+.stat-item,
+.token-card,
+.token-section,
+.color-section,
+.shop-container,
+.study-header,
+.auth-card,
+.login-card,
+.register-card,
+.garden-page .setup,
+.garden-page .garden,
+.garden-page .garden-history,
+.garden-page .intro,
+kbd,
+.notice {
+  transition:
+    transform .28s var(--ui-ease-out),
+    box-shadow .3s var(--ui-ease-out),
+    border-color .3s var(--ui-ease);
+}
+
+.game-card,
+.settings-panel,
+.admin-card,
+.join-card,
+.token-card,
+.auth-card,
+.login-card,
+.register-card {
+  box-shadow: var(--ui-shadow-soft);
+}
+
+.game-card:hover,
+.settings-panel:hover,
+.admin-card:hover,
+.token-card:hover,
+.join-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--ui-accent-line, var(--ai-primary));
+  box-shadow: var(--ui-shadow-lift);
+}
+
+/* Viền phát sáng dạng gradient cho card nổi bật */
+.game-card {
+  position: relative;
+  isolation: isolate;
+}
+
+.game-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: var(--ui-grad);
+  opacity: 0;
+  transition: opacity .35s var(--ui-ease);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.game-card:hover::after,
+.game-card:focus-within::after {
+  opacity: .75;
+}
+
+.game-art {
+  background:
+    radial-gradient(ellipse at 16% 22%, color-mix(in srgb, var(--ui-sky) 42%, transparent), transparent 40%),
+    radial-gradient(ellipse at 84% 80%, color-mix(in srgb, var(--ui-violet) 34%, transparent), transparent 38%),
+    linear-gradient(135deg,
+      color-mix(in srgb, var(--ui-sky) 14%, var(--ai-surface)),
+      color-mix(in srgb, var(--ui-violet) 12%, var(--ai-surface)));
+}
+
+.game-orb {
+  background:
+    radial-gradient(circle at 34% 25%, #fff 0 3%, transparent 20%),
+    radial-gradient(circle at 36% 30%, #8ceaff, #3f93e6 40%, #4f46e5 72%, #1b1f5f);
+  box-shadow:
+    inset -10px -12px 20px rgba(7, 23, 80, .34),
+    0 14px 40px color-mix(in srgb, var(--ui-blue) 34%, transparent);
+  transition: transform .45s var(--ui-ease-out), box-shadow .45s var(--ui-ease-out);
+}
+
+.game-card:hover .game-orb {
+  transform: translateY(-3px) scale(1.04);
+  box-shadow:
+    inset -10px -12px 20px rgba(7, 23, 80, .3),
+    0 22px 50px color-mix(in srgb, var(--ui-violet) 40%, transparent);
+}
+
+.game-pill {
+  border: 1px solid color-mix(in srgb, var(--ui-accent) 26%, transparent);
+  letter-spacing: .04em;
+}
+
+/* ---------------------------------------------------------------------
+   6. LỚP KÍNH (glassmorphism vừa phải)
+   --------------------------------------------------------------------- */
+.settings-panel,
+.admin-topbar,
+.admin-card,
+.study-header,
+.shop-header,
+.token-section,
+.color-section {
+  backdrop-filter: saturate(130%) blur(10px);
+  -webkit-backdrop-filter: saturate(130%) blur(10px);
+}
+
+/* ---------------------------------------------------------------------
+   7. TRANG CHỦ / CHAT WORKSPACE
+   --------------------------------------------------------------------- */
+.chatbot {
+  border: 1px solid var(--ui-hairline);
+  box-shadow:
+    0 34px 90px -40px rgba(9, 30, 66, .45),
+    0 0 0 1px color-mix(in srgb, var(--ui-accent) 10%, transparent),
+    0 0 70px -30px color-mix(in srgb, var(--ui-accent) 55%, transparent);
+}
+
+:root[data-theme="dark"] .chatbot {
+  box-shadow:
+    0 34px 100px -34px rgba(0, 0, 0, .8),
+    0 0 0 1px color-mix(in srgb, var(--ui-accent) 18%, transparent),
+    0 0 80px -30px color-mix(in srgb, var(--ui-accent) 50%, transparent);
+}
+
+.chat-header {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.chat-header::after {
+  content: "";
+  position: absolute;
+  inset: -60% -20%;
+  z-index: 0;
+  background:
+    radial-gradient(circle at 22% 30%, color-mix(in srgb, var(--ui-cyan) 30%, transparent), transparent 42%),
+    radial-gradient(circle at 78% 70%, color-mix(in srgb, var(--ui-violet) 28%, transparent), transparent 46%);
+  opacity: .55;
+  animation: uiHeaderBreathe 16s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes uiHeaderBreathe {
+  0%, 100% { transform: translate3d(-2%, 0, 0) scale(1); opacity: .42; }
+  50% { transform: translate3d(2%, -2%, 0) scale(1.08); opacity: .68; }
+}
+
+.chat-header .header-content {
+  position: relative;
+  z-index: 1;
+}
+
+.header-icon {
+  position: relative;
+  animation: uiOrbFloat 7s ease-in-out infinite;
+}
+
+.header-icon::after {
+  content: "";
+  position: absolute;
+  inset: 6%;
+  border-radius: inherit;
+  box-shadow: inset 0 0 24px rgba(255, 255, 255, .35);
+  pointer-events: none;
+}
+
+@keyframes uiOrbFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+.header-text h2 {
+  background: linear-gradient(100deg,
+      var(--ai-text) 10%,
+      color-mix(in srgb, var(--ui-accent) 70%, var(--ai-text)) 60%,
+      color-mix(in srgb, var(--ui-violet) 60%, var(--ai-text)) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.ui-greeting {
+  margin: 8px 0 0;
+  color: var(--ai-muted) !important;
+  font-size: .84rem;
+  font-weight: 600;
+  letter-spacing: .01em;
+}
+
+.ui-greeting strong {
+  color: var(--ui-accent);
+  font-weight: 800;
+}
+
+body.chat-started .ui-greeting {
+  display: none;
+}
+
+/* Quick tags */
+.tag-btn {
+  position: relative;
+  overflow: hidden;
+}
+
+.tag-btn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(120deg, transparent 20%,
+      color-mix(in srgb, var(--ui-accent) 16%, transparent) 50%, transparent 80%);
+  transform: translateX(-120%);
+  transition: transform .6s var(--ui-ease);
+  pointer-events: none;
+}
+
+.tag-btn:hover::after {
+  transform: translateX(120%);
+}
+
+.tag-btn:hover {
+  border-color: color-mix(in srgb, var(--ui-accent) 55%, transparent);
+  box-shadow: 0 10px 26px -14px color-mix(in srgb, var(--ui-accent) 75%, transparent);
+}
+
+/* HOME HUB — hero + truy cập nhanh (thẻ chào trong khung chat) */
+.home-hub {
+  position: relative;
+  isolation: isolate;
+  flex: 0 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1.35fr);
+  gap: clamp(14px, 2.4vw, 26px);
+  align-items: center;
+  max-height: 460px;
+  overflow: hidden;
+  padding: clamp(16px, 2.4vw, 24px) clamp(16px, 2.6vw, 26px);
+  border: 1px solid var(--ai-border);
+  border-radius: var(--ui-r-lg);
+  background:
+    radial-gradient(ellipse at 8% 0%, color-mix(in srgb, var(--ui-accent) 20%, transparent), transparent 62%),
+    radial-gradient(ellipse at 96% 100%, color-mix(in srgb, var(--ui-violet) 16%, transparent), transparent 58%),
+    linear-gradient(160deg,
+      color-mix(in srgb, var(--ui-accent) 7%, var(--ai-surface)),
+      var(--ai-surface));
+  box-shadow: var(--ui-shadow-soft);
+  transition: max-height .4s var(--ui-ease-out), opacity .28s var(--ui-ease), padding .35s var(--ui-ease);
+}
+
+.home-hub::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  width: 340px;
+  height: 340px;
+  top: -190px;
+  right: -90px;
+  border-radius: 50%;
+  background: radial-gradient(circle,
+      color-mix(in srgb, var(--ui-violet) 30%, transparent), transparent 68%);
+  filter: blur(28px);
+  pointer-events: none;
+}
+
+.home-hub::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg,
+      color-mix(in srgb, var(--ui-cyan) 46%, transparent),
+      transparent 46%,
+      color-mix(in srgb, var(--ui-violet) 40%, transparent));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+body.chat-started .home-hub {
+  max-height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  border-width: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.home-hub-aside {
+  min-width: 0;
+}
+
+.home-hub-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 11px;
+  border: 1px solid color-mix(in srgb, var(--ui-accent) 26%, transparent);
+  border-radius: 999px;
+  color: var(--ui-accent);
+  background: color-mix(in srgb, var(--ui-accent) 10%, transparent);
+  font-size: .66rem;
+  font-weight: 800;
+  letter-spacing: .16em;
+}
+
+.home-hub-eyebrow::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ui-green);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ui-green) 25%, transparent);
+}
+
+.home-hub-title {
+  margin: 12px 0 8px;
+  color: var(--ai-text);
+  font-size: clamp(1.35rem, 2.8vw, 1.9rem);
+  font-weight: 800;
+  letter-spacing: -.04em;
+  line-height: 1.18;
+}
+
+.home-hub-title span {
+  background: var(--ui-grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.home-hub-sub {
+  margin: 0 0 14px;
+  max-width: 46ch;
+  color: var(--ai-muted);
+  font-size: .87rem;
+  line-height: 1.6;
+}
+
+.home-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+}
+
+.home-stat {
+  min-width: 92px;
+  flex: 1 1 92px;
+  padding: 9px 12px;
+  border: 1px solid var(--ai-border);
+  border-radius: var(--ui-r-sm);
+  background: var(--ui-veil);
+  backdrop-filter: blur(8px);
+}
+
+.home-stat-label {
+  display: block;
+  color: var(--ai-muted);
+  font-size: .64rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.home-stat strong {
+  display: block;
+  margin-top: 3px;
+  color: var(--ai-text);
+  font-size: .95rem;
+  font-weight: 800;
+  letter-spacing: -.01em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-stat.is-online strong { color: #1f9d63; }
+.home-stat.is-offline strong { color: #c2544f; }
+
+.home-links {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 9px;
+  min-width: 0;
+}
+
+.home-link {
+  display: flex;
+  min-height: 66px;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  padding: 11px 12px;
+  border: 1px solid var(--ai-border);
+  border-radius: var(--ui-r-md);
+  color: var(--ai-text);
+  background: linear-gradient(150deg, var(--ai-surface), var(--ai-surface-soft));
+  box-shadow: var(--ui-shadow-soft);
+  text-decoration: none;
+  transition: transform .24s var(--ui-ease-out), box-shadow .26s var(--ui-ease), border-color .2s var(--ui-ease), background .26s var(--ui-ease);
+}
+
+.home-link svg {
+  width: 19px;
+  height: 19px;
+  color: var(--ui-accent);
+  transition: transform .3s var(--ui-ease-out);
+}
+
+.home-link span {
+  font-size: .74rem;
+  font-weight: 700;
+  letter-spacing: -.01em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-link small {
+  color: var(--ai-muted);
+  font-size: .64rem;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-link:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--ui-accent) 45%, transparent);
+  background: linear-gradient(150deg,
+      color-mix(in srgb, var(--ui-accent) 10%, var(--ai-surface)),
+      var(--ai-surface));
+  box-shadow: var(--ui-glow-soft);
+}
+
+.home-link:hover svg {
+  transform: translateY(-1px) scale(1.08);
+}
+
+/* Messages */
+.message-wrapper {
+  animation: uiMessageIn .34s var(--ui-ease-out) both;
+}
+
+@keyframes uiMessageIn {
+  from { opacity: 0; transform: translateY(8px) scale(.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.message {
+  border: 1px solid var(--ai-border);
+  box-shadow: 0 8px 22px -16px rgba(16, 38, 66, .5);
+}
+
+.message.user,
+.user-message {
+  border-color: transparent;
+  background-image: var(--ui-grad);
+  box-shadow: 0 10px 30px -16px color-mix(in srgb, var(--ui-accent) 85%, transparent);
+}
+
+.message-avatar {
+  position: relative;
+  transition: transform .25s var(--ui-ease-out), box-shadow .25s var(--ui-ease);
+}
+
+.message-wrapper:hover .message-avatar {
+  transform: translateY(-1px);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ui-accent) 16%, transparent);
+}
+
+/* Ô nhập */
+.input-row {
+  transition: border-color .25s var(--ui-ease), box-shadow .3s var(--ui-ease), background .25s var(--ui-ease);
+}
+
+.input-row:focus-within {
+  border-color: color-mix(in srgb, var(--ui-accent) 62%, transparent);
+  box-shadow:
+    0 0 0 4px color-mix(in srgb, var(--ui-accent) 14%, transparent),
+    0 16px 36px -22px color-mix(in srgb, var(--ui-accent) 70%, transparent);
+}
+
+#send-btn {
+  background-image: var(--ui-grad);
+  background-size: 150% 150%;
+}
+
+#send-btn:hover:not(:disabled) {
+  background-position: 100% 50%;
+}
+
+/* Sidebar */
+.sidebar {
+  border-right: 1px solid var(--ui-hairline);
+}
+
+.sidebar-header {
+  background:
+    radial-gradient(ellipse at 10% 0%, color-mix(in srgb, var(--ui-accent) 16%, transparent), transparent 70%);
+}
+
+.brand-mark {
+  background-image: var(--ui-grad);
+  box-shadow: 0 8px 20px -10px color-mix(in srgb, var(--ui-accent) 80%, transparent);
+}
+
+.menu-item {
+  position: relative;
+  overflow: hidden;
+}
+
+.menu-item::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 18%;
+  bottom: 18%;
+  width: 3px;
+  border-radius: 999px;
+  background: var(--ui-grad);
+  opacity: 0;
+  transform: scaleY(.4);
+  transition: opacity .22s var(--ui-ease), transform .28s var(--ui-ease-out);
+}
+
+.menu-item:hover::before {
+  opacity: .9;
+  transform: scaleY(1);
+}
+
+.new-chat-btn {
+  background-image: var(--ui-grad);
+  background-size: 160% 160%;
+  box-shadow: 0 14px 30px -18px color-mix(in srgb, var(--ui-accent) 90%, transparent);
+  transition: background-position .5s var(--ui-ease), transform .2s var(--ui-ease), box-shadow .3s var(--ui-ease);
+}
+
+.new-chat-btn:hover {
+  background-position: 100% 50%;
+  transform: translateY(-1px);
+}
+
+.user-section {
+  position: relative;
+  background:
+    radial-gradient(ellipse at 0% 0%, color-mix(in srgb, var(--ui-accent) 14%, transparent), transparent 70%),
+    var(--ai-surface);
+}
+
+.user-avatar-container,
+.message-avatar,
+.avatar-preview,
+.selected-user-avatar {
+  position: relative;
+}
+
+.user-avatar-container::after,
+.avatar-preview::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: inherit;
+  padding: 2px;
+  background: conic-gradient(from 0deg,
+      var(--ui-cyan), var(--ui-blue), var(--ui-violet), var(--ui-magenta), var(--ui-cyan));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity .3s var(--ui-ease);
+  pointer-events: none;
+  animation: uiSpinRing 9s linear infinite;
+}
+
+.user-avatar-container:hover::after,
+.avatar-preview:hover::after {
+  opacity: .9;
+}
+
+@keyframes uiSpinRing {
+  to { transform: rotate(360deg); }
+}
+
+.user-tokens {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ui-accent) 12%, transparent);
+  font-weight: 700;
+}
+
+/* Color grid trong sidebar */
+.color-grid {
+  gap: 10px;
+}
+
+.color-item {
+  position: relative;
+  border-radius: var(--ui-r-sm);
+  transition: transform .2s var(--ui-ease-out), box-shadow .24s var(--ui-ease), border-color .2s var(--ui-ease);
+}
+
+.color-item:hover:not(.locked) {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--ui-accent) 45%, transparent);
+  box-shadow: 0 14px 26px -16px color-mix(in srgb, var(--ui-accent) 80%, transparent);
+}
+
+.color-preview {
+  position: relative;
+  isolation: isolate;
+  border-radius: inherit;
+  transition: transform .3s var(--ui-ease-out), filter .3s var(--ui-ease);
+}
+
+.color-preview::after {
+  content: "";
+  position: absolute;
+  inset: 12%;
+  z-index: -1;
+  border-radius: inherit;
+  background: inherit;
+  filter: blur(14px);
+  opacity: 0;
+  transition: opacity .35s var(--ui-ease);
+  pointer-events: none;
+}
+
+.color-item:hover .color-preview::after {
+  opacity: .85;
+}
+
+.color-item:hover .color-preview {
+  transform: scale(1.03);
+}
+
+.color-item.selected {
+  border-color: transparent;
+  box-shadow: 0 0 0 2px var(--ui-accent), 0 14px 30px -18px color-mix(in srgb, var(--ui-accent) 85%, transparent);
+}
+
+.color-item.selected::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  padding: 2px;
+  background: conic-gradient(from 0deg,
+      var(--ui-cyan), var(--ui-blue), var(--ui-violet), var(--ui-magenta), var(--ui-cyan));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: uiSpinRing 8s linear infinite;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.color-item.selected .color-name {
+  color: var(--ui-accent);
+  font-weight: 800;
+}
+
+.color-price.free {
+  color: #178a4d;
+  background: color-mix(in srgb, #22c55e 14%, transparent);
+  border-radius: 999px;
+  padding: 1px 7px;
+}
+
+.color-owned {
+  color: #178a4d;
+  font-weight: 700;
+}
+
+.color-price.unlock-free {
+  color: #a05b00;
+}
+
+:root[data-theme="dark"] .color-price.free {
+  color: #6ee7a8;
+}
+
+:root[data-theme="dark"] .color-price.unlock-free {
+  color: #fbbf6b;
+}
+
+/* ---------------------------------------------------------------------
+   8. MODAL / DIALOG / TOAST
+   --------------------------------------------------------------------- */
+.auth-modal,
+.admin-modal,
+.modal-overlay {
+  backdrop-filter: blur(10px) saturate(120%);
+  -webkit-backdrop-filter: blur(10px) saturate(120%);
+}
+
+.auth-modal.active .modal-content,
+.admin-modal.active .admin-content {
+  animation: uiModalIn .34s var(--ui-ease-out) both;
+}
+
+.modal-overlay.open .modal-box {
+  animation: uiModalIn .3s var(--ui-ease-out) both;
+}
+
+@keyframes uiModalIn {
+  from { opacity: 0; transform: translateY(18px) scale(.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.modal-content,
+.admin-content,
+.modal-box {
+  border: 1px solid var(--ui-hairline);
+  box-shadow:
+    0 40px 100px -40px rgba(4, 16, 34, .6),
+    0 0 0 1px color-mix(in srgb, var(--ui-accent) 12%, transparent);
+}
+
+.modal-header,
+.admin-header,
+.sidebar-header {
+  position: relative;
+}
+
+/* Sửa tương phản tiêu đề / nút đóng (trước đây dùng màu chỉ hợp nền tối) */
+.modal-header h2,
+.admin-header h2,
+.sidebar-header h3,
+.sidebar-header h4 {
+  color: var(--ai-text);
+}
+
+.close-btn,
+.sidebar-close {
+  color: var(--ai-muted);
+  transition: color .2s var(--ui-ease), background .2s var(--ui-ease), transform .2s var(--ui-ease);
+}
+
+.close-btn:hover,
+.sidebar-close:hover {
+  color: var(--ai-text);
+  background: color-mix(in srgb, var(--ui-accent) 10%, transparent);
+  transform: rotate(90deg);
+}
+
+:root[data-theme="dark"] .close-btn,
+:root[data-theme="dark"] .sidebar-close {
+  color: var(--ai-text-secondary);
+}
+
+.auth-form .form-group input,
+.form-group input,
+.form-input,
+#time-limit,
+.token-input,
+.admin-controls input,
+.admin-controls select,
+.modal-field input,
+.modal-field select,
+.modal-field textarea {
+  transition: border-color .2s var(--ui-ease), box-shadow .24s var(--ui-ease), background .2s var(--ui-ease);
+}
+
+.auth-form .form-group input:focus,
+.form-group input:focus,
+.form-input:focus,
+#time-limit:focus,
+.token-input:focus,
+.admin-controls input:focus,
+.modal-field input:focus {
+  outline: none;
+  border-color: color-mix(in srgb, var(--ui-accent) 70%, transparent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--ui-accent) 14%, transparent);
+}
+
+/* Toast stack (ui-effects.js) */
+.ui-toast-stack {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 30000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: min(360px, calc(100vw - 28px));
+  pointer-events: none;
+}
+
+.ui-toast {
+  --ui-toast-accent: var(--ui-accent);
+  display: flex;
+  gap: 11px;
+  align-items: flex-start;
+  padding: 13px 15px;
+  border: 1px solid color-mix(in srgb, var(--ui-toast-accent) 32%, var(--ui-hairline));
+  border-radius: var(--ui-r-md);
+  color: var(--ai-text, #192b40);
+  background: var(--ui-veil-strong);
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  box-shadow: 0 22px 48px -24px rgba(6, 20, 42, .45);
+  pointer-events: auto;
+  animation: uiToastIn .38s var(--ui-ease-out) both;
+}
+
+.ui-toast::before {
+  content: "";
+  flex: 0 0 4px;
+  align-self: stretch;
+  border-radius: 999px;
+  background: var(--ui-toast-accent);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--ui-toast-accent) 70%, transparent);
+}
+
+.ui-toast-icon {
+  display: grid;
+  width: 22px;
+  height: 22px;
+  flex: 0 0 22px;
+  place-items: center;
+  border-radius: 50%;
+  color: #fff;
+  background: var(--ui-toast-accent);
+  font-size: .7rem;
+  font-weight: 800;
+}
+
+.ui-toast-body {
+  min-width: 0;
+  flex: 1;
+}
+
+.ui-toast-title {
+  display: block;
+  font-size: .84rem;
+  font-weight: 750;
+  letter-spacing: -.01em;
+}
+
+.ui-toast-text {
+  display: block;
+  margin-top: 2px;
+  color: var(--ai-muted, #718198);
+  font-size: .78rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.ui-toast-close {
+  border: 0;
+  padding: 2px 4px;
+  border-radius: 6px;
+  color: var(--ai-muted, #718198);
+  background: none;
+  cursor: pointer;
+  font-size: .9rem;
+  line-height: 1;
+}
+
+.ui-toast-close:hover {
+  color: var(--ai-text, #192b40);
+  background: color-mix(in srgb, var(--ui-accent) 10%, transparent);
+}
+
+.ui-toast--success { --ui-toast-accent: #16a34a; }
+.ui-toast--error { --ui-toast-accent: #dc4b57; }
+.ui-toast--info { --ui-toast-accent: var(--ui-accent); }
+.ui-toast--warn { --ui-toast-accent: #d97706; }
+
+.ui-toast.is-leaving {
+  animation: uiToastOut .26s var(--ui-ease) forwards;
+}
+
+@keyframes uiToastIn {
+  from { opacity: 0; transform: translateY(14px) scale(.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes uiToastOut {
+  to { opacity: 0; transform: translateY(8px) scale(.98); }
+}
+
+/* ---------------------------------------------------------------------
+   9. SKELETON LOADING
+   --------------------------------------------------------------------- */
+.ui-skeleton {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--ui-r-sm);
+  background: color-mix(in srgb, var(--ai-border, #e2eaf2) 55%, transparent);
+}
+
+.ui-skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg,
+      transparent 20%,
+      color-mix(in srgb, var(--ai-surface, #fff) 75%, transparent) 50%,
+      transparent 80%);
+  transform: translateX(-100%);
+  animation: uiShimmer 1.5s var(--ui-ease) infinite;
+}
+
+@keyframes uiShimmer {
+  to { transform: translateX(100%); }
+}
+
+.ui-skeleton-line {
+  height: 12px;
+  margin-bottom: 9px;
+}
+
+.ui-skeleton-line:last-child {
+  width: 62%;
+  margin-bottom: 0;
+}
+
+/* ---------------------------------------------------------------------
+   10. SCROLL REVEAL + PAGE TRANSITION
+   --------------------------------------------------------------------- */
+.ui-reveal {
+  opacity: 0;
+  transform: translateY(16px);
+  transition:
+    opacity .6s var(--ui-ease-out),
+    transform .6s var(--ui-ease-out);
+  transition-delay: var(--ui-reveal-delay, 0ms);
+  will-change: opacity, transform;
+}
+
+.ui-reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+html.ui-leaving body {
+  opacity: 0;
+  transition: opacity .18s var(--ui-ease);
+}
+
+body {
+  transition: opacity .22s var(--ui-ease);
+}
+
+html.ui-theme-anim,
+html.ui-theme-anim body {
+  transition:
+    background-color .45s var(--ui-ease),
+    color .35s var(--ui-ease);
+}
+
+html.ui-theme-anim *,
+html.ui-theme-anim *::before,
+html.ui-theme-anim *::after {
+  transition:
+    background-color .4s var(--ui-ease),
+    border-color .4s var(--ui-ease),
+    color .35s var(--ui-ease),
+    fill .35s var(--ui-ease),
+    box-shadow .4s var(--ui-ease) !important;
+}
+
+/* Phản hồi thành công / thất bại cho khối trạng thái */
+.ui-flash-success {
+  animation: uiFlashSuccess .9s var(--ui-ease) both;
+}
+
+.ui-flash-error {
+  animation: uiFlashError .9s var(--ui-ease) both;
+}
+
+@keyframes uiFlashSuccess {
+  0% { box-shadow: 0 0 0 0 rgba(22, 163, 74, .0); }
+  30% { box-shadow: 0 0 0 4px rgba(22, 163, 74, .22); }
+  100% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0); }
+}
+
+@keyframes uiFlashError {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  60% { transform: translateX(3px); }
+}
+
+/* ---------------------------------------------------------------------
+   11. TRANG XÁC THỰC
+   --------------------------------------------------------------------- */
+body .auth-container,
+body .login-container,
+body .register-container {
+  position: relative;
+  padding: clamp(18px, 5vw, 48px) 16px;
+  background: transparent;
+}
+
+body .auth-card,
+body .login-card,
+body .register-card {
+  position: relative;
+  padding: clamp(24px, 4vw, 40px);
+  border: 1px solid var(--ui-hairline);
+  border-radius: var(--ui-r-xl);
+  color: var(--ai-text);
+  background:
+    radial-gradient(ellipse at 0% 0%, color-mix(in srgb, var(--ui-accent) 12%, transparent), transparent 60%),
+    var(--ui-veil-strong);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  box-shadow: var(--ui-shadow-lift);
+  text-align: center;
+  animation: uiModalIn .5s var(--ui-ease-out) both;
+}
+
+body .auth-card::before,
+body .login-card::before,
+body .register-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(140deg,
+      color-mix(in srgb, var(--ui-cyan) 60%, transparent),
+      transparent 42%,
+      color-mix(in srgb, var(--ui-violet) 55%, transparent));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+body .auth-header h1,
+body .login-header h1,
+body .register-header h1 {
+  color: var(--ai-text);
+  -webkit-text-fill-color: transparent;
+}
+
+body .auth-header p,
+body .login-header p,
+body .register-header p {
+  color: var(--ai-muted);
+}
+
+body .auth-tabs {
+  border-bottom: 1px solid var(--ai-border);
+}
+
+body .auth-tab {
+  position: relative;
+  color: var(--ai-muted);
+}
+
+body .auth-tab.active {
+  color: var(--ui-accent);
+  border-bottom-color: transparent;
+}
+
+body .auth-tab.active::after {
+  content: "";
+  position: absolute;
+  left: 18%;
+  right: 18%;
+  bottom: -1px;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--ui-grad);
+}
+
+body .form-input,
+body .form-group input {
+  border: 1.5px solid var(--ai-border);
+  border-radius: var(--ui-r-sm);
+  color: var(--ai-text);
+  background: var(--ai-surface);
+}
+
+body .form-input:hover,
+body .form-group input:hover {
+  border-color: color-mix(in srgb, var(--ui-accent) 35%, var(--ai-border));
+}
+
+body .toggle-password-btn {
+  color: var(--ai-muted);
+}
+
+body .toggle-password-btn:hover {
+  color: var(--ui-accent);
+  background: color-mix(in srgb, var(--ui-accent) 12%, transparent);
+}
+
+body .auth-mode-notice {
+  border: 1px solid color-mix(in srgb, var(--ui-accent) 22%, transparent);
+  color: var(--ai-text-secondary, #45586f);
+  background: color-mix(in srgb, var(--ui-accent) 8%, transparent);
+  border-radius: var(--ui-r-sm);
+}
+
+body .error-message {
+  border: 1px solid color-mix(in srgb, #dc2626 30%, transparent);
+  color: #b91c1c;
+  background: color-mix(in srgb, #dc2626 9%, var(--ai-surface));
+  border-radius: var(--ui-r-sm);
+  animation: uiFlashError .5s var(--ui-ease);
+}
+
+body .success-message {
+  border: 1px solid color-mix(in srgb, #16a34a 30%, transparent);
+  color: #15803d;
+  background: color-mix(in srgb, #16a34a 9%, var(--ai-surface));
+  border-radius: var(--ui-r-sm);
+}
+
+:root[data-theme="dark"] body .error-message {
+  color: #ffb3b8;
+}
+
+:root[data-theme="dark"] body .success-message {
+  color: #8ff0b6;
+}
+
+body .password-strength {
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+/* ---------------------------------------------------------------------
+   12. KHU VƯỜN
+   --------------------------------------------------------------------- */
+.garden-page > header {
+  background:
+    radial-gradient(ellipse at 18% 0%, color-mix(in srgb, var(--ui-accent) 22%, transparent), transparent 62%),
+    linear-gradient(135deg,
+      color-mix(in srgb, var(--ui-accent) 82%, #071a2c),
+      color-mix(in srgb, var(--ui-violet) 60%, #12203d));
+  color: #eefaff;
+}
+
+.garden-page > header h1 {
+  color: #f2fbff;
+  text-shadow: 0 2px 18px rgba(0, 20, 45, .35);
+}
+
+.garden-page > header a,
+.garden-page > header button {
+  color: #dff4ff;
+}
+
+.garden-page > header nav a:hover {
+  color: #fff;
+}
+
+.garden-page #user-info {
+  color: #cfe8fb;
+}
+
+.garden-page > footer {
+  background: color-mix(in srgb, var(--ai-surface) 90%, transparent);
+  color: var(--ai-muted);
+  border-top: 1px solid var(--ai-border);
+}
+
+.garden-page .setup,
+.garden-page .garden,
+.garden-page .garden-history {
+  border: 1px solid var(--ai-border);
+  border-radius: var(--ui-r-lg);
+  color: var(--ai-text);
+  background:
+    radial-gradient(ellipse at 0% 0%, color-mix(in srgb, var(--ui-accent) 9%, transparent), transparent 60%),
+    var(--ai-surface);
+  box-shadow: var(--ui-shadow-soft);
+}
+
+.garden-page .setup h2,
+.garden-page .garden h2,
+.garden-page .garden-history h2,
+.garden-page .seed-options ~ h2,
+.garden-page .intro h1 {
+  color: var(--ai-text);
+  -webkit-text-fill-color: transparent;
+}
+
+.garden-page .setup h2,
+.garden-page .garden h2,
+.garden-page .garden-history h2,
+.garden-page .garden-history h3 {
+  background: linear-gradient(100deg, var(--ai-text), color-mix(in srgb, var(--ui-accent) 75%, var(--ai-text)));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.garden-page .seed,
+.garden-page .time {
+  border: 1.5px solid var(--ai-border);
+  border-radius: var(--ui-r-sm);
+  color: var(--ai-text);
+  background: var(--ai-surface-soft);
+  font-weight: 600;
+  transition: transform .2s var(--ui-ease-out), border-color .2s var(--ui-ease), box-shadow .24s var(--ui-ease), background .2s var(--ui-ease);
+}
+
+.garden-page .seed:hover,
+.garden-page .time:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--ui-accent) 45%, var(--ai-border));
+  box-shadow: 0 12px 26px -16px color-mix(in srgb, var(--ui-accent) 80%, transparent);
+}
+
+.garden-page .seed.selected,
+.garden-page .time.selected {
+  border-color: var(--ui-accent);
+  background: color-mix(in srgb, var(--ui-accent) 12%, var(--ai-surface));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ui-accent) 16%, transparent);
+}
+
+.garden-page .timer {
+  color: var(--ui-accent);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .06em;
+}
+
+.garden-page .progress {
+  height: 12px;
+  background: color-mix(in srgb, var(--ai-border) 70%, transparent);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.garden-page .progress-bar {
+  border-radius: 999px;
+  background-image: linear-gradient(90deg, var(--ui-cyan), var(--ui-blue) 45%, var(--ui-violet));
+  background-size: 200% 100%;
+  animation: uiProgressFlow 3s linear infinite;
+  box-shadow: 0 0 16px color-mix(in srgb, var(--ui-blue) 55%, transparent);
+}
+
+@keyframes uiProgressFlow {
+  to { background-position: 200% 0; }
+}
+
+.garden-page .reward {
+  border: 1px solid color-mix(in srgb, #22c55e 38%, transparent);
+  border-radius: var(--ui-r-md);
+  color: var(--ai-text);
+  background:
+    radial-gradient(ellipse at 50% 0%, color-mix(in srgb, #22c55e 18%, transparent), transparent 70%),
+    var(--ai-surface);
+  box-shadow: 0 18px 40px -24px rgba(22, 163, 74, .5);
+}
+
+.garden-page .reward h3 {
+  color: #178a4d;
+}
+
+:root[data-theme="dark"] .garden-page .reward h3 {
+  color: #7ee2a8;
+}
+
+.garden-page #startBtn {
+  background-image: var(--ui-grad);
+  border: 0;
+  border-radius: var(--ui-r-sm);
+  color: #fff;
+  box-shadow: 0 14px 32px -18px color-mix(in srgb, var(--ui-accent) 85%, transparent);
+}
+
+.garden-page #stopBtn {
+  background-image: linear-gradient(135deg, #f87171, #dc2626) !important;
+}
+
+/* ---------------------------------------------------------------------
+   13. PHÒNG HỌC
+   --------------------------------------------------------------------- */
+.study-header {
+  border: 1px solid var(--ai-border);
+  border-radius: var(--ui-r-lg);
+  background:
+    radial-gradient(ellipse at 12% 0%, color-mix(in srgb, var(--ui-accent) 16%, transparent), transparent 60%),
+    var(--ai-surface);
+  box-shadow: var(--ui-shadow-soft);
+}
+
+.study-header h1 {
+  color: var(--ai-text);
+}
+
+.room-status.status-online {
+  border: 1px solid color-mix(in srgb, #22c55e 40%, transparent);
+  background: color-mix(in srgb, #22c55e 14%, transparent);
+  color: #178a4d;
+}
+
+:root[data-theme="dark"] .room-status.status-online {
+  color: #8ff0b6;
+}
+
+.timer-display {
+  border: 1px solid var(--ai-border);
+  border-radius: 999px;
+  background: var(--ai-surface-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.join-card {
+  border: 1px solid var(--ai-border);
+  border-radius: var(--ui-r-lg);
+  background:
+    radial-gradient(ellipse at 50% 0%, color-mix(in srgb, var(--ui-accent) 12%, transparent), transparent 62%),
+    var(--ai-surface);
+  box-shadow: var(--ui-shadow-soft);
+}
+
+.join-icon {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 12px;
+  border-radius: 50%;
+  background: linear-gradient(145deg,
+      color-mix(in srgb, var(--ui-accent) 22%, transparent),
+      color-mix(in srgb, var(--ui-violet) 18%, transparent));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--ui-accent) 22%, transparent),
+    0 14px 30px -18px color-mix(in srgb, var(--ui-accent) 80%, transparent);
+  font-size: 1.6rem;
+}
+
+.join-card h2 {
+  color: var(--ai-text);
+}
+
+.join-card p,
+.room-rules,
+.room-rules li {
+  color: var(--ai-muted);
+}
+
+.name-input-section input {
+  border: 1.5px solid var(--ai-border);
+  border-radius: var(--ui-r-sm);
+  color: var(--ai-text);
+  background: var(--ai-surface);
+  transition: border-color .2s var(--ui-ease), box-shadow .24s var(--ui-ease);
+}
+
+.name-input-section input:focus {
+  outline: none;
+  border-color: color-mix(in srgb, var(--ui-accent) 70%, transparent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--ui-accent) 14%, transparent);
+}
+
+.avatar-preview {
+  border: 2px dashed color-mix(in srgb, var(--ui-accent) 38%, var(--ai-border));
+  transition: border-color .25s var(--ui-ease), transform .25s var(--ui-ease-out);
+}
+
+.avatar-preview:hover {
+  border-color: var(--ui-accent);
+  transform: scale(1.03);
+}
+
+.stat-item {
+  border: 1px solid var(--ai-border);
+  border-radius: var(--ui-r-md);
+  background: var(--ai-surface);
+  box-shadow: var(--ui-shadow-soft);
+}
+
+.stat-item:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--ui-accent) 40%, transparent);
+  box-shadow: var(--ui-shadow-lift);
+}
+
+.stat-icon {
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--ui-accent) 12%, transparent);
+}
+
+.stat-value {
+  color: var(--ai-text);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------------------------------------------------------------------
+   14. GAMES / HEAD TRACKING
+   --------------------------------------------------------------------- */
+.games-page .ui-button {
+  border-radius: var(--ui-r-sm);
+  background: var(--ui-veil);
+  backdrop-filter: blur(8px);
+}
+
+.game-page-nav,
+.top-bar {
+  background: var(--ui-veil);
+  backdrop-filter: blur(10px);
+}
+
+.game-status:not(:empty) {
+  border: 1px solid color-mix(in srgb, var(--ui-accent) 26%, transparent);
+  border-radius: var(--ui-r-sm);
+  background: color-mix(in srgb, var(--ui-accent) 8%, var(--ai-surface));
+}
+
+.camera-preview {
+  border-radius: var(--ui-r-md);
+  border: 1px solid color-mix(in srgb, var(--ui-accent) 26%, transparent);
+  box-shadow: 0 18px 44px -26px rgba(8, 24, 48, .6);
+}
+
+.question-panel {
+  border: 1px solid var(--ai-border);
+  border-radius: var(--ui-r-lg);
+  background: var(--ai-surface);
+  box-shadow: var(--ui-shadow-soft);
+}
+
+.player-stats,
+.instruction-item,
+.privacy-notice {
+  border: 1px solid var(--ai-border);
+  border-radius: var(--ui-r-md);
+  background: var(--ai-surface-soft);
+}
+
+/* ---------------------------------------------------------------------
+   15. ADMIN
+   --------------------------------------------------------------------- */
+.admin-topbar {
+  background:
+    radial-gradient(ellipse at 6% 0%, color-mix(in srgb, var(--ui-accent) 14%, transparent), transparent 60%),
+    var(--ai-surface);
+}
+
+.admin-brand {
+  background: var(--ui-grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -.02em;
+}
+
+.admin-card {
+  background:
+    radial-gradient(ellipse at 100% 0%, color-mix(in srgb, var(--ui-accent) 8%, transparent), transparent 58%),
+    var(--ai-surface);
+}
+
+.admin-table th {
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.admin-table tbody tr:hover td {
+  background: color-mix(in srgb, var(--ui-accent) 6%, transparent);
+}
+
+.admin-button.primary {
+  color: #fff;
+  background-image: var(--ui-grad);
+}
+
+.admin-button.danger {
+  color: #b42332;
+  border-color: #f5b8bd;
+}
+
+.admin-button.danger:hover {
+  color: #fff;
+  border-color: transparent;
+  background: linear-gradient(135deg, #f87171, #dc2626);
+}
+
+.admin-button.warning:hover {
+  color: #4a2600;
+  border-color: #f59e0b;
+}
+
+.admin-button.success:hover {
+  color: #fff;
+  border-color: transparent;
+  background: linear-gradient(135deg, #34d399, #059669);
+}
+
+.status-pill {
+  border: 1px solid color-mix(in srgb, #22c55e 40%, transparent);
+}
+
+.status-pill.locked {
+  border-color: color-mix(in srgb, #ef4444 34%, transparent);
+}
+
+.admin-table-wrap {
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--ai-surface) 70%, transparent);
+}
+
+/* admin-items */
+.shell {
+  --ui-accent: var(--ai-primary, #245f9f);
+}
+
+.user-list .user-list-item,
+.selected-user-card,
+.right-panel,
+.color-swatch {
+  transition: transform .2s var(--ui-ease-out), box-shadow .24s var(--ui-ease), border-color .2s var(--ui-ease);
+}
+
+.color-swatch {
+  border-radius: 10px;
+}
+
+.owned-badge,
+.selected-badge {
+  border-radius: 999px;
+}
+
+/* ---------------------------------------------------------------------
+   16. CỬA HÀNG TOKEN / MÀU
+   --------------------------------------------------------------------- */
+.shop-container {
+  background: transparent;
+}
+
+.shop-header {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--ui-r-xl);
+  background-image:
+    radial-gradient(ellipse at 12% 0%, color-mix(in srgb, var(--ui-cyan) 32%, transparent), transparent 55%),
+    radial-gradient(ellipse at 88% 100%, color-mix(in srgb, var(--ui-violet) 34%, transparent), transparent 55%),
+    linear-gradient(135deg, var(--ui-accent), color-mix(in srgb, var(--ui-violet) 70%, var(--ui-accent)));
+  box-shadow: 0 26px 60px -30px color-mix(in srgb, var(--ui-accent) 85%, transparent);
+}
+
+.shop-header h1,
+.shop-header p {
+  color: #fff;
+  -webkit-text-fill-color: initial;
+}
+
+.shop-header::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, .16) 50%, transparent 70%);
+  transform: translateX(-100%);
+  animation: uiShopSheen 9s var(--ui-ease) infinite;
+  pointer-events: none;
+}
+
+@keyframes uiShopSheen {
+  0% { transform: translateX(-100%); }
+  55%, 100% { transform: translateX(100%); }
+}
+
+.token-section,
+.color-section {
+  border: 1px solid var(--ai-border);
+  border-radius: var(--ui-r-lg);
+  color: var(--ai-text);
+  background: var(--ai-surface);
+  box-shadow: var(--ui-shadow-soft);
+}
+
+.section-title {
+  color: var(--ai-text);
+}
+
+.token-amount,
+.current-tokens {
+  color: var(--ui-accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.token-input {
+  border-width: 1.5px;
+}
+
+/* Color item trong cửa hàng */
+.shop-container .color-grid {
+  gap: 12px;
+}
+
+.shop-container .color-item {
+  border: 1px solid var(--ai-border);
+  border-radius: var(--ui-r-md);
+  background: linear-gradient(160deg, var(--ai-surface), var(--ai-surface-soft));
+  box-shadow: var(--ui-shadow-soft);
+}
+
+.shop-container .color-item.purchased {
+  border-color: color-mix(in srgb, #22c55e 42%, var(--ai-border));
+}
+
+.shop-container .color-item.locked .color-preview {
+  filter: saturate(.55) brightness(.95);
+}
+
+.shop-container .color-item .lock-icon {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 4;
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(6, 18, 34, .55);
+  backdrop-filter: blur(4px);
+  font-size: .72rem;
+}
+
+.shop-container .exclusive-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 4;
+  padding: 2px 8px;
+  border-radius: 999px;
+  color: #fff;
+  background: linear-gradient(135deg, #f59e0b, #d946ef);
+  box-shadow: 0 6px 16px -8px rgba(217, 70, 239, .8);
+  font-size: .6rem;
+  font-weight: 800;
+  letter-spacing: .04em;
+}
+
+.shop-container .gift-btn {
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--ui-accent) 32%, transparent);
+  color: var(--ui-accent);
+  background: color-mix(in srgb, var(--ui-accent) 10%, transparent);
+  cursor: pointer;
+}
+
+.shop-container .gift-btn:hover {
+  color: #fff;
+  border-color: transparent;
+  background-image: var(--ui-grad);
+}
+
+/* token-page */
+.token-card,
+.token-container .token-card {
+  border: 1px solid var(--ai-border);
+  border-radius: var(--ui-r-lg);
+  background: var(--ai-surface);
+  box-shadow: var(--ui-shadow-soft);
+}
+
+/* ---------------------------------------------------------------------
+   17. TÙY CHỈNH GIAO DIỆN
+   --------------------------------------------------------------------- */
+.settings-panel {
+  background:
+    radial-gradient(ellipse at 100% 0%, color-mix(in srgb, var(--ui-accent) 8%, transparent), transparent 58%),
+    var(--ai-surface);
+}
+
+.palette-option {
+  border-width: 1px;
+  box-shadow: 0 2px 6px -2px rgba(16, 38, 66, .08);
+}
+
+.palette-option:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 28px -18px color-mix(in srgb, var(--ui-accent) 80%, transparent);
+}
+
+.palette-option[aria-pressed="true"] {
+  border-color: var(--ui-accent);
+  background: color-mix(in srgb, var(--ui-accent) 9%, var(--ai-surface));
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--ui-accent) 22%, transparent),
+    0 14px 28px -20px color-mix(in srgb, var(--ui-accent) 80%, transparent);
+}
+
+.palette-swatch {
+  position: relative;
+  overflow: hidden;
+  transition: transform .25s var(--ui-ease-out), box-shadow .25s var(--ui-ease);
+}
+
+.palette-option:hover .palette-swatch {
+  transform: scale(1.06) rotate(-2deg);
+  box-shadow: 0 0 18px -6px currentColor;
+}
+
+.palette-swatch::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(140deg, rgba(255, 255, 255, .45), transparent 55%);
+  pointer-events: none;
+}
+
+.preview-canvas {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--ui-r-lg);
+  box-shadow: inset 0 0 0 1px var(--ui-hairline);
+}
+
+.preview-card {
+  border-radius: var(--ui-r-md);
+  box-shadow: var(--ui-shadow-soft);
+}
+
+.preview-action {
+  background-image: var(--ui-grad);
+  border-radius: var(--ui-r-sm);
+}
+
+/* ---------------------------------------------------------------------
+   18. DROPDOWN / SELECT / TABLE / STATUS
+   --------------------------------------------------------------------- */
+select,
+.dropdown,
+.dropdown-menu {
+  border-radius: var(--ui-r-sm);
+  color: var(--ai-text);
+  background-color: var(--ai-surface);
+}
+
+.dropdown-menu,
+[role="menu"] {
+  border: 1px solid var(--ai-border);
+  border-radius: var(--ui-r-md);
+  background: var(--ai-surface);
+  box-shadow: var(--ui-shadow-lift);
+  animation: uiModalIn .22s var(--ui-ease-out) both;
+}
+
+.status-dot {
+  position: relative;
+}
+
+.status-dot:not(.offline)::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, #34d399 55%, transparent);
+  animation: uiPing 2.4s var(--ui-ease) infinite;
+}
+
+@keyframes uiPing {
+  0% { transform: scale(.7); opacity: .9; }
+  70%, 100% { transform: scale(1.7); opacity: 0; }
+}
+
+/* ---------------------------------------------------------------------
+   19. DARK MODE — tinh chỉnh tương phản
+   --------------------------------------------------------------------- */
+:root[data-theme="dark"] .garden-page .setup,
+:root[data-theme="dark"] .garden-page .garden,
+:root[data-theme="dark"] .garden-page .garden-history,
+:root[data-theme="dark"] .join-card,
+:root[data-theme="dark"] .stat-item,
+:root[data-theme="dark"] .study-header {
+  background:
+    radial-gradient(ellipse at 0% 0%, rgba(120, 140, 255, .1), transparent 60%),
+    var(--ai-surface);
+}
+
+:root[data-theme="dark"] .game-art {
+  background:
+    radial-gradient(ellipse at 16% 22%, rgba(56, 189, 248, .28), transparent 42%),
+    radial-gradient(ellipse at 84% 80%, rgba(139, 92, 246, .26), transparent 40%),
+    linear-gradient(135deg, #131a30, #1a2040);
+}
+
+:root[data-theme="dark"] .tag-btn {
+  background: linear-gradient(145deg, var(--ai-surface), var(--ai-surface-soft));
+  color: var(--ai-text-secondary);
+}
+
+:root[data-theme="dark"] .home-stat,
+:root[data-theme="dark"] .home-link,
+:root[data-theme="dark"] .ui-toast {
+  background-color: rgba(27, 32, 55, .72);
+}
+
+:root[data-theme="dark"] .home-link {
+  background: linear-gradient(150deg, var(--ai-surface), var(--ai-surface-soft));
+}
+
+:root[data-theme="dark"] .ui-toast {
+  color: var(--ai-text);
+}
+
+:root[data-theme="dark"] .home-hub {
+  background:
+    radial-gradient(ellipse at 8% 0%, rgba(120, 150, 255, .18), transparent 62%),
+    radial-gradient(ellipse at 96% 100%, rgba(139, 92, 246, .16), transparent 58%),
+    linear-gradient(180deg, var(--ai-surface), var(--ai-page-2));
+}
+
+:root[data-theme="dark"] .admin-button.danger {
+  color: #ffb3b8;
+  border-color: rgba(248, 113, 113, .4);
+}
+
+:root[data-theme="dark"] .admin-button.warning {
+  color: #fcd29b;
+  border-color: rgba(245, 158, 11, .4);
+}
+
+:root[data-theme="dark"] .admin-button.success {
+  color: #8ff0b6;
+  border-color: rgba(34, 197, 94, .4);
+}
+
+:root[data-theme="dark"] .status-pill {
+  background: rgba(34, 197, 94, .16);
+  color: #8ff0b6;
+}
+
+:root[data-theme="dark"] .status-pill.locked {
+  background: rgba(239, 68, 68, .16);
+  color: #ffb3b8;
+}
+
+/* ---------------------------------------------------------------------
+   20. RESPONSIVE
+   --------------------------------------------------------------------- */
+@media (max-width: 1024px) {
+  .home-hub {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+  }
+
+  .home-links {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .home-hub {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+    padding: 14px;
+  }
+
+  .home-hub-eyebrow,
+  .home-hub-sub {
+    display: none;
+  }
+
+  .home-hub-title {
+    margin: 0 0 8px;
+    font-size: 1.18rem;
+  }
+
+  .home-links {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 7px;
+  }
+
+  .home-link {
+    min-height: 54px;
+    padding: 9px 10px;
+  }
+
+  .home-link small {
+    display: none;
+  }
+
+  .ui-toast-stack {
+    right: 10px;
+    left: 10px;
+    bottom: 10px;
+    width: auto;
+  }
+
+  .shop-header {
+    border-radius: var(--ui-r-lg);
+  }
+
+  .game-card:hover,
+  .settings-panel:hover,
+  .admin-card:hover,
+  .token-card:hover,
+  .join-card:hover,
+  .stat-item:hover {
+    transform: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .home-hub-title {
+    font-size: 1.25rem;
+  }
+
+  .home-stats {
+    gap: 7px;
+  }
+
+  .home-stat {
+    min-width: 84px;
+    padding: 8px 10px;
+  }
+
+  .home-links {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .home-link {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    min-height: 48px;
+  }
+
+  .home-link small {
+    display: none;
+  }
+
+  .ui-toast {
+    padding: 11px 12px;
+  }
+}
+
+@media (max-height: 720px) {
+  .home-hub {
+    gap: 10px;
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
+
+  .home-hub-sub {
+    display: none;
+  }
+
+  .home-hub-title {
+    margin: 8px 0 10px;
+    font-size: 1.15rem;
+  }
+
+  .home-link {
+    min-height: 54px;
+  }
+
+  .home-link small {
+    display: none;
+  }
+}
+
+@media (min-width: 1280px) {
+  .home-hub {
+    padding-left: clamp(20px, 2.6vw, 30px);
+    padding-right: clamp(20px, 2.6vw, 30px);
+  }
+
+  .home-links {
+    gap: 11px;
+  }
+}
+
+/* ---------------------------------------------------------------------
+   21. REDUCED MOTION
+   --------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  #ui-atmosphere .ui-aura,
+  .chat-header::after,
+  .header-icon,
+  .user-avatar-container::after,
+  .avatar-preview::after,
+  .color-item.selected::after,
+  .garden-page .progress-bar,
+  .shop-header::after,
+  .status-dot::after,
+  .tag-btn::after {
+    animation: none !important;
+  }
+
+  .ui-reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .message-wrapper,
+  .ui-toast,
+  .auth-modal.active .modal-content,
+  .admin-modal.active .admin-content,
+  .modal-overlay.open .modal-box,
+  body .auth-card,
+  body .login-card,
+  body .register-card {
+    animation: none !important;
+  }
+
+  html.ui-leaving body {
+    opacity: 1;
+  }
+}

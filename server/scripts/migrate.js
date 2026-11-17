@@ -2,7 +2,13 @@ const fs = require("node:fs/promises");
 const path = require("node:path");
 const { pool, closeDatabase } = require("../database");
 
-const MIGRATION_IDS = ["001_initial_schema", "002_garden_rewards_legacy_import"];
+// The runner is the single source of truth for recording applied migrations
+// in schema_migrations. Migration SQL files must not insert their own markers.
+const MIGRATION_IDS = [
+  "001_initial_schema",
+  "002_garden_rewards_legacy_import",
+  "003_ban_columns"
+];
 
 async function main() {
   if (!pool) {

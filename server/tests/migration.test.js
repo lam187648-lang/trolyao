@@ -28,7 +28,7 @@ function runMigrateAsync(databaseUrl) {
   });
 }
 
-test("migrations 001 and 002", async (t) => {
+test("migrations 001, 002 and 003", async (t) => {
   assertSafeTestDatabase();
   const admin = new Client({ connectionString: urlFor("postgres") });
   await admin.connect();
@@ -46,21 +46,33 @@ test("migrations 001 and 002", async (t) => {
     await admin.end();
   });
 
-  await t.test("fresh database: applies 001 and 002, rerun is a no-op", async () => {
+  await t.test("fresh database: applies 001, 002 and 003, rerun is a no-op", async () => {
     const { url, client } = await freshDatabase("fresh");
     const first = runMigrate(url);
     assert.equal(first.status, 0, first.stderr);
     assert.match(first.stdout, /Applied migration 001_initial_schema/);
     assert.match(first.stdout, /Applied migration 002_garden_rewards_legacy_import/);
+    assert.match(first.stdout, /Applied migration 003_ban_columns/);
     const second = runMigrate(url);
     assert.equal(second.status, 0, second.stderr);
     assert.match(second.stdout, /002_garden_rewards_legacy_import is already applied/);
+    assert.match(second.stdout, /003_ban_columns is already applied/);
     const ids = (await client.query("SELECT migration_id FROM schema_migrations ORDER BY migration_id")).rows.map((row) => row.migration_id);
-    assert.deepEqual(ids, ["001_initial_schema", "002_garden_rewards_legacy_import"]);
+    assert.deepEqual(ids, ["001_initial_schema", "002_garden_rewards_legacy_import", "003_ban_columns"]);
     const check = await client.query("SELECT pg_get_constraintdef(oid) AS def FROM pg_constraint WHERE conname = 'token_transactions_transaction_type_check'");
     assert.match(check.rows[0].def, /garden_reward/);
     const checks = await client.query("SELECT COUNT(*)::int AS n FROM pg_constraint WHERE conrelid = 'token_transactions'::regclass AND contype = 'c' AND pg_get_constraintdef(oid) LIKE '%transaction_type%'");
     assert.equal(checks.rows[0].n, 1, "exactly one transaction_type check");
+    const banColumns = await client.query(
+      `SELECT column_name FROM information_schema.columns
+       WHERE table_schema = current_schema() AND table_name = 'users'
+         AND column_name IN ('ban_reason', 'ban_started_at', 'ban_expires_at')
+       ORDER BY column_name`
+    );
+    assert.deepEqual(
+      banColumns.rows.map((row) => row.column_name),
+      ["ban_expires_at", "ban_reason", "ban_started_at"]
+    );
     await client.end();
   });
 
@@ -76,7 +88,14 @@ test("migrations 001 and 002", async (t) => {
     const result = runMigrate(url);
     assert.equal(result.status, 0, result.stderr);
     assert.match(result.stdout, /001_initial_schema is already applied/);
-    assert.match(result.stdout, /Applied migration 002/);
+    assert.match(result.stdout, /Applied migration 002_garden_rewards_legacy_import/);
+    assert.match(result.stdout, /Applied migration 003_ban_columns/);
+    const upgradedColumns = await client.query(
+      `SELECT column_name FROM information_schema.columns
+       WHERE table_schema = current_schema() AND table_name = 'users'
+         AND column_name IN ('ban_reason', 'ban_started_at', 'ban_expires_at')`
+    );
+    assert.equal(upgradedColumns.rows.length, 3, "migration 003 adds all ban columns");
     const balance = await client.query("SELECT token_balance FROM users WHERE username = 'legacy'");
     assert.equal(Number(balance.rows[0].token_balance), 120);
     assert.equal((await client.query("SELECT COUNT(*)::int AS n FROM token_transactions")).rows[0].n, 1);
@@ -91,6 +110,27 @@ test("migrations 001 and 002", async (t) => {
       /check constraint/,
       "negative balance still blocked"
     );
+    await client.end();
+  });
+
+  await t.test("003 is safe when columns already exist but its marker is missing", async () => {
+    const { url, client } = await freshDatabase("manual003");
+    const sql001 = fs.readFileSync(path.join(__dirname, "..", "migrations", "001_initial_schema.sql"), "utf8");
+    await client.query("CREATE TABLE schema_migrations (migration_id TEXT PRIMARY KEY, applied_at TIMESTAMPTZ NOT NULL DEFAULT NOW())");
+    await client.query(sql001);
+    await client.query("INSERT INTO schema_migrations (migration_id) VALUES ('001_initial_schema')");
+    await client.query(`
+      ALTER TABLE users ADD COLUMN ban_reason TEXT;
+      ALTER TABLE users ADD COLUMN ban_started_at TIMESTAMPTZ;
+      ALTER TABLE users ADD COLUMN ban_expires_at TIMESTAMPTZ;
+    `);
+    const result = runMigrate(url);
+    assert.equal(result.status, 0, result.stderr);
+    assert.match(result.stdout, /Applied migration 003_ban_columns/);
+    const marker = await client.query(
+      "SELECT COUNT(*)::int AS n FROM schema_migrations WHERE migration_id = '003_ban_columns'"
+    );
+    assert.equal(marker.rows[0].n, 1, "runner records the marker exactly once");
     await client.end();
   });
 
@@ -115,6 +155,7 @@ test("migrations 001 and 002", async (t) => {
     const retry = runMigrate(url);
     assert.equal(retry.status, 0, retry.stderr);
     assert.match(retry.stdout, /Applied migration 002/);
+    assert.match(retry.stdout, /Applied migration 003/);
     await client.end();
   });
 
@@ -122,9 +163,10 @@ test("migrations 001 and 002", async (t) => {
     const { url, client } = await freshDatabase("race");
     const results = await Promise.all([runMigrateAsync(url), runMigrateAsync(url), runMigrateAsync(url)]);
     assert.ok(results.every((item) => item.status === 0), results.map((item) => item.output).join("\n"));
-    const appliedLines = results.map((item) => item.output).join("").match(/Applied migration 002/g) || [];
-    assert.equal(appliedLines.length, 1);
-    assert.equal((await client.query("SELECT COUNT(*)::int AS n FROM schema_migrations")).rows[0].n, 2);
+    const combined = results.map((item) => item.output).join("");
+    assert.equal((combined.match(/Applied migration 002/g) || []).length, 1);
+    assert.equal((combined.match(/Applied migration 003/g) || []).length, 1);
+    assert.equal((await client.query("SELECT COUNT(*)::int AS n FROM schema_migrations")).rows[0].n, 3);
     await client.end();
   });
 

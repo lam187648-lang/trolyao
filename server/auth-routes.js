@@ -1,7 +1,7 @@
 const crypto = require("node:crypto");
 const express = require("express");
 const bcrypt = require("bcryptjs");
-const { pool, requireDatabase, withTransaction, checkInitialSchemaMigration } = require("./database");
+const { pool, requireDatabase, withTransaction, checkSchemaStatus } = require("./database");
 const { authenticate, hashSessionToken } = require("./auth-middleware");
 
 const router = express.Router();
@@ -62,11 +62,20 @@ async function createSession(client, userId) {
 }
 
 router.get("/status", asyncRoute(async (_req, res) => {
-  const databaseConfigured = Boolean(pool);
-  const migrationApplied = databaseConfigured
-    ? await checkInitialSchemaMigration()
-    : false;
-  res.json({ databaseConfigured, migrationApplied });
+  const schema = await checkSchemaStatus();
+  res.json({
+    databaseConfigured: schema.databaseConfigured,
+    databaseConnected: schema.databaseConnected,
+    // Kept for backward compatibility: this only reports the 001 marker.
+    migrationApplied: schema.migrations["001_initial_schema"],
+    migrations: schema.migrations,
+    pendingMigrations: schema.pendingMigrations,
+    // True only when the users table and all ban_* columns required by auth exist.
+    schemaReady: schema.schemaReady,
+    missingTables: schema.missingTables,
+    missingColumns: schema.missingColumns,
+    errorCode: schema.errorCode
+  });
 }));
 
 router.use(requireDatabase);
